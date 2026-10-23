@@ -89,10 +89,16 @@ function pathFor(t, w, h, th) {
       ]),
     );
   else if (t === 'bubble') {
-    p.roundRect(0, 0, w, h * 0.8, Math.min(w, h) * 0.16);
-    p.moveTo(w * 0.2, h * 0.78);
+    const r = Math.min(w, h) * 0.16,
+      bh = h * 0.8;
+    p.moveTo(r, 0);
+    p.arcTo(w, 0, w, r, r);
+    p.arcTo(w, bh, w - r, bh, r);
+    p.lineTo(w * 0.4, bh);
     p.lineTo(w * 0.15, h);
-    p.lineTo(w * 0.4, h * 0.78);
+    p.lineTo(w * 0.2, bh);
+    p.arcTo(0, bh, 0, bh - r, r);
+    p.arcTo(0, 0, r, 0, r);
     p.closePath();
   } else if (t === 'arrowr')
     poly([

@@ -109,7 +109,7 @@ function renderPanel() {
     t = S.tab;
   let h = '';
   if (t === 'templates') {
-    h = `<h3>Plantillas</h3><div class="grid g2" id="tpls"></div><p class="hint">Al elegir una, reemplaza la página actual. Puedes deshacer con Ctrl+Z.</p>`;
+    h = `<h3>Plantillas</h3>${styleSeg()}<div class="grid g2" id="tpls"></div><p class="hint">Al elegir una, reemplaza la página actual. Puedes deshacer con Ctrl+Z.</p>`;
   } else if (t === 'elements') {
     const pixel = S.style === 'pixel';
     h = `<h3>Elementos</h3>${styleSeg()}<div class="row"><input type="text" id="elsearch" placeholder="${pixel ? 'Buscar: corazón, espada, nube…' : 'Buscar: círculo, flecha, globo…'}" aria-label="Buscar elementos"></div>
@@ -312,11 +312,12 @@ function renderPanel() {
   }
   if (t === 'templates') {
     TPL.forEach((tp, i) => {
+      if (tplStyle(tp) !== S.style) return;
       const b = document.createElement('button');
       b.className = 'card tpl';
       b.dataset.tpl = i;
       const c = renderPageCanvas(tp.build(), 0.1);
-      c.className = 'px';
+      c.className = S.style === 'pixel' ? 'px' : '';
       b.append(c, tp.name);
       $('#tpls').append(b);
     });
