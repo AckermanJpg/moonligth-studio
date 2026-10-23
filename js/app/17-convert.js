@@ -279,7 +279,10 @@ async function importPDF(file) {
   toast('Leyendo PDF…');
   try {
     await loadPdfjs();
-    const doc = await window.pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise,
+    const doc = await window.pdfjsLib.getDocument({
+        data: await file.arrayBuffer(),
+        isEvalSupported: false,
+      }).promise,
       n = Math.min(doc.numPages, 30),
       made = [];
     let W = S.w,
