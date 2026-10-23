@@ -560,7 +560,7 @@ homeEl.addEventListener('keydown', ev => {
 function continueSaved() {
   try {
     restore(savedInfo.js);
-  } catch (e) {
+  } catch {
     toast('No se pudo abrir el proyecto guardado');
     return;
   }

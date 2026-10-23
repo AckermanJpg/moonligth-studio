@@ -201,7 +201,7 @@ pageEl.addEventListener('pointerdown', ev => {
     }
     return;
   }
-  const e = find(n.dataset.id);
+  const e = findEl(n.dataset.id);
   if (!e) return;
   if (ev.shiftKey) {
     const g = expandGroup([e.id]);
@@ -227,7 +227,7 @@ stageEl.addEventListener('pointerdown', ev => {
 pageEl.addEventListener('dblclick', ev => {
   const n = ev.target.closest('.el');
   if (!n) return;
-  const e = find(n.dataset.id);
+  const e = findEl(n.dataset.id);
   if (e && e.type === 'image' && !e.locked) {
     S.sel = [e.id];
     openCrop();
@@ -250,7 +250,7 @@ function endEdit() {
   editing = null;
   t.contentEditable = 'false';
   const n = t.closest('.el'),
-    e = n && find(n.dataset.id);
+    e = n && findEl(n.dataset.id);
   if (e) {
     const v = t.innerText.replace(/\n$/, '');
     if (v !== e.text) {

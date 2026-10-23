@@ -29,7 +29,7 @@ function loadProjectJSON(js) {
     if (!o || !Array.isArray(o.pages) || !o.pages.length || !o.w || !o.h) return false;
     openProject(o, {tab: 'images'});
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

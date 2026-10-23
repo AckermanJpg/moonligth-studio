@@ -514,14 +514,14 @@ $('#props').addEventListener('click', ev => {
     S.h = h;
     refresh({fit: true, props: true});
   } else if ((b = q('[data-lh]'))) {
-    const e = find(b.dataset.lh);
+    const e = findEl(b.dataset.lh);
     touch(true);
     e.hidden = !e.hidden;
     if (e.hidden) S.sel = S.sel.filter(i => i !== e.id);
     refresh({props: true});
     ev.stopPropagation();
   } else if ((b = q('[data-ll]'))) {
-    const e = find(b.dataset.ll);
+    const e = findEl(b.dataset.ll);
     touch(true);
     e.locked = !e.locked;
     refresh({props: true});

@@ -225,7 +225,7 @@
         c = core.cv(o.w, o.h);
       c.getContext('2d').drawImage(im, 0, 0);
       setSource(c, f.name.replace(/\.[^.]+$/, '') || 'imagen');
-    } catch (e) {
+    } catch {
       core.toast('Solo se aceptan imágenes');
     }
   }

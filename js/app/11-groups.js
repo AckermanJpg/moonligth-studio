@@ -2,7 +2,7 @@
 const expandGroup = ids => {
   const g = new Set(
     ids
-      .map(find)
+      .map(findEl)
       .filter(x => x && x.gid)
       .map(x => x.gid),
   );

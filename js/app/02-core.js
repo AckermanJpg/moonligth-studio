@@ -44,9 +44,9 @@ const cv = (w, h) => {
 };
 const pg = () => S.pages[S.cur],
   els = () => pg().els,
-  find = i => els().find(e => e.id === i);
-const selEls = () => S.sel.map(find).filter(Boolean),
-  prim = () => find(S.sel[0]);
+  findEl = i => els().find(e => e.id === i);
+const selEls = () => S.sel.map(findEl).filter(Boolean),
+  prim = () => findEl(S.sel[0]);
 const toast = m => {
   $('#toast').textContent = m;
   const f = $('#flash');
@@ -192,7 +192,7 @@ function restore(js) {
   S.pages = o.pages;
   S.cur = clamp(o.cur || 0, 0, o.pages.length - 1);
   uid = 1 + Math.max(0, ...S.pages.flatMap(p => p.els.map(e => +String(e.id).slice(1) || 0)));
-  S.sel = S.sel.filter(i => find(i));
+  S.sel = S.sel.filter(findEl);
   $('#name').value = S.name;
 }
 function undo() {

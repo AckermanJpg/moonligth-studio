@@ -119,7 +119,7 @@ $('#mbox').addEventListener('click', async ev => {
       try {
         await navigator.clipboard.write([new ClipboardItem({'image/png': b})]);
         toast('Imagen copiada');
-      } catch (e) {
+      } catch {
         toast('El navegador no permite copiar; guarda la imagen con clic derecho');
         show([S.cur]);
       }
@@ -128,7 +128,7 @@ $('#mbox').addEventListener('click', async ev => {
     try {
       await navigator.clipboard.writeText($('#xjson').value);
       toast('JSON copiado');
-    } catch (e) {
+    } catch {
       $('#xjson').select();
     }
   } else if (id === 'xload') {
@@ -138,7 +138,7 @@ $('#mbox').addEventListener('click', async ev => {
       $('#modal').classList.remove('on');
       refresh({props: true, panel: true, fit: true});
       toast('Proyecto cargado');
-    } catch (e) {
+    } catch {
       hist.pop();
       toast('JSON inválido');
     }

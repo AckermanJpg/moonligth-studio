@@ -232,7 +232,7 @@ async function convertImages(list, fmt) {
         blob: await toBlob(c, fmt === 'png' ? 'image/png' : 'image/jpeg', S.conv.q / 100),
       });
     }
-  } catch (e) {
+  } catch {
     toast('No se pudo leer una de las imágenes');
     return;
   }
@@ -322,7 +322,7 @@ async function importPDF(file) {
     S.sel = [];
     refresh({props: true, panel: true, fit: true});
     toast(`PDF importado: ${made.length} página(s)${doc.numPages > n ? ' (máx. 30)' : ''}`);
-  } catch (e) {
+  } catch {
     toast('No se pudo abrir el PDF');
   }
 }

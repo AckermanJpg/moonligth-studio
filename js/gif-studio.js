@@ -310,7 +310,7 @@
     for (const f of list) {
       try {
         st.clips.push(f.type.startsWith('video/') ? await loadVideo(f) : await loadImage(f));
-      } catch (e) {
+      } catch {
         core.toast(`No se pudo leer ${f.name}. Prueba con MP4 o WebM.`);
       }
     }
@@ -479,7 +479,7 @@
       };
       status('');
       paintResult();
-    } catch (e) {
+    } catch {
       status('No se pudo crear el GIF. Prueba con un tamaño más pequeño.');
     }
     st.busy = false;
