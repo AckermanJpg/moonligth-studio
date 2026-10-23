@@ -72,8 +72,12 @@ const esc = s =>
   String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]);
 
 // Model
+const defaultBg = () =>
+  S.style === 'pixel'
+    ? {pat: 'gradient', c1: '#0b2a8a', c2: '#3fe0ff'}
+    : {pat: 'solid', c1: '#ffffff', c2: '#ffffff'};
 function newPage(bg) {
-  return {bg: bg || {pat: 'gradient', c1: '#0b2a8a', c2: '#3fe0ff'}, els: []};
+  return {bg: bg || defaultBg(), els: []};
 }
 function mk(type, o = {}) {
   const e = {

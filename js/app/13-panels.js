@@ -55,6 +55,22 @@ function renderRail() {
     R.append(b);
   });
 }
+const BG_COMBOS_PIXEL = [
+  ['#0b2a8a', '#3fe0ff'],
+  ['#020821', '#1a5cff'],
+  ['#050d2b', '#d6f8ff'],
+  ['#1a5cff', '#d6f8ff'],
+  ['#000000', '#8a2be2'],
+  ['#ffffff', '#d6f8ff'],
+];
+const BG_COMBOS_NORMAL = [
+  ['#ffffff', '#e5e7eb'],
+  ['#f97316', '#ec4899'],
+  ['#3b82f6', '#8b5cf6'],
+  ['#10b981', '#06b6d4'],
+  ['#111827', '#4b5563'],
+  ['#fde68a', '#fca5a5'],
+];
 const STYLE_BASE = {normal: {px: 1, fill: '#3b82f6'}, pixel: {}};
 const styleSeg = () =>
   `<div class="seg styleseg" role="group" aria-label="Estilo">${[
@@ -86,7 +102,7 @@ function bgPreview(k, c1, c2) {
       }
     return c;
   }
-  return bgCanvas({bg: {pat: k, c1, c2}}, W, H);
+  return bgCanvas({bg: {pat: k, c1, c2, smooth: S.style === 'normal'}}, W, H);
 }
 function renderPanel() {
   const P = $('#panel'),
@@ -152,23 +168,24 @@ function renderPanel() {
     <h4>Tus imágenes</h4>${S.uploads.length ? `<div class="ups">${S.uploads.map((s, i) => `<img data-up="${i}" src="${s}" alt="Imagen ${i + 1}" tabindex="0">`).join('')}</div>` : '<p class="hint">Aún no subes ninguna. Usa el control Pixelado para convertirlas en pixel art.</p>'}`;
   } else if (t === 'bg') {
     const b = pg().bg,
-      none = b.pat === 'none';
-    h = `<h3>Fondo</h3><h4>Tipo de fondo</h4><div class="grid g2">${PATS.map(([k, n, d]) => `<button class="card" data-pat="${k}" style="${b.pat === k ? 'border-color:var(--gold);box-shadow:3px 3px 0 var(--royal)' : ''}"><span data-pp="${k}"></span><b>${n}</b>${d}</button>`).join('')}</div>
-    ${none ? '' : `<h4>Tamaño del pixel</h4><div class="row"><input type="range" data-bgpx min="2" max="32" value="${b.px || 8}"><span id="bgpxv">${b.px || 8}</span></div>`}
+      none = b.pat === 'none',
+      pixel = S.style === 'pixel';
+    h = `<h3>Fondo</h3>${styleSeg()}<h4>Tipo de fondo</h4><div class="grid g2">${PATS.filter(
+      ([k]) => pixel || ['none', 'solid', 'gradient', 'image'].includes(k),
+    )
+      .map(
+        ([k, n, d]) =>
+          `<button class="card" data-pat="${k}" style="${b.pat === k ? 'border-color:var(--gold);box-shadow:3px 3px 0 var(--royal)' : ''}"><span data-pp="${k}"></span><b>${n}</b>${d}</button>`,
+      )
+      .join('')}</div>
+    ${none || !pixel || (b.pat === 'gradient' && b.smooth) ? '' : `<h4>Tamaño del pixel</h4><div class="row"><input type="range" data-bgpx min="2" max="32" value="${b.px || 8}"><span id="bgpxv">${b.px || 8}</span></div>`}
     ${b.pat === 'image' ? `<h4>Imagen de fondo</h4><button class="btn sm on" data-bgpick="1">Subir imagen</button><input type="file" id="bgfile" accept="image/*" hidden>${S.uploads.length ? `<div class="ups" style="margin-top:8px">${S.uploads.map((u, i) => `<img data-bgimg="${i}" src="${esc(u)}" alt="Imagen ${i + 1}" tabindex="0">`).join('')}</div>` : '<p class="hint">Sube una imagen o usa una de la pestaña Imágenes.</p>'}` : ''}
     ${
       none
         ? '<p class="hint">El cuadriculado solo se ve en el editor. Descarga en PNG para conservar la transparencia.</p>'
         : `<h4>${b.pat === 'solid' ? 'Color' : 'Color principal'}</h4><div class="row"><input type="color" data-bg="c1" value="${b.c1}"><button class="btn sm" data-dropper="bg:c1">◉ Cuentagotas</button></div>${swHTML('bg:c1')}
     ${b.pat === 'solid' ? '' : `<h4>Segundo color</h4><div class="row"><input type="color" data-bg="c2" value="${b.c2}"></div>${swHTML('bg:c2')}`}
-    <h4>Combos</h4><div class="grid g2">${[
-      ['#0b2a8a', '#3fe0ff'],
-      ['#020821', '#1a5cff'],
-      ['#050d2b', '#d6f8ff'],
-      ['#1a5cff', '#d6f8ff'],
-      ['#000000', '#8a2be2'],
-      ['#ffffff', '#d6f8ff'],
-    ]
+    <h4>Combos</h4><div class="grid g2">${(pixel ? BG_COMBOS_PIXEL : BG_COMBOS_NORMAL)
       .map(
         ([a, c]) =>
           `<button class="card" data-combo="${a},${c}" style="background:linear-gradient(90deg,${a} 50%,${c} 50%);height:34px;min-height:0"></button>`,
@@ -548,6 +565,7 @@ $('#panel').addEventListener('click', ev => {
   } else if ((b = q('[data-pat]'))) {
     touch(true);
     pg().bg.pat = b.dataset.pat;
+    pg().bg.smooth = S.style === 'normal';
     if (b.dataset.pat === 'image' && !pg().bg.src && S.uploads[0]) pg().bg.src = S.uploads[0];
     if (b.dataset.pat === 'none') S.conv.fmt = 'png';
     refresh({panel: true});
