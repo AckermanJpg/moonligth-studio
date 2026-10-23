@@ -89,7 +89,7 @@ function setStyle(k) {
 }
 const swHTML = f =>
   `<div class="sws" data-for="${f}">${PAL.map(c => `<i class="sw" tabindex="0" role="button" aria-label="${c}" style="background:${c}" data-color="${c}"></i>`).join('')}</div>`;
-function bgPreview(k, c1, c2) {
+function bgPreview(k, c1, c2, smooth = S.style === 'normal') {
   const W = 192,
     H = 128;
   if (k === 'none') {
@@ -102,7 +102,7 @@ function bgPreview(k, c1, c2) {
       }
     return c;
   }
-  return bgCanvas({bg: {pat: k, c1, c2, smooth: S.style === 'normal'}}, W, H);
+  return bgCanvas({bg: {pat: k, c1, c2, smooth}}, W, H);
 }
 function renderPanel() {
   const P = $('#panel'),

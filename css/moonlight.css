@@ -1345,7 +1345,8 @@ details.sec > :not(summary) {
   top: 16px;
   min-width: 0;
 }
-.hshow .hh {
+.hshow .hh,
+.cover .hhero + .hh {
   margin-top: 0;
 }
 .hstage {
@@ -1431,6 +1432,7 @@ details.sec > :not(summary) {
   font-size: 14px;
 }
 .cover .hbody h2 {
+  margin-top: 28px;
   font-size: 28px;
 }
 .cover .hbody .lead {
@@ -1438,6 +1440,16 @@ details.sec > :not(summary) {
 }
 .cover .hfacts {
   grid-template-columns: 1fr;
+}
+.hgrid.hstyle {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.hstyle .hcard {
+  min-height: 150px;
+}
+.hstyle .hcard .ic {
+  width: 32px;
+  height: 32px;
 }
 .hbody h2 {
   margin: 0 0 8px;
@@ -1505,12 +1517,6 @@ details.sec > :not(summary) {
   color: var(--mute);
   font-size: 13px;
   line-height: 1.35;
-}
-.hcta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 8px;
 }
 .hgrid {
   display: grid;
@@ -1805,7 +1811,6 @@ details.sec > :not(summary) {
   animation-delay: 0.16s;
 }
 #home.enter .hfacts > *,
-#home.enter .hcta,
 #home.enter .hgrid > *,
 #home.enter .hlist > *,
 #home.enter .hbody > .cform,

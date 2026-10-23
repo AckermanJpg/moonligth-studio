@@ -94,7 +94,7 @@ const HOME_FACTS = [
 ];
 const H = {
   step: 1,
-  showCats: false,
+  style: null,
   cat: null,
   dest: -1,
   custom: false,
@@ -114,7 +114,7 @@ const H = {
   sure: false,
   tc: {},
 };
-const HOME_DEFAULT = {cat: 'social', dest: 0, custom: false, bg: 'gradient', tpl: -1};
+const HOME_DEFAULT = {cat: 'social', dest: 0, custom: false, bg: 'white', tpl: -1};
 let savedInfo = null;
 const homeEl = $('#home');
 const catOf = id => CATS.find(c => c.id === id);
@@ -139,6 +139,12 @@ function homeSize() {
   return d ? [d[1], d[2]] : null;
 }
 const sizeOK = z => z && z[0] >= 16 && z[1] >= 16 && z[0] <= 5000 && z[1] <= 5000;
+const bgOptions = () =>
+  H.style === 'pixel'
+    ? BGM
+    : BGM.filter(b => b[0] !== 'pattern').map(b =>
+        b[0] === 'gradient' ? ['gradient', 'Degradado', 'Dos colores'] : b,
+      );
 const bgFromH = () =>
   H.bg === 'none'
     ? {pat: 'none', c1: '#ffffff', c2: '#ffffff'}
@@ -147,7 +153,7 @@ const bgFromH = () =>
       : H.bg === 'color'
         ? {pat: 'solid', c1: H.c1, c2: H.c1}
         : H.bg === 'gradient'
-          ? {pat: 'gradient', c1: H.c1, c2: H.c2}
+          ? {pat: 'gradient', c1: H.c1, c2: H.c2, smooth: H.style !== 'pixel'}
           : {pat: H.pat, c1: H.c1, c2: H.c2};
 const canNext = () =>
   H.step === 1 ? !!H.cat : H.cat === 'pdf' ? !!H.pdf : H.cat === 'photo' ? !!H.photo : sizeOK(homeSize());
@@ -225,13 +231,21 @@ function homeBody() {
   const st = H.step,
     cat = catOf(H.cat);
   if (st === 1) {
-    return `<div class="hhero">${LOGO_MARK}<div><div class="hword">MOON<b>LIGHT</b> STUDIO</div><p>Diseño, impresión y GIF en pixel art</p></div></div>
+    return `<div class="hhero">${LOGO_MARK}<div><div class="hword">MOON<b>LIGHT</b> STUDIO</div><p>Diseño, impresión y GIF en tu navegador</p></div></div>
+    <h3 class="hh">¿Cómo quieres diseñar?</h3><div class="hgrid hstyle">${[
+      ['normal', 'palette', 'Diseño normal', 'Formas suaves, fuentes limpias y plantillas modernas.'],
+      ['pixel', 'gamepad', 'Pixel art', 'Sprites, fuentes pixel y pincel píxel a píxel.'],
+    ]
+      .map(
+        ([k, ic, t, d]) =>
+          `<button class="hcard${H.style === k ? ' on' : ''}" data-act="style:${k}" aria-pressed="${H.style === k}"><span data-ic="${ic}"></span><b>${t}</b><small>${d}</small></button>`,
+      )
+      .join('')}</div>
+    ${H.style ? `<h3 class="hh">¿Qué vas a crear?</h3><div class="hgrid">${CATS.map(c => `<button class="hcard${H.cat === c.id ? ' on' : ''}" data-act="cat:${c.id}"><span data-ic="${c.spr}"></span><b>${c.name}</b><small>${c.desc}</small></button>`).join('')}</div>` : ''}
+    ${savedInfo ? `<h3 class="hh">O sigue con tu trabajo</h3><button class="hcard wide" data-act="continue"><span data-ic="star"></span><b>Continuar: ${esc(savedInfo.name)}</b><small>${savedInfo.w} × ${savedInfo.h} px · guardado en este navegador</small></button>` : ''}
     <h2>Tu estudio de diseño en el navegador</h2>
-    <p class="lead">Editor con estética pixel art que corre completo en tu equipo: sin cuenta ni servidor, tus archivos no salen de aquí.</p>
-    <ul class="hfacts">${HOME_FACTS.map(([ic, t, d]) => `<li><span data-ic="${ic}"></span><b>${t}</b><small>${d}</small></li>`).join('')}</ul>
-    <div class="hcta"><button class="btn on" data-act="toggle" aria-expanded="${H.showCats}">${H.showCats ? 'Ocultar opciones' : 'Nuevo proyecto'}</button></div>
-    ${H.showCats ? `<h3 class="hh">¿Qué vas a crear?</h3><div class="hgrid">${CATS.map(c => `<button class="hcard${H.cat === c.id ? ' on' : ''}" data-act="cat:${c.id}"><span data-ic="${c.spr}"></span><b>${c.name}</b><small>${c.desc}</small></button>`).join('')}</div>` : ''}
-    ${savedInfo ? `<h3 class="hh">O sigue con tu trabajo</h3><button class="hcard wide" data-act="continue"><span data-ic="star"></span><b>Continuar: ${esc(savedInfo.name)}</b><small>${savedInfo.w} × ${savedInfo.h} px · guardado en este navegador</small></button>` : ''}`;
+    <p class="lead">Editor que corre completo en tu equipo: sin cuenta ni servidor, tus archivos no salen de aquí.</p>
+    <ul class="hfacts">${HOME_FACTS.map(([ic, t, d]) => `<li><span data-ic="${ic}"></span><b>${t}</b><small>${d}</small></li>`).join('')}</ul>`;
   }
   if (st === 2 && H.cat === 'photo') {
     const opts = [
@@ -272,10 +286,15 @@ function homeBody() {
     ${H.custom ? customForm() : ''}`;
   }
   return `<h2>Fondo y plantilla</h2><p class="lead">Elige cómo empieza tu lienzo. Todo se puede cambiar después.</p>
-  <h3 class="hh">Fondo</h3><div class="hgrid sm">${BGM.map(([k, l, d]) => `<button class="hcard${H.bg === k && H.tpl < 0 ? ' on' : ''}" data-act="bg:${k}"><span data-bgp="${k}"></span><b>${l}</b><small>${d}</small></button>`).join('')}</div>
+  <h3 class="hh">Fondo</h3><div class="hgrid sm">${bgOptions()
+    .map(
+      ([k, l, d]) =>
+        `<button class="hcard${H.bg === k && H.tpl < 0 ? ' on' : ''}" data-act="bg:${k}"><span data-bgp="${k}"></span><b>${l}</b><small>${d}</small></button>`,
+    )
+    .join('')}</div>
   <div id="bgcfg">${bgConfig()}</div>
   <h3 class="hh">Plantilla (opcional)</h3><div class="hgrid sm"><button class="hcard${H.tpl < 0 ? ' on' : ''}" data-act="tpl:-1"><b>Empezar en blanco</b><small>Con el fondo elegido arriba</small></button>
-  ${TPL.map((t, i) => `<button class="hcard tpl${H.tpl === i ? ' on' : ''}" data-act="tpl:${i}"><span data-tp="${i}"></span><b>${t.name}</b></button>`).join('')}</div>`;
+  ${TPL.map((t, i) => (tplStyle(t) === (H.style || 'normal') ? `<button class="hcard tpl${H.tpl === i ? ' on' : ''}" data-act="tpl:${i}"><span data-tp="${i}"></span><b>${t.name}</b></button>` : '')).join('')}</div>`;
 }
 const SHOW_NAMES = [
   'Full Moon',
@@ -288,12 +307,29 @@ const SHOW_NAMES = [
   'Insignia (PNG)',
 ];
 const SHOW_MS = 5000;
-const showList = SHOW_NAMES.map(n => TPL.findIndex(t => t.name === n)).filter(i => i >= 0);
+const SHOW_NORMAL = [
+  'Oferta moderna',
+  'Frase inspiradora',
+  'Evento minimal',
+  'Producto destacado',
+  'Portada de blog',
+  'Invitación elegante',
+  'Anuncio de promo',
+  'Cumpleaños moderno',
+];
+const showIdx = names => names.map(n => TPL.findIndex(t => t.name === n)).filter(i => i >= 0);
+function showTpls() {
+  if (H.style) return showIdx(H.style === 'pixel' ? SHOW_NAMES : SHOW_NORMAL);
+  const n = showIdx(SHOW_NORMAL).slice(0, 4),
+    p = showIdx(SHOW_NAMES).slice(0, 4);
+  return n.flatMap((i, k) => [i, p[k]]).filter(i => i !== undefined);
+}
 const showCache = new Map();
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let showPos = 0,
   showTimer = 0;
 function homeShow() {
+  const showList = showTpls();
   if (!showList.length) return '';
   return `<section class="hshow" role="region" aria-roledescription="carrusel" aria-label="Lo que puedes crear"><h3 class="hh">Lo que puedes crear</h3><div class="hstage" aria-live="off"></div>
   <div class="hctl"><button class="btn sm" data-act="show:prev" aria-label="Plantilla anterior">←</button><p class="hcap"></p><button class="btn sm" data-act="show:next" aria-label="Plantilla siguiente">→</button></div>
@@ -308,7 +344,9 @@ function showCanvas(i) {
       fonts = [...new Set(page.els.filter(e => e.type === 'text').map(e => e.font))];
     showCache.set(
       i,
-      Promise.all(fonts.flatMap(f => [document.fonts.load(`32px "${f}"`), document.fonts.load(`700 32px "${f}"`)]))
+      Promise.all(
+        fonts.flatMap(f => [document.fonts.load(`32px "${f}"`), document.fonts.load(`700 32px "${f}"`)]),
+      )
         .catch(() => {})
         .then(() => withSize(w, h, () => renderPageCanvas(page, Math.min(1, 720 / Math.max(w, h))))),
     );
@@ -328,6 +366,7 @@ function showSlide(i) {
 }
 function showGo(pos) {
   const stage = $('.hstage', homeEl),
+    showList = showTpls(),
     n = showList.length;
   if (!stage) return;
   showPos = (pos + n) % n;
@@ -384,7 +423,11 @@ function homeSide() {
           : d
             ? d[0]
             : '—';
-  const bgName = isFile() ? '—' : H.tpl >= 0 ? 'De la plantilla' : (BGM.find(b => b[0] === H.bg) || [])[1];
+  const bgName = isFile()
+    ? '—'
+    : H.tpl >= 0
+      ? 'De la plantilla'
+      : (bgOptions().find(b => b[0] === H.bg) || [])[1];
   const hasSize = sizeOK(z);
   return `<div class="sumbox"><h3>Tu lienzo</h3><div class="sprev"><canvas id="sprev" width="10" height="10"></canvas></div>
   <div class="sline"><span>Tipo</span><b>${cat ? cat.name : '—'}</b></div><div class="sline"><span>Destino</span><b>${esc(destName)}</b></div>
@@ -462,7 +505,12 @@ function paintBgPreviews() {
               : k === 'gradient'
                 ? 'gradient'
                 : H.pat;
-    const c = bgPreview(b, k === 'white' ? '#ffffff' : H.c1, k === 'white' ? '#ffffff' : H.c2);
+    const c = bgPreview(
+      b,
+      k === 'white' ? '#ffffff' : H.c1,
+      k === 'white' ? '#ffffff' : H.c2,
+      H.style !== 'pixel',
+    );
     c.style.cssText = 'width:64px;height:42px;image-rendering:pixelated;border:2px solid #fff;display:block';
     sp.replaceChildren(c);
   });
@@ -473,7 +521,7 @@ let homeKey = '';
 function renderHome() {
   const last = isFile() ? 2 : 3,
     st = H.step;
-  const key = `${H.step}|${H.cat}|${H.showCats}`;
+  const key = `${H.step}|${H.cat}|${H.style}`;
   if (key !== homeKey) {
     homeKey = key;
     playEnter(homeEl, 1400);
@@ -508,7 +556,7 @@ function hres() {
 function openHome() {
   Object.assign(H, HOME_DEFAULT, {
     step: 1,
-    showCats: false,
+    style: null,
     name: '',
     photo: null,
     pdf: null,
@@ -545,7 +593,7 @@ homeEl.addEventListener('click', ev => {
     H.dest = v === H.cat ? H.dest : -1;
     H.cat = v;
     H.custom = v === 'custom';
-    H.bg = v === 'png' ? 'none' : v === 'print' ? 'white' : 'gradient';
+    H.bg = v === 'png' ? 'none' : v === 'print' || H.style !== 'pixel' ? 'white' : 'gradient';
     H.tpl = -1;
     H.step = 2;
     renderHome();
@@ -582,8 +630,12 @@ homeEl.addEventListener('click', ev => {
     renderHome();
   } else if (a === 'pickphoto') $('#hphoto').click();
   else if (a === 'pickpdf') $('#hpdf').click();
-  else if (a === 'toggle') {
-    H.showCats = !H.showCats;
+  else if (a === 'style') {
+    H.style = v;
+    H.bg = v === 'pixel' ? 'gradient' : 'white';
+    [H.c1, H.c2] = v === 'pixel' ? ['#0b2a8a', '#3fe0ff'] : ['#3b82f6', '#8b5cf6'];
+    H.tpl = -1;
+    showPos = 0;
     renderHome();
   } else if (a === 'show') {
     showGo(v === 'prev' ? showPos - 1 : v === 'next' ? showPos + 1 : +v);
@@ -693,6 +745,8 @@ async function createProject() {
   savedInfo = null;
   S.name = (H.name || '').trim() || 'Sin título';
   $('#name').value = S.name;
+  S.style = H.style || 'normal';
+  store.set(STYLE_KEY, S.style);
   resetHistory();
   S.sel = [];
   S.cur = 0;
