@@ -87,6 +87,21 @@ const loadFonts = () =>
   Promise.all(
     usedFonts().flatMap(f => [document.fonts.load(`32px "${f}"`), document.fonts.load(`700 32px "${f}"`)]),
   ).catch(() => {});
+const ELEMENT_TYPES = ['text', 'image', 'sprite', 'draw', 'qr', 'chart', ...SHAPES.map(s => s[0])];
+const isNum = v => typeof v === 'number' && Number.isFinite(v);
+function validateProject(o) {
+  if (!o || typeof o !== 'object' || !Array.isArray(o.pages) || !o.pages.length) return 'faltan las páginas';
+  if (![o.w, o.h].every(v => isNum(v) && v >= 16 && v <= 5000)) return 'tamaño fuera de rango';
+  for (const p of o.pages) {
+    if (!p || !Array.isArray(p.els)) return 'página sin elementos';
+    for (const e of p.els) {
+      if (!e || !ELEMENT_TYPES.includes(e.type)) return 'tipo de elemento desconocido';
+      if (![e.x, e.y, e.w, e.h].every(isNum)) return 'posición o tamaño no numérico';
+      if (e.type === 'sprite' && !Object.hasOwn(SPR, e.spr)) return 'sprite inexistente';
+    }
+  }
+  return '';
+}
 async function openExport() {
   await loadFonts();
   const M = $('#mbox');
@@ -132,15 +147,24 @@ $('#mbox').addEventListener('click', async ev => {
       $('#xjson').select();
     }
   } else if (id === 'xload') {
+    let why;
     try {
-      touch(true);
-      restore($('#xjson').value);
-      $('#modal').classList.remove('on');
-      refresh({props: true, panel: true, fit: true});
-      toast('Proyecto cargado');
+      why = validateProject(JSON.parse($('#xjson').value));
     } catch {
-      hist.pop();
-      toast('JSON inválido');
+      why = 'no se puede leer';
+    }
+    if (why) toast(`JSON inválido: ${why}`);
+    else {
+      try {
+        touch(true);
+        restore($('#xjson').value);
+        $('#modal').classList.remove('on');
+        refresh({props: true, panel: true, fit: true});
+        toast('Proyecto cargado');
+      } catch {
+        hist.pop();
+        toast('JSON inválido');
+      }
     }
   } else if (ev.target === $('#modal')) $('#modal').classList.remove('on');
 });
