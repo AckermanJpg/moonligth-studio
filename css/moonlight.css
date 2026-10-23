@@ -1312,6 +1312,54 @@ details.sec > :not(summary) {
 .hbody {
   min-width: 0;
 }
+.hmain.cover {
+  max-width: 1720px;
+  grid-template-columns: 340px minmax(0, 1fr) 300px;
+  grid-template-areas: "body show side";
+  align-items: start;
+}
+.cover .hbody {
+  grid-area: body;
+}
+.cover .hside {
+  grid-area: side;
+}
+.hshow {
+  grid-area: show;
+  position: sticky;
+  top: 16px;
+  min-width: 0;
+}
+.hshow .hh {
+  margin-top: 0;
+}
+.hstage {
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  padding: 12px;
+  background: var(--field);
+  box-shadow: 8px 8px 0 var(--blue);
+}
+.cover .hhero .mark {
+  width: 64px;
+  height: 64px;
+}
+.cover .hword {
+  font-size: 40px;
+}
+.cover .hhero p {
+  font-size: 14px;
+}
+.cover .hbody h2 {
+  font-size: 28px;
+}
+.cover .hbody .lead {
+  font-size: 14px;
+}
+.cover .hfacts {
+  grid-template-columns: 1fr;
+}
 .hbody h2 {
   margin: 0 0 8px;
   font: 400 44px/1 var(--f-display);
@@ -1871,6 +1919,26 @@ details.sec > :not(summary) {
   }
   .sumbox {
     position: static;
+  }
+}
+@media (max-width: 1100px) {
+  .hmain.cover {
+    grid-template-columns: 340px minmax(0, 1fr);
+    grid-template-areas:
+      "body side"
+      "show show";
+  }
+  .hshow {
+    position: static;
+  }
+}
+@media (max-width: 720px) {
+  .hmain.cover {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "body"
+      "side"
+      "show";
   }
 }
 @media (max-width: 1000px) {

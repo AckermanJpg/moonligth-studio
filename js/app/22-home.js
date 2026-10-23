@@ -276,6 +276,9 @@ function homeBody() {
   <h3 class="hh">Plantilla (opcional)</h3><div class="hgrid sm"><button class="hcard${H.tpl < 0 ? ' on' : ''}" data-act="tpl:-1"><b>Empezar en blanco</b><small>Con el fondo elegido arriba</small></button>
   ${TPL.map((t, i) => `<button class="hcard tpl${H.tpl === i ? ' on' : ''}" data-act="tpl:${i}"><span data-tp="${i}"></span><b>${t.name}</b></button>`).join('')}</div>`;
 }
+function homeShow() {
+  return '<section class="hshow"><h3 class="hh">Lo que puedes crear</h3><div class="hstage"></div></section>';
+}
 function homeSide() {
   const z = homeSize(),
     cat = catOf(H.cat),
@@ -390,8 +393,8 @@ function renderHome() {
   homeEl.innerHTML = `<div class="hwrap"><header class="hhead"><div id="logo">${LOGO_HTML}</div>
     <span class="sp"></span>
     <button class="btn sm" data-act="help">? Ayuda</button>${S.active ? '<button class="btn sm on" data-act="close">Volver al editor</button>' : ''}</header>
-    <div class="hmain"><section class="hbody">${homeBody()}
-    ${st > 1 ? `<div class="hnav"><button class="btn" data-act="back">← Atrás</button><span class="sp"></span>${st < last ? `<button class="btn on" data-act="next"${canNext() ? '' : ' disabled'}>Siguiente →</button>` : `<button class="btn on" data-act="create"${canNext() ? '' : ' disabled'}>${H.sure ? '¿Reemplazar el proyecto actual? Pulsa de nuevo' : 'Crear diseño ✓'}</button>`}</div>` : ''}</section>
+    <div class="hmain${st === 1 ? ' cover' : ''}"><section class="hbody">${homeBody()}
+    ${st > 1 ? `<div class="hnav"><button class="btn" data-act="back">← Atrás</button><span class="sp"></span>${st < last ? `<button class="btn on" data-act="next"${canNext() ? '' : ' disabled'}>Siguiente →</button>` : `<button class="btn on" data-act="create"${canNext() ? '' : ' disabled'}>${H.sure ? '¿Reemplazar el proyecto actual? Pulsa de nuevo' : 'Crear diseño ✓'}</button>`}</div>` : ''}</section>${st === 1 ? homeShow() : ''}
     <aside class="hside" id="hside">${homeSide()}</aside></div></div>`;
   $$('[data-ic]', homeEl).forEach(sp => sp.replaceChildren(MoonIcons.el(sp.dataset.ic)));
   const z = homeSize();
