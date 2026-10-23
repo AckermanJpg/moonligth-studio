@@ -71,7 +71,7 @@ function renderRulers() {
   stageBox.classList.toggle('rulers', S.rulers);
   $('#trulers').classList.toggle('on', S.rulers);
   guideLayer.replaceChildren();
-  if (!S.rulers) return;
+  if (!S.rulers || !pg()) return;
   const {ox, oy} = rulerOrigin();
   drawRuler(rulerX, true, ox, S.w);
   drawRuler(rulerY, false, oy, S.h);
