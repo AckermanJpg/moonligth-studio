@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Moonlight Studio</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&family=DotGothic16&family=Pixelify+Sans:wght@400;700&family=Jersey+10&family=Jersey+15&family=Jersey+25&family=Micro+5&family=Tiny5&family=Handjet&family=Doto&family=Bebas+Neue&family=Anton&family=Bungee&family=Black+Ops+One&family=Orbitron&family=Audiowide&family=Monoton&family=Rubik+Glitch&family=Zen+Dots&family=Dela+Gothic+One&family=Bangers&family=Creepster&family=Playfair+Display:wght@400;700&family=Abril+Fatface&family=Merriweather:wght@400;700&family=Roboto+Slab:wght@400;700&family=Lobster&family=Pacifico&family=Dancing+Script&family=Caveat&family=Permanent+Marker&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Oswald:wght@400;700&family=Nunito:wght@400;700&family=Righteous&family=Fredoka:wght@400;700&family=RocknRoll+One&family=Mochiy+Pop+One&family=Space+Mono:wght@400;700&family=Share+Tech+Mono&display=swap"
+    />
+    <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+    <link rel="stylesheet" href="css/moonlight.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header id="top">
+        <div id="logo">
+          <svg class="mark" viewBox="0 0 20 20" shape-rendering="crispEdges" aria-hidden="true">
+            <path
+              class="m1"
+              d="M7 4h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM4 7h1v1h-1zM5 7h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM3 9h1v1h-1zM4 9h1v1h-1zM5 9h1v1h-1zM3 10h1v1h-1zM4 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM3 11h1v1h-1zM4 11h1v1h-1zM5 11h1v1h-1zM6 11h1v1h-1zM3 12h1v1h-1zM4 12h1v1h-1zM5 12h1v1h-1zM6 12h1v1h-1zM7 12h1v1h-1zM4 13h1v1h-1zM5 13h1v1h-1zM6 13h1v1h-1zM7 13h1v1h-1zM8 13h1v1h-1zM4 14h1v1h-1zM5 14h1v1h-1zM6 14h1v1h-1zM7 14h1v1h-1zM8 14h1v1h-1zM9 14h1v1h-1zM10 14h1v1h-1zM11 14h1v1h-1zM14 14h1v1h-1zM5 15h1v1h-1zM6 15h1v1h-1zM7 15h1v1h-1zM8 15h1v1h-1zM9 15h1v1h-1zM10 15h1v1h-1zM11 15h1v1h-1zM12 15h1v1h-1zM13 15h1v1h-1zM7 16h1v1h-1zM8 16h1v1h-1zM9 16h1v1h-1zM10 16h1v1h-1zM11 16h1v1h-1z"
+            />
+            <path
+              class="m2"
+              d="M8 4h1v1h-1zM7 5h1v1h-1zM6 6h1v1h-1zM6 7h1v1h-1zM6 8h1v1h-1zM6 9h1v1h-1zM7 10h1v1h-1zM7 11h1v1h-1zM8 12h1v1h-1zM9 13h1v1h-1zM10 13h1v1h-1zM11 13h1v1h-1zM14 13h1v1h-1zM12 14h1v1h-1zM13 14h1v1h-1z"
+            />
+            <path class="m3" d="M15 2h1v1h-1zM14 3h1v1h-1zM15 3h1v1h-1zM16 3h1v1h-1zM15 4h1v1h-1z" />
+            <path
+              class="m4"
+              d="M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM16 0h1v1h-1zM17 0h1v1h-1zM18 0h1v1h-1zM19 0h1v1h-1zM0 1h1v1h-1zM19 1h1v1h-1zM0 2h1v1h-1zM19 2h1v1h-1zM0 3h1v1h-1zM19 3h1v1h-1zM0 16h1v1h-1zM19 16h1v1h-1zM0 17h1v1h-1zM19 17h1v1h-1zM0 18h1v1h-1zM19 18h1v1h-1zM0 19h1v1h-1zM1 19h1v1h-1zM2 19h1v1h-1zM3 19h1v1h-1zM16 19h1v1h-1zM17 19h1v1h-1zM18 19h1v1h-1zM19 19h1v1h-1z"
+            /></svg
+          ><span>MOON<b>LIGHT</b>&nbsp;STUDIO</span>
+        </div>
+        <div class="tgroup">
+          <button class="btn sm" id="home-btn" title="Empezar un proyecto nuevo">Inicio</button>
+        </div>
+        <div class="tgroup project" role="group" aria-label="Proyecto">
+          <input id="name" type="text" value="Sin título" aria-label="Nombre del diseño" maxlength="40" />
+          <button class="btn sm" id="sizechip" title="Cambiar tamaño del lienzo">1080 × 1080 px</button>
+        </div>
+        <div class="tgroup" role="group" aria-label="Historial">
+          <button class="btn sm" id="undo" title="Deshacer (Ctrl+Z)">↶ Deshacer</button>
+          <button class="btn sm" id="redo" title="Rehacer (Ctrl+Y)">↷ Rehacer</button>
+        </div>
+        <span class="sp"></span>
+        <div class="tgroup" role="group" aria-label="Ver y guardar">
+          <button class="btn sm" id="help-btn">Ayuda</button>
+          <button class="btn sm" id="present-btn">▶ Presentar</button>
+          <button class="btn sm" id="save-btn">Guardar</button>
+        </div>
+        <button class="btn on" id="export-btn">Descargar</button>
+      </header>
+      <nav id="rail" aria-label="Herramientas"></nav>
+      <aside id="panel"></aside>
+      <div id="stagebox">
+        <canvas id="rulerx" aria-hidden="true"></canvas>
+        <canvas id="rulery" aria-hidden="true"></canvas>
+        <div id="rcorner"></div>
+        <main id="stage">
+          <div id="wrap"><div id="page"></div></div>
+        </main>
+        <div id="guides"></div>
+      </div>
+      <aside id="props"></aside>
+      <footer id="bar">
+        <div class="bgroup" role="group" aria-label="Páginas">
+          <button class="btn sm" id="pprev" title="Página anterior">◀</button>
+          <span id="pinfo">1 / 1</span>
+          <button class="btn sm" id="pnext" title="Página siguiente">▶</button>
+          <button class="btn sm" id="padd">+ Página</button>
+        </div>
+        <div class="bgroup" role="group" aria-label="Zoom">
+          <button class="btn sm" id="zout" title="Alejar">−</button>
+          <span id="zinfo">50%</span>
+          <button class="btn sm" id="zin" title="Acercar">+</button>
+          <button class="btn sm" id="zfit">Ajustar</button>
+        </div>
+        <div class="bgroup" role="group" aria-label="Guías">
+          <button class="btn sm" id="tgrid">Cuadrícula</button>
+          <button class="btn sm on" id="tsnap">Imán</button>
+          <button class="btn sm on" id="trulers" title="Mostrar u ocultar reglas y guías">Reglas</button>
+          <button class="btn sm" id="tclear" title="Quitar todas las guías de la página">Quitar guías</button>
+        </div>
+        <span id="savest"></span><span id="toast"></span>
+      </footer>
+    </div>
+    <div id="home" aria-label="Menú de inicio"></div>
+    <div id="flash" role="status" aria-live="polite"></div>
+    <div id="modal"><div id="mbox"></div></div>
+    <div id="present">
+      <button class="btn" id="pclose">Salir (Esc)</button><img id="pimg" alt="Presentación" />
+    </div>
+
+    <script src="js/icons.js"></script>
+    <script src="js/print-tools.js"></script>
+    <script src="js/print-studio.js"></script>
+    <script src="js/gif-encoder.js"></script>
+    <script src="js/gif-studio.js"></script>
+    <!-- Los archivos de js/app comparten el ámbito global: el orden de carga es el orden de dependencia. -->
+    <script src="js/app/01-data.js"></script>
+    <script src="js/app/02-core.js"></script>
+    <script src="js/app/03-bitmaps.js"></script>
+    <script src="js/app/04-filters.js"></script>
+    <script src="js/app/05-canvas-render.js"></script>
+    <script src="js/app/06-stage.js"></script>
+    <script src="js/app/07-rulers.js"></script>
+    <script src="js/app/08-interactions.js"></script>
+    <script src="js/app/09-element-ops.js"></script>
+    <script src="js/app/10-draw-tool.js"></script>
+    <script src="js/app/11-groups.js"></script>
+    <script src="js/app/12-pages.js"></script>
+    <script src="js/app/13-panels.js"></script>
+    <script src="js/app/14-properties.js"></script>
+    <script src="js/app/15-export.js"></script>
+    <script src="js/app/16-crop.js"></script>
+    <script src="js/app/17-convert.js"></script>
+    <script src="js/app/18-templates.js"></script>
+    <script src="js/app/19-chrome.js"></script>
+    <script src="js/app/20-brand.js"></script>
+    <script src="js/app/21-multisize.js"></script>
+    <script src="js/app/22-home.js"></script>
+    <script src="js/app/23-main.js"></script>
+  </body>
+</html>
