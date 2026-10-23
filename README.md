@@ -172,6 +172,10 @@ Dado el tamaño final, el de la hoja, el margen y el traslape, se calcula cuánt
 
 Las pruebas se hicieron a mano y con scripts temporales sobre Chromium, y el código pasa ESLint sin avisos con una configuración local que no está en el repositorio.
 
+## Privacidad
+
+No usa analítica ni cookies. Los archivos que abres no se suben a ningún servidor. El proyecto se guarda en el `localStorage` del navegador. Se conecta a Google Fonts para las tipografías y a cdnjs para las librerías de QR y PDF.
+
 ## Licencia
 
 MIT. Consulta el archivo [`LICENSE`](LICENSE). Copyright (c) 2026 Kenny Espinoza.
