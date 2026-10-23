@@ -241,7 +241,7 @@ function drawBitmap(e) {
         x.fillStyle = '#000';
         x.fill(pathFor(e.mask, e.w, e.h, e.th));
         x.restore();
-        crisp(x, cw, ch);
+        if (px > 1) crisp(x, cw, ch);
       }
     } else {
       x.fillStyle = '#0b2a8a';
@@ -279,7 +279,7 @@ function drawBitmap(e) {
       x.closePath();
       x.fill();
     }
-    crisp(x, cw, ch);
+    if (px > 1) crisp(x, cw, ch);
     return c;
   }
   const p = pathFor(e.type, e.w, e.h, e.th);
@@ -293,7 +293,7 @@ function drawBitmap(e) {
     x.stroke(p);
     x.restore();
   }
-  crisp(x, cw, ch);
+  if (px > 1) crisp(x, cw, ch);
   return c;
 }
 function bitmapKey(e) {
@@ -354,6 +354,16 @@ const hexRGB = h => {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 };
 function bgCanvas(p, W, H) {
+  if (p.bg.smooth && p.bg.pat === 'gradient') {
+    const c = cv(1, H),
+      x = c.getContext('2d'),
+      g = x.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, p.bg.c1);
+    g.addColorStop(1, p.bg.c2);
+    x.fillStyle = g;
+    x.fillRect(0, 0, 1, H);
+    return c;
+  }
   const P = Math.max(1, p.bg.px || 8),
     cw = Math.ceil(W / P),
     ch = Math.ceil(H / P),

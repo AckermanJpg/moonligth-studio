@@ -43,7 +43,7 @@ function drawText(x, e) {
     x.fillText(l, tx, i * lh + (lh - e.size) / 2);
   });
 }
-const smoothImage = e => e.type === 'image' && e.px <= 1;
+const smoothImage = e => e.px <= 1 && !['sprite', 'draw', 'qr'].includes(e.type);
 function renderPageCanvas(p, scale) {
   const W = Math.round(S.w * scale),
     H = Math.round(S.h * scale),
