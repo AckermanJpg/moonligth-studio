@@ -114,6 +114,7 @@ const H = {
   sure: false,
   tc: {},
 };
+const HOME_DEFAULT = {cat: 'social', dest: 0, custom: false, bg: 'gradient', tpl: -1};
 let savedInfo = null;
 const homeEl = $('#home');
 const catOf = id => CATS.find(c => c.id === id);
@@ -383,8 +384,7 @@ function homeSide() {
           : d
             ? d[0]
             : '—';
-  const bgName =
-    isFile() || H.step < 3 ? '—' : H.tpl >= 0 ? 'De la plantilla' : (BGM.find(b => b[0] === H.bg) || [])[1];
+  const bgName = isFile() ? '—' : H.tpl >= 0 ? 'De la plantilla' : (BGM.find(b => b[0] === H.bg) || [])[1];
   const hasSize = sizeOK(z);
   return `<div class="sumbox"><h3>Tu lienzo</h3><div class="sprev"><canvas id="sprev" width="10" height="10"></canvas></div>
   <div class="sline"><span>Tipo</span><b>${cat ? cat.name : '—'}</b></div><div class="sline"><span>Destino</span><b>${esc(destName)}</b></div>
@@ -440,7 +440,7 @@ function paintSide() {
     x.fillRect(0, 0, w, h);
     return;
   }
-  const b = H.step < 3 ? {pat: 'none', c1: '#fff', c2: '#fff'} : bgFromH();
+  const b = bgFromH();
   if (b.pat === 'none') {
     for (let j = 0; j < h; j += 8)
       for (let i = 0; i < w; i += 8) {
@@ -506,13 +506,9 @@ function hres() {
       : '—';
 }
 function openHome() {
-  Object.assign(H, {
+  Object.assign(H, HOME_DEFAULT, {
     step: 1,
     showCats: false,
-    cat: null,
-    dest: -1,
-    custom: false,
-    tpl: -1,
     name: '',
     photo: null,
     pdf: null,
@@ -546,8 +542,8 @@ homeEl.addEventListener('click', ev => {
     closeHome();
     MoonGif.open({pick: true});
   } else if (a === 'cat') {
+    H.dest = v === H.cat ? H.dest : -1;
     H.cat = v;
-    H.dest = -1;
     H.custom = v === 'custom';
     H.bg = v === 'png' ? 'none' : v === 'print' ? 'white' : 'gradient';
     H.tpl = -1;
@@ -574,7 +570,7 @@ homeEl.addEventListener('click', ev => {
     }
   } else if (a === 'back') {
     H.step = Math.max(1, H.step - 1);
-    if (H.step === 1) H.cat = null;
+    if (H.step === 1) Object.assign(H, HOME_DEFAULT);
     renderHome();
     homeEl.scrollTop = 0;
   } else if (a === 'bg') {
