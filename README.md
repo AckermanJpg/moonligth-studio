@@ -6,7 +6,7 @@ No tiene servidor, cuenta ni base de datos. Es HTML, CSS y JavaScript sin framew
 
 ## Cómo usarlo
 
-Abre `moonlight.html` con el navegador. No hace falta instalar nada ni levantar un servidor. Está probado en Chromium; los demás navegadores modernos deberían servir, con una excepción: importar GIFs animados usa `ImageDecoder`, que hoy solo existe en Chromium y Safari 16.4 o más reciente.
+Abre `index.html` con el navegador. No hace falta instalar nada ni levantar un servidor. Está probado en Chromium; los demás navegadores modernos deberían servir, con una excepción: importar GIFs animados usa `ImageDecoder`, que hoy solo existe en Chromium y Safari 16.4 o más reciente.
 
 Necesita conexión a internet para tres cosas:
 
@@ -113,10 +113,10 @@ Desde un clip también se pueden convertir sus cuadros en páginas del editor pa
 
 ### Estructura del código
 
-Son scripts clásicos que comparten el ámbito global, sin módulos ES. Se eligió así porque los módulos no cargan cuando el HTML se abre con doble clic (`file://`), y esa es la forma de uso prevista. El orden de los `<script>` en `moonlight.html` es el orden de dependencia y no se puede alterar.
+Son scripts clásicos que comparten el ámbito global, sin módulos ES. Se eligió así porque los módulos no cargan cuando el HTML se abre con doble clic (`file://`), y esa es la forma de uso prevista. El orden de los `<script>` en `index.html` es el orden de dependencia y no se puede alterar.
 
 ```
-moonlight.html          estructura y orden de carga
+index.html              estructura y orden de carga
 css/moonlight.css       todos los estilos
 img/logo.svg            logo e ícono de la pestaña
 js/icons.js             iconos de la interfaz (SVG)
