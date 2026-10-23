@@ -119,16 +119,28 @@ function renderPanel() {
     }
     <p class="hint">Shift + clic para multi-selección. Arrastra las esquinas para escalar.</p>`;
   } else if (t === 'text') {
-    h = `<h3>Texto</h3><h4>Estilos base</h4>
-    <button class="txtbtn" data-text="h" style="font:400 15px 'Press Start 2P'">Agregar título</button>
+    const pixel = S.style === 'pixel',
+      groups = Object.entries(FONTG).filter(([g]) => pixel || g !== 'Pixel');
+    h = `<h3>Texto</h3>${styleSeg()}<h4>Estilos base</h4>${
+      pixel
+        ? `<button class="txtbtn" data-text="h" style="font:400 15px 'Press Start 2P'">Agregar título</button>
     <button class="txtbtn" data-text="s" style="font:400 18px 'Silkscreen'">Agregar subtítulo</button>
     <button class="txtbtn" data-text="b" style="font:400 22px 'DotGothic16'">Agregar un poco de texto</button>
     <h4>Combinaciones</h4>
     <button class="txtbtn" data-text="c1" style="font:400 15px 'Press Start 2P';color:#3fe0ff;text-shadow:3px 3px 0 #1a5cff">FULL MOON</button>
     <button class="txtbtn" data-text="c2" style="font:700 26px 'Pixelify Sans';color:#ffd84a;text-shadow:3px 3px 0 #ff3d6e">ALL-OUT!</button>
     <button class="txtbtn" data-text="c3" style="font:400 32px 'VT323';color:#d6f8ff">00:00 THE DARK HOUR</button>
-    <button class="txtbtn" data-text="c4" style="font:400 14px 'Silkscreen';color:#fff;text-shadow:3px 3px 0 #0b2a8a">MEMENTO MORI</button>
-    <h4>Todas las fuentes (${FONTS.length})</h4>${Object.entries(FONTG)
+    <button class="txtbtn" data-text="c4" style="font:400 14px 'Silkscreen';color:#fff;text-shadow:3px 3px 0 #0b2a8a">MEMENTO MORI</button>`
+        : `<button class="txtbtn" data-text="nh" style="font:700 24px 'Montserrat'">Agregar título</button>
+    <button class="txtbtn" data-text="ns" style="font:400 20px 'Poppins'">Agregar subtítulo</button>
+    <button class="txtbtn" data-text="nb" style="font:400 16px 'Nunito'">Agregar un poco de texto</button>
+    <h4>Combinaciones</h4>
+    <button class="txtbtn" data-text="n1" style="font:700 28px 'Playfair Display'">Elegancia</button>
+    <button class="txtbtn" data-text="n2" style="font:400 32px 'Bebas Neue';color:#ff6b6b;letter-spacing:2px">GRAN OFERTA</button>
+    <button class="txtbtn" data-text="n3" style="font:700 30px 'Dancing Script';color:#ff8fc7">Con cariño</button>
+    <button class="txtbtn" data-text="n4" style="font:400 18px 'Oswald';letter-spacing:5px">MINIMAL STUDIO</button>`
+    }
+    <h4>Todas las fuentes (${groups.reduce((n, [, l]) => n + l.length, 0)})</h4>${groups
       .map(
         ([g, l]) =>
           `<div class="hint">${g}</div>${l.map(f => `<button class="txtbtn" data-font="${f}" style="font:400 20px '${f}',monospace">${f}</button>`).join('')}`,
@@ -376,6 +388,13 @@ const TEXTS = {
     sd: 5,
     w: 560,
   },
+  nh: {text: 'Título', font: 'Montserrat', bold: true, size: 72, fill: '#111827', w: 760},
+  ns: {text: 'Subtítulo', font: 'Poppins', size: 44, fill: '#374151', w: 620},
+  nb: {text: 'Escribe aquí tu texto', font: 'Nunito', size: 30, fill: '#4b5563', w: 560, lh: 1.5},
+  n1: {text: 'Elegancia', font: 'Playfair Display', bold: true, size: 96, fill: '#111827', w: 760},
+  n2: {text: 'GRAN OFERTA', font: 'Bebas Neue', size: 120, fill: '#ef4444', ls: 4, w: 760},
+  n3: {text: 'Con cariño', font: 'Dancing Script', bold: true, size: 110, fill: '#be185d', w: 700},
+  n4: {text: 'MINIMAL STUDIO', font: 'Oswald', size: 56, fill: '#111827', ls: 10, w: 760},
 };
 $('#panel').addEventListener('click', ev => {
   const q = s => ev.target.closest(s);
@@ -493,7 +512,15 @@ $('#panel').addEventListener('click', ev => {
   else if ((b = q('[data-font]'))) {
     const f = b.dataset.font;
     document.fonts.load(`32px "${f}"`).finally(() => {
-      add(mk('text', {text: f, font: f, size: 64, w: S.w * 0.8}));
+      add(
+        mk('text', {
+          text: f,
+          font: f,
+          size: 64,
+          w: S.w * 0.8,
+          ...(S.style === 'normal' && {fill: '#111827'}),
+        }),
+      );
     });
   } else if ((b = q('[data-text]'))) {
     const o = TEXTS[b.dataset.text];
