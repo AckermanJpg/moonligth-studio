@@ -31,7 +31,10 @@
   const active = () => home.classList.contains('on') && !document.hidden;
   const gap = () => SHOOT_GAP[0] + Math.random() * (SHOOT_GAP[1] - SHOOT_GAP[0]);
   const count = () =>
-    Math.min(POOL, Math.max(MIN_STARS, Math.round((STARS_FULL_HD * innerWidth * innerHeight) / (1920 * 1080))));
+    Math.min(
+      POOL,
+      Math.max(MIN_STARS, Math.round((STARS_FULL_HD * innerWidth * innerHeight) / (1920 * 1080))),
+    );
   function fit() {
     const k = devicePixelRatio || 1,
       w = Math.round(innerWidth * k),
@@ -76,7 +79,10 @@
     x.clearRect(0, 0, w, h);
     for (let i = 0; i < n; i++) {
       const s = stars[i],
-        lv = Math.min(LEVELS.length - 1, Math.floor((0.5 + 0.5 * Math.sin((now / 1000) * s.v + s.p)) * LEVELS.length)),
+        lv = Math.min(
+          LEVELS.length - 1,
+          Math.floor((0.5 + 0.5 * Math.sin((now / 1000) * s.v + s.p)) * LEVELS.length),
+        ),
         z = Math.max(1, Math.round(s.s * k));
       x.globalAlpha = LEVELS[lv];
       x.fillStyle = s.c;
