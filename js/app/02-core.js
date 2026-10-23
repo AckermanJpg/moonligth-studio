@@ -2,10 +2,12 @@ const $ = (s, r = document) => r.querySelector(s),
   $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const KEY = 'moonlight-studio-v1';
 const RULERS_KEY = 'moonlight-rulers-v1';
+const STYLE_KEY = 'moonlight-style-v1';
 const S = {
   sec: {},
   draw: {mode: null, color: '#ffffff', cs: 12, mirror: 'off'},
   rulers: true,
+  style: 'normal',
   brand: {
     colors: ['#050d2b', '#0b2a8a', '#1a5cff', '#3fe0ff', '#d6f8ff', '#ffffff', '#ffd84a', '#ff3d6e'],
     fonts: ['Press Start 2P', 'Silkscreen', 'VT323'],

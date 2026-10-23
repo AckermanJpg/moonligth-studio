@@ -78,6 +78,7 @@ async function boot() {
     savedInfo = {name: saved.name || 'Sin título', w: saved.w, h: saved.h, js};
   loadBrand();
   S.rulers = store.get(RULERS_KEY) !== '0';
+  S.style = store.get(STYLE_KEY) === 'pixel' ? 'pixel' : 'normal';
   S.pages = [newPage()];
   renderRail();
   renderPanel();

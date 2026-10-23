@@ -265,6 +265,12 @@ input[type="checkbox"] {
   flex-wrap: wrap;
   gap: 4px;
 }
+.styleseg {
+  margin-bottom: 10px;
+}
+.styleseg .btn {
+  flex: 1;
+}
 .sws {
   display: flex;
   flex-wrap: wrap;

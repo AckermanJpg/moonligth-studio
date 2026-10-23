@@ -22,7 +22,7 @@ const RAIL = [
 ];
 const LEAD = {
   templates: 'Diseños listos para empezar. Elige uno y cambia sus textos, colores e imágenes.',
-  elements: 'Formas, líneas e íconos pixel. Haz clic en uno para ponerlo en el lienzo.',
+  elements: 'Formas, líneas y pegatinas. Haz clic en uno para ponerlo en el lienzo.',
   text: 'Agrega títulos y textos. Haz doble clic sobre un texto para escribirlo.',
   images: 'Sube fotos desde tu equipo. Al seleccionarlas puedes recortar, filtrar o quitar su fondo.',
   bg: 'Cambia el fondo de la página. Elige Transparente si quieres un PNG sin fondo.',
@@ -55,6 +55,22 @@ function renderRail() {
     R.append(b);
   });
 }
+const STYLE_BASE = {normal: {px: 1, fill: '#3b82f6'}, pixel: {}};
+const styleSeg = () =>
+  `<div class="seg styleseg" role="group" aria-label="Estilo">${[
+    ['normal', 'Normal'],
+    ['pixel', 'Pixel'],
+  ]
+    .map(
+      ([k, l]) =>
+        `<button class="btn sm${S.style === k ? ' on' : ''}" data-style="${k}" aria-pressed="${S.style === k}">${l}</button>`,
+    )
+    .join('')}</div>`;
+function setStyle(k) {
+  S.style = k;
+  store.set(STYLE_KEY, k);
+  renderPanel();
+}
 const swHTML = f =>
   `<div class="sws" data-for="${f}">${PAL.map(c => `<i class="sw" tabindex="0" role="button" aria-label="${c}" style="background:${c}" data-color="${c}"></i>`).join('')}</div>`;
 function bgPreview(k, c1, c2) {
@@ -79,18 +95,28 @@ function renderPanel() {
   if (t === 'templates') {
     h = `<h3>Plantillas</h3><div class="grid g2" id="tpls"></div><p class="hint">Al elegir una, reemplaza la página actual. Puedes deshacer con Ctrl+Z.</p>`;
   } else if (t === 'elements') {
-    h = `<h3>Elementos</h3><div class="row"><input type="text" id="elsearch" placeholder="Buscar: corazón, espada, nube…" aria-label="Buscar elementos"></div>
-    <h4>Formas</h4><div class="grid" id="shp">${SHAPES.map(([k, n]) => `<button class="card" data-shape="${k}" title="${n}"><span data-thumb="${k}"></span></button>`).join('')}</div>
-    <h4>Cuadrículas y collage</h4><div class="grid" id="grds">${GRIDS.map((g, i) => `<button class="card gridc" data-grid="${i}" title="collage cuadrícula ${g[0]}"><span data-gthumb="${i}"></span><span>${g[0]}</span></button>`).join('')}</div>
-    <h4>Herramientas</h4><div class="grid g2"><button class="card" data-tool="qr" title="código qr enlace"><span data-ic2="gem"></span>Código QR</button><button class="card" data-tool="chart" title="gráfico barras pastel líneas datos"><span data-ic2="chart"></span>Gráfico</button></div>
-    <h4>Íconos y pegatinas pixel (${Object.keys(SPR).length})</h4><div class="grid" id="spr">${Object.keys(
-      SPR,
-    )
+    const pixel = S.style === 'pixel';
+    h = `<h3>Elementos</h3>${styleSeg()}<div class="row"><input type="text" id="elsearch" placeholder="${pixel ? 'Buscar: corazón, espada, nube…' : 'Buscar: círculo, flecha, globo…'}" aria-label="Buscar elementos"></div>
+    <h4>Formas</h4><div class="grid" id="shp">${SHAPES.filter(s => (pixel ? !s[2] : true))
       .map(
-        k =>
-          `<button class="card" data-sprite="${k}" title="${k} ${SPRN[k] || ''}"><span data-thumb="s:${k}"></span></button>`,
+        ([k, n]) =>
+          `<button class="card" data-shape="${k}" title="${n}"><span data-thumb="${k}"></span></button>`,
       )
       .join('')}</div>
+    <h4>Cuadrículas y collage</h4><div class="grid" id="grds">${GRIDS.map((g, i) => `<button class="card gridc" data-grid="${i}" title="collage cuadrícula ${g[0]}"><span data-gthumb="${i}"></span><span>${g[0]}</span></button>`).join('')}</div>
+    <h4>Herramientas</h4><div class="grid g2"><button class="card" data-tool="qr" title="código qr enlace"><span data-ic2="gem"></span>Código QR</button><button class="card" data-tool="chart" title="gráfico barras pastel líneas datos"><span data-ic2="chart"></span>Gráfico</button></div>
+    ${
+      pixel
+        ? `<h4>Íconos y pegatinas pixel (${Object.keys(SPR).length})</h4><div class="grid" id="spr">${Object.keys(
+            SPR,
+          )
+            .map(
+              k =>
+                `<button class="card" data-sprite="${k}" title="${k} ${SPRN[k] || ''}"><span data-thumb="s:${k}"></span></button>`,
+            )
+            .join('')}</div>`
+        : '<p class="hint">Las pegatinas e íconos pixel están en el estilo Pixel.</p>'
+    }
     <p class="hint">Shift + clic para multi-selección. Arrastra las esquinas para escalar.</p>`;
   } else if (t === 'text') {
     h = `<h3>Texto</h3><h4>Estilos base</h4>
@@ -289,12 +315,12 @@ function renderPanel() {
         : mk(k, {
             w: 64,
             h: k === 'line' || k === 'arrowl' ? 28 : 64,
-            px: 4,
-            fill: '#3fe0ff',
+            px: S.style === 'pixel' ? 4 : 1,
+            fill: S.style === 'pixel' ? '#3fe0ff' : STYLE_BASE.normal.fill,
             sw: k === 'line' || k === 'arrowl' ? 8 : 0,
           });
     const c = bitmap(e);
-    c.style.cssText = 'width:48px;height:auto;image-rendering:pixelated';
+    c.style.cssText = `width:48px;height:auto;image-rendering:${S.style === 'pixel' ? 'pixelated' : 'auto'}`;
     s.replaceWith(c);
   });
   if (t === 'pages') renderPageList();
@@ -461,7 +487,8 @@ $('#panel').addEventListener('click', ev => {
       refresh({panel: true});
     });
   } else if (q('#msgo')) doMulti();
-  else if ((b = q('[data-shape]'))) add(mk(b.dataset.shape));
+  else if ((b = q('[data-style]'))) setStyle(b.dataset.style);
+  else if ((b = q('[data-shape]'))) add(mk(b.dataset.shape, STYLE_BASE[S.style]));
   else if ((b = q('[data-sprite]'))) add(mk('sprite', {spr: b.dataset.sprite}));
   else if ((b = q('[data-font]'))) {
     const f = b.dataset.font;

@@ -41,7 +41,69 @@ function pathFor(t, w, h, th) {
     p.closePath();
     return p;
   }
+  const poly = pts => {
+    pts.forEach(([a, b], i) => (i ? p.lineTo(a * w, b * h) : p.moveTo(a * w, b * h)));
+    p.closePath();
+  };
   if (t === 'rect') p.rect(0, 0, w, h);
+  else if (t === 'rrect') p.roundRect(0, 0, w, h, Math.min(w, h) * 0.18);
+  else if (t === 'pill') p.roundRect(0, 0, w, h, Math.min(w, h) / 2);
+  else if (t === 'pentagon')
+    poly(
+      [0, 1, 2, 3, 4].map(i => [
+        0.5 + 0.5 * Math.cos(-Math.PI / 2 + (i * 2 * Math.PI) / 5),
+        0.5 + 0.5 * Math.sin(-Math.PI / 2 + (i * 2 * Math.PI) / 5),
+      ]),
+    );
+  else if (t === 'octagon')
+    poly([
+      [0.3, 0],
+      [0.7, 0],
+      [1, 0.3],
+      [1, 0.7],
+      [0.7, 1],
+      [0.3, 1],
+      [0, 0.7],
+      [0, 0.3],
+    ]);
+  else if (t === 'plus')
+    poly([
+      [0.33, 0],
+      [0.67, 0],
+      [0.67, 0.33],
+      [1, 0.33],
+      [1, 0.67],
+      [0.67, 0.67],
+      [0.67, 1],
+      [0.33, 1],
+      [0.33, 0.67],
+      [0, 0.67],
+      [0, 0.33],
+      [0.33, 0.33],
+    ]);
+  else if (t === 'burst')
+    poly(
+      Array.from({length: 24}, (_, i) => [
+        0.5 + (i % 2 ? 0.38 : 0.5) * Math.cos((i * Math.PI) / 12),
+        0.5 + (i % 2 ? 0.38 : 0.5) * Math.sin((i * Math.PI) / 12),
+      ]),
+    );
+  else if (t === 'bubble') {
+    p.roundRect(0, 0, w, h * 0.8, Math.min(w, h) * 0.16);
+    p.moveTo(w * 0.2, h * 0.78);
+    p.lineTo(w * 0.15, h);
+    p.lineTo(w * 0.4, h * 0.78);
+    p.closePath();
+  } else if (t === 'arrowr')
+    poly([
+      [0, 0.3],
+      [0.55, 0.3],
+      [0.55, 0],
+      [1, 0.5],
+      [0.55, 1],
+      [0.55, 0.7],
+      [0, 0.7],
+    ]);
   else if (t === 'ellipse') p.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
   else if (t === 'triangle') {
     p.moveTo(w / 2, 0);

@@ -462,4 +462,12 @@ const SHAPES = [
   ['ringell', 'Anillo'],
   ['line', 'Línea'],
   ['arrowl', 'Flecha'],
+  ['rrect', 'Rectángulo redondeado', 1],
+  ['pill', 'Píldora', 1],
+  ['pentagon', 'Pentágono', 1],
+  ['octagon', 'Octágono', 1],
+  ['plus', 'Cruz', 1],
+  ['burst', 'Explosión', 1],
+  ['bubble', 'Globo de diálogo', 1],
+  ['arrowr', 'Flecha gruesa', 1],
 ];
