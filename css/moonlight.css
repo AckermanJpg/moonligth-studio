@@ -1299,31 +1299,6 @@ details.sec > :not(summary) {
 .hhead #logo {
   min-height: 60px;
 }
-.steps {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.steps li {
-  padding: 8px 20px;
-  background: var(--deep);
-  color: var(--mute);
-  font: 700 12px/1 var(--f-ui);
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
-}
-.steps li.done {
-  background: var(--blue);
-  color: var(--ice);
-}
-.steps li.on {
-  background: var(--cyan);
-  color: var(--ink);
-}
 .hmain {
   flex: 1;
   display: grid;
