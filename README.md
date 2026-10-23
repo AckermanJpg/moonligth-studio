@@ -6,7 +6,7 @@ No tiene servidor, cuenta ni base de datos. Es HTML, CSS y JavaScript sin framew
 
 ## Cómo usarlo
 
-Abre `index.html` con el navegador. No hace falta instalar nada ni levantar un servidor. Está probado en Chromium; los demás navegadores modernos deberían servir, con una excepción: importar GIFs animados usa `ImageDecoder`, que hoy solo existe en Chromium y Safari 16.4 o más reciente.
+Puedes probarlo en línea en https://ackermanjpg.github.io/moonligth-studio/ o descargarlo y abrir `index.html` con el navegador. No hace falta instalar nada ni levantar un servidor. Está probado en Chromium; los demás navegadores modernos deberían servir, con una excepción: importar GIFs animados usa `ImageDecoder`, que hoy solo existe en Chromium y Safari 16.4 o más reciente.
 
 Necesita conexión a internet para tres cosas:
 
