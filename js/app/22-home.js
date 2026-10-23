@@ -276,8 +276,96 @@ function homeBody() {
   <h3 class="hh">Plantilla (opcional)</h3><div class="hgrid sm"><button class="hcard${H.tpl < 0 ? ' on' : ''}" data-act="tpl:-1"><b>Empezar en blanco</b><small>Con el fondo elegido arriba</small></button>
   ${TPL.map((t, i) => `<button class="hcard tpl${H.tpl === i ? ' on' : ''}" data-act="tpl:${i}"><span data-tp="${i}"></span><b>${t.name}</b></button>`).join('')}</div>`;
 }
+const SHOW_NAMES = [
+  'Full Moon',
+  'Concierto',
+  'Cumpleaños',
+  'Ficha de stats',
+  'Miniatura YouTube',
+  'Cartel de evento',
+  'Portada de libro',
+  'Insignia (PNG)',
+];
+const SHOW_MS = 5000;
+const showList = SHOW_NAMES.map(n => TPL.findIndex(t => t.name === n)).filter(i => i >= 0);
+const showCache = new Map();
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let showPos = 0,
+  showTimer = 0;
 function homeShow() {
-  return '<section class="hshow"><h3 class="hh">Lo que puedes crear</h3><div class="hstage"></div></section>';
+  if (!showList.length) return '';
+  return `<section class="hshow" role="region" aria-roledescription="carrusel" aria-label="Lo que puedes crear"><h3 class="hh">Lo que puedes crear</h3><div class="hstage" aria-live="off"></div>
+  <div class="hctl"><button class="btn sm" data-act="show:prev" aria-label="Plantilla anterior">←</button><p class="hcap"></p><button class="btn sm" data-act="show:next" aria-label="Plantilla siguiente">→</button></div>
+  <div class="hdots">${showList.map((i, k) => `<button class="hdot" data-act="show:${k}" aria-label="Ver ${TPL[i].name}"></button>`).join('')}</div></section>`;
+}
+function showCanvas(i) {
+  if (!showCache.has(i)) {
+    const t = TPL[i],
+      w = t.w || 1080,
+      h = t.h || 1080,
+      page = withSize(w, h, () => t.build()),
+      fonts = [...new Set(page.els.filter(e => e.type === 'text').map(e => e.font))];
+    showCache.set(
+      i,
+      Promise.all(fonts.flatMap(f => [document.fonts.load(`32px "${f}"`), document.fonts.load(`700 32px "${f}"`)]))
+        .catch(() => {})
+        .then(() => withSize(w, h, () => renderPageCanvas(page, Math.min(1, 720 / Math.max(w, h))))),
+    );
+  }
+  return showCache.get(i);
+}
+function showSlide(i) {
+  const stage = $('.hstage', homeEl);
+  if ($(`[data-slide="${i}"]`, stage)) return;
+  const fig = document.createElement('figure');
+  fig.className = 'hs';
+  fig.dataset.slide = i;
+  fig.setAttribute('role', 'img');
+  fig.setAttribute('aria-label', TPL[i].name);
+  stage.append(fig);
+  showCanvas(i).then(c => fig.append(c));
+}
+function showGo(pos) {
+  const stage = $('.hstage', homeEl),
+    n = showList.length;
+  if (!stage) return;
+  showPos = (pos + n) % n;
+  const i = showList[showPos];
+  showSlide(i);
+  showSlide(showList[(showPos + 1) % n]);
+  $$('.hs', stage).forEach(f => {
+    const on = +f.dataset.slide === i;
+    f.classList.toggle('on', on);
+    f.setAttribute('aria-hidden', on ? 'false' : 'true');
+  });
+  $('.hcap', homeEl).textContent = TPL[i].name;
+  $$('.hdot', homeEl).forEach((d, k) => {
+    d.classList.toggle('on', k === showPos);
+    if (k === showPos) d.setAttribute('aria-current', 'true');
+    else d.removeAttribute('aria-current');
+  });
+}
+function showLive(manual) {
+  const stage = $('.hstage', homeEl);
+  if (stage) stage.setAttribute('aria-live', manual || reducedMotion.matches ? 'polite' : 'off');
+}
+function showArm() {
+  clearTimeout(showTimer);
+  showLive($('.hshow', homeEl)?.matches(':focus-within'));
+  if (!reducedMotion.matches && $('.hshow', homeEl) && homeEl.classList.contains('on') && !document.hidden)
+    showTimer = setTimeout(showTick, SHOW_MS);
+}
+function showTick() {
+  if (!$('.hshow', homeEl).matches(':hover, :focus-within')) showGo(showPos + 1);
+  showArm();
+}
+function mountShow() {
+  if (!$('.hshow', homeEl)) {
+    clearTimeout(showTimer);
+    return;
+  }
+  showGo(showPos);
+  showArm();
 }
 function homeSide() {
   const z = homeSize(),
@@ -405,6 +493,7 @@ function renderHome() {
   paintBgPreviews();
   paintSide();
   hres();
+  mountShow();
 }
 function hres() {
   const e = $('#hres');
@@ -436,6 +525,7 @@ function openHome() {
 }
 function closeHome() {
   homeEl.classList.remove('on');
+  clearTimeout(showTimer);
 }
 homeEl.addEventListener('click', ev => {
   const sw = ev.target.closest('[data-hc]');
@@ -498,6 +588,9 @@ homeEl.addEventListener('click', ev => {
   else if (a === 'toggle') {
     H.showCats = !H.showCats;
     renderHome();
+  } else if (a === 'show') {
+    showGo(v === 'prev' ? showPos - 1 : v === 'next' ? showPos + 1 : +v);
+    showArm();
   } else if (a === 'continue') continueSaved();
   else if (a === 'close') closeHome();
   else if (a === 'help') openHelp();
@@ -557,7 +650,16 @@ homeEl.addEventListener('keydown', ev => {
   if (ev.key === 'Enter' && ev.target.matches('.sw')) {
     ev.target.click();
   }
+  if ((ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') && ev.target.closest('.hshow')) {
+    ev.preventDefault();
+    showGo(showPos + (ev.key === 'ArrowRight' ? 1 : -1));
+    showArm();
+  }
 });
+homeEl.addEventListener('focusin', ev => ev.target.closest('.hshow') && showLive(true));
+homeEl.addEventListener('focusout', ev => ev.target.closest('.hshow') && showLive(false));
+document.addEventListener('visibilitychange', showArm);
+reducedMotion.addEventListener('change', showArm);
 function continueSaved() {
   try {
     restore(savedInfo.js);
