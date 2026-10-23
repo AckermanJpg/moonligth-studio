@@ -484,6 +484,7 @@ function renderHome() {
     <div class="hmain${st === 1 ? ' cover' : ''}"><section class="hbody">${homeBody()}
     ${st > 1 ? `<div class="hnav"><button class="btn" data-act="back">← Atrás</button><span class="sp"></span>${st < last ? `<button class="btn on" data-act="next"${canNext() ? '' : ' disabled'}>Siguiente →</button>` : `<button class="btn on" data-act="create"${canNext() ? '' : ' disabled'}>${H.sure ? '¿Reemplazar el proyecto actual? Pulsa de nuevo' : 'Crear diseño ✓'}</button>`}</div>` : ''}</section>${st === 1 ? homeShow() : ''}
     <aside class="hside" id="hside">${homeSide()}</aside></div></div>`;
+  homeEl.prepend(MoonStars.canvas);
   $$('[data-ic]', homeEl).forEach(sp => sp.replaceChildren(MoonIcons.el(sp.dataset.ic)));
   const z = homeSize();
   $$('[data-tp]', homeEl).forEach(sp => {
