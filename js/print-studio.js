@@ -398,7 +398,7 @@
     const src = st.src.canvas,
       k = Math.min(1, ANALYSIS_MAX / Math.max(src.width, src.height)),
       c = core.cv(Math.round(src.width * k), Math.round(src.height * k));
-    c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+    c.getContext('2d', {willReadFrequently: true}).drawImage(src, 0, 0, c.width, c.height);
     return (s.base = c);
   }
 

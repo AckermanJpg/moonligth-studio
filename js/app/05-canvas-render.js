@@ -192,7 +192,7 @@ function drawBitmap(e) {
     cw = Math.max(2, Math.round(e.w / px)),
     ch = Math.max(2, Math.round(e.h / px)),
     c = cv(cw, ch),
-    x = c.getContext('2d');
+    x = c.getContext('2d', {willReadFrequently: true});
   x.scale(cw / e.w, ch / e.h);
   if (e.type === 'chart') {
     drawChart(x, e);
