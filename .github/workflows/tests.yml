@@ -19,6 +19,8 @@ jobs:
           cache: npm
       - name: Instalar dependencias
         run: npm ci
+      - name: Revisar nombres no definidos con ESLint
+        run: npm run lint
       - name: Instalar Chromium
         run: npx playwright install --with-deps chromium
       - name: Correr las pruebas
