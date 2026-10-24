@@ -48,6 +48,7 @@ const STYLE_KEYS = [
   'ol',
   'olc',
   'grad',
+  'gop',
   'fill2',
   'gang',
   'font',

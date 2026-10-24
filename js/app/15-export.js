@@ -17,7 +17,7 @@ function wrapLines(x, text, maxW) {
 function drawText(x, e) {
   x.font = `${e.italic ? 'italic ' : ''}${e.bold ? '700 ' : '400 '}${e.size}px "${e.font}"`;
   x.textBaseline = 'top';
-  x.fillStyle = e.fill;
+  x.fillStyle = e.grad ? gradOf(x, e) : e.fill;
   if ('letterSpacing' in x) x.letterSpacing = e.ls + 'px';
   if (e.tbg) {
     x.save();

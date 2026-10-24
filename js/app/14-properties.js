@@ -91,6 +91,8 @@ function renderProps() {
   }`;
   h += sec('pos', 'Posición y orden', pos, true);
   const px = `<div class="mini">Pixelado</div><div class="row"><input type="range" data-k="px" min="1" max="40" step="1" value="${e.px}"><span data-v="px">${e.px}</span></div>`;
+  const gradRow = (first = false) =>
+    `<div class="mini">Degradado</div><div class="row"><input type="checkbox" id="grd" data-k="grad"${e.grad ? ' checked' : ''}><label for="grd">Activar</label>${first ? `<input type="color" data-k="fill" value="${e.fill}" aria-label="Primer color">` : ''}<input type="color" data-k="fill2" value="${e.fill2 || '#ffffff'}" aria-label="Segundo color"><select data-k="gang" style="width:96px" aria-label="Dirección del degradado"><option value="v"${e.gang === 'v' ? ' selected' : ''}>Vertical</option><option value="h"${e.gang === 'h' ? ' selected' : ''}>Horizontal</option><option value="d"${e.gang === 'd' || !e.gang ? ' selected' : ''}>Diagonal</option></select></div>`;
   const sw = `<div class="mini">Color</div><div class="row"><input type="color" data-k="fill" value="${e.fill}"><button class="btn sm" data-dropper="fill">◉ Cuentagotas</button></div>${swHTML('fill')}`;
   if (t === 'text') {
     h += sec(
@@ -106,7 +108,7 @@ function renderProps() {
         .join('')}</select></div>
     <div class="row wrap">${nm('size', 'Tamaño', e.size)}<label class="num"><span>Interlín.</span><input type="number" step="0.1" data-k="lh" value="${e.lh}"></label><label class="num"><span>Espaciado</span><input type="number" data-k="ls" value="${e.ls}"></label></div>
     <div class="seg"><button class="btn sm${e.bold ? ' on' : ''}" data-tg="bold"><b>B</b></button><button class="btn sm${e.italic ? ' on' : ''}" data-tg="italic"><i>I</i></button><button class="btn sm${e.upper ? ' on' : ''}" data-tg="upper">Aa→AA</button>
-    ${['left', 'center', 'right'].map(a => `<button class="btn sm${e.align === a ? ' on' : ''}" data-al2="${a}">${{left: 'Izq', center: 'Cen', right: 'Der'}[a]}</button>`).join('')}</div>${sw}`,
+    ${['left', 'center', 'right'].map(a => `<button class="btn sm${e.align === a ? ' on' : ''}" data-al2="${a}">${{left: 'Izq', center: 'Cen', right: 'Der'}[a]}</button>`).join('')}</div>${sw}${gradRow()}`,
       true,
     );
     h += sec(
@@ -133,6 +135,12 @@ function renderProps() {
       <div class="mini">Borde</div><div class="row"><input type="color" data-k="stroke" value="${e.stroke}">${nm('sw', 'Grosor', e.sw)}</div>
       <div class="mini">Voltear</div><div class="row"><button class="btn sm${e.fx ? ' on' : ''}" data-flip="fx">↔ Horizontal</button><button class="btn sm${e.fy ? ' on' : ''}" data-flip="fy">↕ Vertical</button></div>${px}`,
         true,
+      );
+      h += sec(
+        'igr',
+        'Degradado encima',
+        `${gradRow(true)}<div class="mini">Opacidad del degradado</div><div class="row"><input type="range" data-k="gop" min="0" max="1" step="0.05" value="${e.gop ?? 0.5}"><span data-v="gop">${e.gop ?? 0.5}</span></div>`,
+        false,
       );
       h += sec(
         'rmbg',
@@ -176,7 +184,7 @@ function renderProps() {
       );
     }
   } else if (t === 'sprite' || t === 'draw') {
-    h += sec('fill', 'Color', sw, true);
+    h += sec('fill', 'Color', sw + gradRow(), true);
   } else if (t === 'qr') {
     h += sec(
       'qr',
@@ -208,7 +216,7 @@ function renderProps() {
       'fill',
       'Relleno y borde',
       `${sw}
-    ${ln ? '' : `<div class="mini">Degradado</div><div class="row"><input type="checkbox" id="grd" data-k="grad"${e.grad ? ' checked' : ''}><label for="grd">Activar</label><input type="color" data-k="fill2" value="${e.fill2 || '#ffffff'}"><select data-k="gang" style="width:96px"><option value="v"${e.gang === 'v' || !e.gang ? ' selected' : ''}>Vertical</option><option value="h"${e.gang === 'h' ? ' selected' : ''}>Horizontal</option><option value="d"${e.gang === 'd' ? ' selected' : ''}>Diagonal</option></select></div>`}
+    ${ln ? '' : gradRow()}
     ${ring ? `<div class="mini">Grosor del marco</div><div class="row">${nm('th', 'Grosor', e.th || 20)}</div>` : ''}
     <div class="mini">${ln ? 'Grosor' : 'Borde'}</div><div class="row">${ln ? '' : `<input type="color" data-k="stroke" value="${e.stroke}">`}${nm('sw', 'Grosor', e.sw)}</div>${px}`,
       true,

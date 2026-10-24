@@ -11,9 +11,10 @@ function textStyle(t, e) {
     textAlign: e.align,
     fontWeight: e.bold ? 700 : 400,
     fontStyle: e.italic ? 'italic' : 'normal',
-    color: e.fill,
+    color: e.grad ? 'transparent' : e.fill,
     textTransform: e.upper ? 'uppercase' : 'none',
-    background: e.tbg ? e.tbc || '#000000' : 'transparent',
+    background: e.grad ? gradCss(e) : e.tbg ? e.tbc || '#000000' : 'transparent',
+    webkitBackgroundClip: e.grad ? 'text' : 'border-box',
     webkitTextStroke: e.tsw ? `${e.tsw}px ${e.tsc || '#000000'}` : '0',
     paintOrder: 'stroke fill',
   });
@@ -56,6 +57,7 @@ function renderStage() {
       t.className = 'txt';
       t.textContent = e.text;
       textStyle(t, e);
+      if (e.grad && e.tbg) n.style.background = e.tbc || '#000000';
       n.append(t);
     } else {
       const key = bitmapKey(e),

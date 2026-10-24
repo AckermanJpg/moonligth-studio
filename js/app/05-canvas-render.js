@@ -17,12 +17,14 @@ function loadQR() {
   };
   document.head.append(sc);
 }
-function gradOf(x, e) {
-  const g = x.createLinearGradient(0, 0, e.gang === 'v' ? 0 : e.w, e.gang === 'h' ? 0 : e.h);
+function gradOf(x, e, w = e.w, h = e.h) {
+  const g = x.createLinearGradient(0, 0, e.gang === 'v' ? 0 : w, e.gang === 'h' ? 0 : h);
   g.addColorStop(0, e.fill);
   g.addColorStop(1, e.fill2 || '#ffffff');
   return g;
 }
+const gradCss = e =>
+  `linear-gradient(${(Math.atan2(e.gang === 'v' ? 0 : e.w, e.gang === 'h' ? 0 : -e.h) * 180) / Math.PI}deg, ${e.fill}, ${e.fill2 || '#ffffff'})`;
 function parseChart(e) {
   return (e.cdata || '')
     .split('\n')
@@ -148,7 +150,7 @@ function drawBitmap(e) {
     const r = SPR[e.spr],
       c = cv(r[0].length, r.length),
       x = c.getContext('2d');
-    x.fillStyle = e.fill;
+    x.fillStyle = e.grad ? gradOf(x, e, c.width, c.height) : e.fill;
     r.forEach((row, y) =>
       [...row].forEach((ch, i) => {
         if (ch === 'X') x.fillRect(i, y, 1, 1);
@@ -159,7 +161,7 @@ function drawBitmap(e) {
   if (e.type === 'draw') {
     const c = cv(e.gw || 1, e.gh || 1),
       x = c.getContext('2d');
-    x.fillStyle = e.fill;
+    x.fillStyle = e.grad ? gradOf(x, e, c.width, c.height) : e.fill;
     (e.cells || []).forEach(a => x.fillRect(a[0], a[1], 1, 1));
     return c;
   }
@@ -248,6 +250,14 @@ function drawBitmap(e) {
       x.fillRect(0, 0, e.w, e.h);
     }
     if (e.flt && Object.keys(e.flt).length) applyFilter(c, e.flt);
+    if (e.grad) {
+      x.save();
+      x.globalCompositeOperation = 'source-atop';
+      x.globalAlpha = e.gop ?? 0.5;
+      x.fillStyle = gradOf(x, e);
+      x.fillRect(0, 0, e.w, e.h);
+      x.restore();
+    }
     if (e.sw > 0) {
       x.strokeStyle = e.stroke;
       if (e.mask) {
@@ -315,6 +325,7 @@ function bitmapKey(e) {
     e.crop,
     e.th,
     e.grad,
+    e.gop,
     e.fill2,
     e.gang,
     e.mask,
