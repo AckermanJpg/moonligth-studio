@@ -389,7 +389,7 @@ function renderPanel() {
   if (t === 'text' || t === 'brand') loadAllFonts();
   let h = PANELS[t] ? PANELS[t](t) : '';
   if (LEAD[t]) h = h.replace(/(<h3>.*?<\/h3>)/, `$1<p class="lead">${LEAD[t]}</p>`);
-  P.innerHTML = h;
+  P.innerHTML = `<h2 class="sr-only">Opciones de la herramienta</h2>${h}`;
   if (t === 'bg') PANEL_PAINT.bg(P);
   if (t === 'templates') PANEL_PAINT.templates();
   PANEL_PAINT.thumbs(P);

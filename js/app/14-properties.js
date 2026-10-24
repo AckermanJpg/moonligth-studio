@@ -291,14 +291,19 @@ function renderProps() {
     playEnter(P, 600);
   }
   if (!e) {
-    P.innerHTML = PROPS.page();
+    P.innerHTML = `<h2 class="sr-only">Propiedades</h2>${PROPS.page()}`;
     return;
   }
   const c = {e, t: e.type, list, multi: list.length > 1};
   Object.assign(c, PROPS.helpers(c));
   const section = {draw: PROPS.byType.sprite}[c.t] || PROPS.byType[c.t] || PROPS.byType.shape;
   P.innerHTML =
-    PROPS.head(c) + PROPS.pos(c) + section(c) + PROPS.look(c) + sec('lay', 'Capas', layersHTML(), false);
+    '<h2 class="sr-only">Propiedades</h2>' +
+    PROPS.head(c) +
+    PROPS.pos(c) +
+    section(c) +
+    PROPS.look(c) +
+    sec('lay', 'Capas', layersHTML(), false);
   if (c.t === 'image' && e.src) PROPS.thumbs(P, e);
 }
 function layersHTML() {
