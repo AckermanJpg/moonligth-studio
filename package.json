@@ -1,0 +1,12 @@
+{
+  "name": "moonlight-studio",
+  "private": true,
+  "description": "Moonlight Studio: editor de diseño pixel art. La app no necesita npm; este archivo es solo para las pruebas.",
+  "scripts": {
+    "test": "playwright test",
+    "test:mobile": "playwright test mobile"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}
