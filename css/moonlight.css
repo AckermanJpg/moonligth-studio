@@ -1181,6 +1181,9 @@ details.sec > :not(summary) {
   margin-left: auto;
   color: var(--mute);
 }
+#savest.bad {
+  color: var(--warn);
+}
 #toast {
   max-width: 40%;
   overflow: hidden;

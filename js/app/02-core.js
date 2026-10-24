@@ -245,12 +245,16 @@ const store = {
 };
 function save(manual) {
   if (!S.active) return;
+  const st = $('#savest');
   if (!store.set(KEY, snapshot())) {
-    if (manual) toast('No se pudo guardar: memoria local llena');
+    if (manual || !st.classList.contains('bad')) toast('No se pudo guardar: memoria local llena');
+    st.classList.add('bad');
+    st.textContent = 'Sin guardar: memoria llena';
     return;
   }
   const d = new Date();
-  $('#savest').textContent =
+  st.classList.remove('bad');
+  st.textContent =
     'Guardado ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   if (manual) toast('Guardado en este navegador');
 }
