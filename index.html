@@ -35,23 +35,24 @@
             /></svg
           ><span>MOON<b>LIGHT</b>&nbsp;STUDIO</span>
         </div>
-        <div class="tgroup">
+        <div class="tgroup menu-item menu-home">
           <button class="btn sm" id="home-btn" title="Empezar un proyecto nuevo">Inicio</button>
         </div>
-        <div class="tgroup project" role="group" aria-label="Proyecto">
+        <div class="tgroup project menu-item menu-project" role="group" aria-label="Proyecto">
           <input id="name" type="text" value="Sin título" aria-label="Nombre del diseño" maxlength="40" />
           <button class="btn sm" id="sizechip" title="Cambiar tamaño del lienzo">1080 × 1080 px</button>
         </div>
         <div class="tgroup" role="group" aria-label="Historial">
-          <button class="btn sm" id="undo" title="Deshacer (Ctrl+Z)">↶ Deshacer</button>
-          <button class="btn sm" id="redo" title="Rehacer (Ctrl+Y)">↷ Rehacer</button>
+          <button class="btn sm" id="undo" type="button" title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><span aria-hidden="true">↶</span><span class="lbl"> Deshacer</span></button>
+          <button class="btn sm" id="redo" type="button" title="Rehacer (Ctrl+Y)" aria-label="Rehacer"><span aria-hidden="true">↷</span><span class="lbl"> Rehacer</span></button>
         </div>
         <span class="sp"></span>
-        <div class="tgroup" role="group" aria-label="Ver y guardar">
+        <div class="tgroup menu-item menu-ver" role="group" aria-label="Ver y guardar">
           <button class="btn sm" id="help-btn">Ayuda</button>
           <button class="btn sm" id="present-btn">▶ Presentar</button>
           <button class="btn sm" id="save-btn">Guardar</button>
         </div>
+        <button class="btn sm" id="more-btn" type="button" aria-label="Más opciones" aria-expanded="false">Más</button>
         <button class="btn on" id="export-btn">Descargar</button>
       </header>
       <nav id="rail" aria-label="Herramientas"></nav>

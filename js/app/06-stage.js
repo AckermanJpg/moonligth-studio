@@ -181,8 +181,9 @@ function renderOverlay() {
   });
 }
 function fitZoom() {
-  const aw = stageEl.clientWidth - 88,
-    ah = stageEl.clientHeight - 88;
+  const cs = getComputedStyle(stageEl),
+    aw = stageEl.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight),
+    ah = stageEl.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   S.zoom = clamp(Math.min(aw / S.w, ah / S.h), 0.05, 2);
 }
 function setZoom(z) {

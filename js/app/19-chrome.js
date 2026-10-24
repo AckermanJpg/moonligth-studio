@@ -190,3 +190,30 @@ addEventListener(
   },
   true,
 );
+const topBar = $('#top'),
+  moreBtn = $('#more-btn');
+function setTopMenu(open) {
+  topBar.classList.toggle('open', open);
+  moreBtn.setAttribute('aria-expanded', open);
+}
+moreBtn.addEventListener('click', () => {
+  const open = !topBar.classList.contains('open');
+  setTopMenu(open);
+  if (open) $('#home-btn').focus();
+});
+topBar.addEventListener('click', ev => {
+  if (ev.target.closest('.menu-item button')) setTopMenu(false);
+});
+document.addEventListener('click', ev => {
+  if (!ev.target.closest('#top')) setTopMenu(false);
+});
+addEventListener(
+  'keydown',
+  ev => {
+    if (ev.key !== 'Escape' || !topBar.classList.contains('open')) return;
+    ev.stopPropagation();
+    setTopMenu(false);
+    moreBtn.focus();
+  },
+  true,
+);
