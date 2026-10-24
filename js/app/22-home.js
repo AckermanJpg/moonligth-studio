@@ -513,7 +513,6 @@ function paintBgPreviews() {
     sp.replaceChildren(c);
   });
 }
-const LOGO_HTML = $('#logo').innerHTML;
 const LOGO_MARK = $('#logo svg').outerHTML;
 let homeKey = '';
 function renderHome() {
@@ -524,12 +523,11 @@ function renderHome() {
     homeKey = key;
     playEnter(homeEl, 1400);
   }
-  homeEl.innerHTML = `<div class="hwrap"><header class="hhead"><div id="logo">${LOGO_HTML}</div>
-    <span class="sp"></span>
-    <button class="btn sm" data-act="help">? Ayuda</button>${S.active ? '<button class="btn sm on" data-act="close">Volver al editor</button>' : ''}</header>
+  homeEl.innerHTML = `<div class="hwrap"><div class="hhead"><span class="sp"></span>
+    <button class="btn sm" data-act="help">? Ayuda</button>${S.active ? '<button class="btn sm on" data-act="close">Volver al editor</button>' : ''}</div>
     <div class="hmain${st === 1 ? ' cover' : ''}"><section class="hbody">${homeBody()}
     ${st > 1 ? `<div class="hnav"><button class="btn" data-act="back">← Atrás</button><span class="sp"></span>${st < last ? `<button class="btn on" data-act="next"${canNext() ? '' : ' disabled'}>Siguiente →</button>` : `<button class="btn on" data-act="create"${canNext() ? '' : ' disabled'}>${H.sure ? '¿Reemplazar el proyecto actual? Pulsa de nuevo' : 'Crear diseño ✓'}</button>`}</div>` : ''}</section>${st === 1 ? homeShow() : ''}
-    <aside class="hside" id="hside">${homeSide()}</aside></div></div>`;
+    <aside class="hside" id="hside" aria-label="Resumen del lienzo">${homeSide()}</aside></div></div>`;
   homeEl.prepend(MoonStars.canvas);
   $$('[data-ic]', homeEl).forEach(sp => sp.replaceChildren(MoonIcons.el(sp.dataset.ic)));
   const z = homeSize();

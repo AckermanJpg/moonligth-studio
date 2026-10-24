@@ -1385,9 +1385,6 @@ details.sec > :not(summary) {
   background: var(--navy);
   border-bottom: 3px solid var(--cyan);
 }
-.hhead #logo {
-  min-height: 60px;
-}
 .hmain {
   flex: 1;
   display: grid;
