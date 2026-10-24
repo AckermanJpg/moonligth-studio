@@ -107,7 +107,7 @@ async function openExport() {
   const M = $('#mbox');
   M.innerHTML = `<h3>Compartir / Exportar</h3><div class="row"><label>Escala</label><select id="xs" style="width:90px"><option value="1">1×</option><option value="2">2×</option><option value="0.5">0.5×</option></select>
   <button class="btn sm" id="xcur">PNG página actual</button><button class="btn sm" id="xall">Todas las páginas</button><button class="btn sm" id="xcopy">Copiar imagen</button><button class="btn sm warn" id="xclose">Cerrar</button></div>
-  <p class="hint">Haz clic derecho o mantén pulsada la imagen para guardarla. Las descargas directas están bloqueadas dentro de esta ventana.</p><div id="xout"></div>
+  <p class="hint">Haz clic derecho o mantén pulsada la imagen para guardarla. Para descargarla directo, usa el botón Descargar del panel Exportar.</p><div id="xout"></div>
   <h4>Proyecto (JSON)</h4><textarea id="xjson" aria-label="JSON del proyecto" spellcheck="false"></textarea><div class="row"><button class="btn sm" id="xload">Cargar JSON</button><button class="btn sm" id="xjcopy">Copiar JSON</button></div>`;
   $('#xjson').value = snapshot();
   $('#modal').classList.add('on');
