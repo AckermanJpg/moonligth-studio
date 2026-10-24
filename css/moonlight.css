@@ -2047,6 +2047,7 @@ details.sec > :not(summary) {
     padding-left: 10px;
   }
   #logo {
+    flex: none;
     min-width: 0;
   }
   #name {
