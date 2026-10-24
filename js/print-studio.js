@@ -58,6 +58,7 @@
   };
 
   const tick = () => new Promise(r => setTimeout(r, 30));
+  const afterPaint = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
   const round2 = v => Math.round(v * 100) / 100;
   const inUnit = cm => round2(cm * UNITS[st.unit]);
   const toCm = v => v / UNITS[st.unit];
@@ -404,8 +405,8 @@
   async function runSplit() {
     const s = st.split,
       sum = $('#st-sum');
-    sum.textContent = 'Analizando…';
-    await tick();
+    sum.textContent = 'Separando piezas…';
+    await afterPaint();
     const res = P.separate(analysisBase(), {
       byColor: s.byColor,
       byShape: s.byShape,
