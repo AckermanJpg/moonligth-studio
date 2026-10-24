@@ -33,42 +33,63 @@ function loadProjectJSON(js) {
     return false;
   }
 }
-MoonGif.mount({
-  esc,
-  slug,
-  hasWork,
-  imagePage,
-  openProject,
-  cv,
-  toast,
-  saveFile,
-  projectName: () => S.name,
-  pageCanvases: async () => {
-    await loadFonts();
-    return S.pages.map(p => renderPageCanvas(p, Math.min(1, 1000 / Math.max(S.w, S.h))));
-  },
-});
-MoonStudio.mount({
-  esc,
-  slug,
-  cv,
-  toast,
-  toBlob,
-  loadImg,
-  readImage,
-  saveFile,
-  buildPDF,
-  buildZip,
-  imagePage,
-  openProject,
-  loadProjectJSON,
-  hasWork,
-  projectName: () => S.name,
-  pageCanvas: async () => {
-    await loadFonts();
-    return renderPageCanvas(pg(), 1);
-  },
-});
+const loadScript = src =>
+  new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = res;
+    s.onerror = () => rej(new Error(src));
+    document.head.append(s);
+  });
+function mountStudios() {
+  MoonGif.mount({
+    esc,
+    slug,
+    hasWork,
+    imagePage,
+    openProject,
+    cv,
+    toast,
+    saveFile,
+    projectName: () => S.name,
+    pageCanvases: async () => {
+      await loadFonts();
+      return S.pages.map(p => renderPageCanvas(p, Math.min(1, 1000 / Math.max(S.w, S.h))));
+    },
+  });
+  MoonStudio.mount({
+    esc,
+    slug,
+    cv,
+    toast,
+    toBlob,
+    loadImg,
+    readImage,
+    saveFile,
+    buildPDF,
+    buildZip,
+    imagePage,
+    openProject,
+    loadProjectJSON,
+    hasWork,
+    projectName: () => S.name,
+    pageCanvas: async () => {
+      await loadFonts();
+      return renderPageCanvas(pg(), 1);
+    },
+  });
+}
+let studios;
+function openStudio(open) {
+  studios ||= Promise.all([
+    loadScript('js/print-tools.js').then(() => loadScript('js/print-studio.js')),
+    loadScript('js/gif-encoder.js').then(() => loadScript('js/gif-studio.js')),
+  ]).then(mountStudios);
+  return studios.then(open).catch(() => {
+    studios = null;
+    toast('No se pudo cargar la herramienta');
+  });
+}
 
 // Boot
 async function boot() {

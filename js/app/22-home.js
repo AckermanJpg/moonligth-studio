@@ -586,7 +586,7 @@ homeEl.addEventListener('click', ev => {
   if (a !== 'create') H.sure = false;
   if (a === 'cat' && v === 'clip') {
     closeHome();
-    MoonGif.open({pick: true});
+    openStudio(() => MoonGif.open({pick: true}));
   } else if (a === 'cat') {
     H.dest = v === H.cat ? H.dest : -1;
     H.cat = v;

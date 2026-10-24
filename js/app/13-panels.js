@@ -435,7 +435,7 @@ $('#panel').addEventListener('click', ev => {
   const q = s => ev.target.closest(s);
   let b;
   if ((b = q('[data-studio]')))
-    b.dataset.studio === 'gif' ? MoonGif.open() : MoonStudio.open(b.dataset.studio);
+    openStudio(() => (b.dataset.studio === 'gif' ? MoonGif.open() : MoonStudio.open(b.dataset.studio)));
   else if ((b = q('[data-size]'))) {
     const [w, h] = b.dataset.size.split('x').map(Number);
     touch(true);
