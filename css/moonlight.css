@@ -1177,6 +1177,7 @@ details.sec > :not(summary) {
   transform: translateY(-50%) skewX(-20deg);
 }
 #bar .btn {
+  min-height: 28px;
   padding: 5px 12px;
 }
 #pinfo,
@@ -2100,6 +2101,9 @@ details.sec > :not(summary) {
   }
   #bar {
     order: 6;
+  }
+  #bar .btn {
+    min-height: 32px;
   }
   #logo {
     min-width: 0;
