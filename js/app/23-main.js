@@ -100,13 +100,14 @@ async function boot() {
   loadBrand();
   S.style = store.get(STYLE_KEY) === 'pixel' ? 'pixel' : 'normal';
   S.pages = [newPage()];
+  openHome();
+  await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
   renderRail();
   renderPanel();
   renderProps();
   fitZoom();
   renderStage();
   updHist();
-  openHome();
   await loadFonts();
 }
 boot();
