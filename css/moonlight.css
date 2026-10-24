@@ -2101,6 +2101,11 @@ details.sec > :not(summary) {
   }
   #bar {
     order: 6;
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
   #bar .btn {
     min-height: 32px;
