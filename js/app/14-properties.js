@@ -26,26 +26,15 @@ const secO = (k, d) => (S.sec[k] !== undefined ? S.sec[k] : d);
 const sec = (k, title, body, d) =>
   `<details class="sec" data-sec="${k}"${secO(k, d) ? ' open' : ''}><summary>${title}</summary>${body}</details>`;
 let propsKey = '';
-function renderProps() {
-  const P = $('#props'),
-    list = selEls(),
-    e = list[0],
-    key = list.map(x => x.id).join(',');
-  if (key !== propsKey) {
-    propsKey = key;
-    playEnter(P, 600);
-  }
-  let h;
-  if (!e) {
-    h = `<h3>Página</h3><div class="sumline">Tamaño: <b>${S.w} × ${S.h} px</b></div><div class="row"><button class="btn sm" data-gotab="size">Cambiar tamaño</button><button class="btn sm" data-gotab="bg">Cambiar fondo</button></div>
+const PROPS = {
+  page() {
+    return `<h3>Página</h3><div class="sumline">Tamaño: <b>${S.w} × ${S.h} px</b></div><div class="row"><button class="btn sm" data-gotab="size">Cambiar tamaño</button><button class="btn sm" data-gotab="bg">Cambiar fondo</button></div>
     ${sec('aid', 'Ayudas', `<div class="row"><button class="btn sm${S.grid ? ' on' : ''}" data-pr="grid">Cuadrícula</button><button class="btn sm${S.snap ? ' on' : ''}" data-pr="snap">Imán</button></div>`, true)}
     ${sec('lay', 'Capas', layersHTML(), true)}<p class="hint">Selecciona un objeto para editar su color, tamaño, sombra y más. Doble clic en un texto para escribir.</p>`;
-    P.innerHTML = h;
-    return;
-  }
-  const t = e.type,
-    multi = list.length > 1,
-    lab =
+  },
+  head(c) {
+    const {e, t, list, multi} = c;
+    const lab =
       {
         text: 'Texto',
         image: e.src ? 'Imagen' : 'Celda de foto',
@@ -56,9 +45,12 @@ function renderProps() {
         chart: 'Gráfico',
         draw: 'Dibujo',
       }[t] || 'Forma';
-  h = `<h3>${multi ? list.length + ' objetos' : lab}</h3>
+    return `<h3>${multi ? list.length + ' objetos' : lab}</h3>
   <div class="row"><button class="btn sm" data-a="dup">Duplicar</button><button class="btn sm warn" data-a="del">Borrar</button><button class="btn sm${e.locked ? ' on' : ''}" data-a="lock">${e.locked ? 'Bloqueado' : 'Bloquear'}</button></div>`;
-  const pos = `<div class="mini">Orden</div><div class="row"><button class="btn sm" data-a="front">Al frente</button><button class="btn sm" data-a="up">Subir</button><button class="btn sm" data-a="down">Bajar</button><button class="btn sm" data-a="back">Al fondo</button></div>
+  },
+  pos(c) {
+    const {e, t, list, multi} = c;
+    const pos = `<div class="mini">Orden</div><div class="row"><button class="btn sm" data-a="front">Al frente</button><button class="btn sm" data-a="up">Subir</button><button class="btn sm" data-a="down">Bajar</button><button class="btn sm" data-a="back">Al fondo</button></div>
   <div class="mini">Alinear a la página</div><div class="row">${[
     ['l', '◧'],
     ['c', '▥'],
@@ -89,152 +81,30 @@ function renderProps() {
           )}</div><div class="row"><button class="btn sm" data-dist="h">Distribuir ↔</button><button class="btn sm" data-dist="v">Distribuir ↕</button></div>`
       : `<div class="mini">Posición</div><div class="row wrap">${nm('x', 'X', e.x)}${nm('y', 'Y', e.y)}</div><div class="row wrap">${t === 'text' ? nm('w', 'Ancho', e.w) : nm('w', 'Ancho', e.w) + nm('h', 'Alto', e.h)}${nm('rot', 'Giro°', e.rot)}</div>${t === 'text' ? '' : `<div class="row"><input type="checkbox" id="rlock"${S.rlock ? ' checked' : ''}><label for="rlock" style="min-width:0">Mantener proporción</label></div>`}`
   }`;
-  h += sec('pos', 'Posición y orden', pos, true);
-  const px = `<div class="mini">Pixelado</div><div class="row"><input type="range" data-k="px" min="1" max="40" step="1" value="${e.px}"><span data-v="px">${e.px}</span></div>`;
-  const gradRow = (first = false) =>
-    `<div class="mini">Degradado</div><div class="row"><input type="checkbox" id="grd" data-k="grad"${e.grad ? ' checked' : ''}><label for="grd">Activar</label>${first ? `<input type="color" data-k="fill" value="${e.fill}" aria-label="Primer color">` : ''}<input type="color" data-k="fill2" value="${e.fill2 || '#ffffff'}" aria-label="Segundo color"><select data-k="gang" style="width:96px" aria-label="Dirección del degradado"><option value="v"${e.gang === 'v' ? ' selected' : ''}>Vertical</option><option value="h"${e.gang === 'h' ? ' selected' : ''}>Horizontal</option><option value="d"${e.gang === 'd' || !e.gang ? ' selected' : ''}>Diagonal</option></select></div>`;
-  const sw = `<div class="mini">Color</div><div class="row"><input type="color" data-k="fill" value="${e.fill}"><button class="btn sm" data-dropper="fill">◉ Cuentagotas</button></div>${swHTML('fill')}`;
-  if (t === 'text') {
-    h += sec(
-      'txt',
-      'Texto',
-      `<div class="mini">Contenido</div><textarea data-k="text" rows="3" spellcheck="false">${esc(e.text || '')}</textarea><div class="mini">Fuente</div><div class="row"><select data-k="font">${Object.entries(
-        FONTG,
-      )
-        .map(
-          ([g, l]) =>
-            `<optgroup label="${g}">${l.map(f => `<option${f === e.font ? ' selected' : ''} style="font-family:'${f}'">${f}</option>`).join('')}</optgroup>`,
-        )
-        .join('')}</select></div>
-    <div class="row wrap">${nm('size', 'Tamaño', e.size)}<label class="num"><span>Interlín.</span><input type="number" step="0.1" data-k="lh" value="${e.lh}"></label><label class="num"><span>Espaciado</span><input type="number" data-k="ls" value="${e.ls}"></label></div>
-    <div class="seg"><button class="btn sm${e.bold ? ' on' : ''}" data-tg="bold"><b>B</b></button><button class="btn sm${e.italic ? ' on' : ''}" data-tg="italic"><i>I</i></button><button class="btn sm${e.upper ? ' on' : ''}" data-tg="upper">Aa→AA</button>
-    ${['left', 'center', 'right'].map(a => `<button class="btn sm${e.align === a ? ' on' : ''}" data-al2="${a}">${{left: 'Izq', center: 'Cen', right: 'Der'}[a]}</button>`).join('')}</div>${sw}${gradRow()}`,
-      true,
-    );
-    h += sec(
-      'tfx',
-      'Efectos de texto',
-      `<div class="mini">Contorno</div><div class="row"><input type="color" data-k="tsc" value="${e.tsc || '#000000'}">${nm('tsw', 'Grosor', e.tsw || 0)}</div>
-    <div class="mini">Resaltado de fondo</div><div class="row"><input type="checkbox" id="tbg" data-k="tbg"${e.tbg ? ' checked' : ''}><label for="tbg">Activar</label><input type="color" data-k="tbc" value="${e.tbc || '#ffd84a'}"></div>`,
-      false,
-    );
-  } else if (t === 'image') {
-    if (!e.src) {
-      h += sec(
-        'cell',
-        'Foto',
-        `<p class="hint">Esta celda está vacía. Elige una foto o haz clic en una imagen subida (pestaña Imágenes).</p><div class="row"><button class="btn sm on" data-pickimg="1">Elegir fotos…</button></div><p class="hint">Si eliges varias, se reparten en las celdas vacías.</p><input type="file" id="cellfile" accept="image/*" multiple hidden>`,
-        true,
-      );
-    } else {
-      h += sec(
-        'crop',
-        'Recorte y marco',
-        `<div class="row"><button class="btn sm on" data-crop="open">✂ Recortar</button><button class="btn sm" data-crop="reset"${e.crop ? '' : ' disabled'}>Quitar recorte</button></div>
-      <div class="mini">Marco con forma</div><div class="row"><select data-k="mask">${MASKS.map(([k, l]) => `<option value="${k}"${(e.mask || '') === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
-      <div class="mini">Borde</div><div class="row"><input type="color" data-k="stroke" value="${e.stroke}">${nm('sw', 'Grosor', e.sw)}</div>
-      <div class="mini">Voltear</div><div class="row"><button class="btn sm${e.fx ? ' on' : ''}" data-flip="fx">↔ Horizontal</button><button class="btn sm${e.fy ? ' on' : ''}" data-flip="fy">↕ Vertical</button></div>${px}`,
-        true,
-      );
-      h += sec(
-        'igr',
-        'Degradado encima',
-        `${gradRow(true)}<div class="mini">Opacidad del degradado</div><div class="row"><input type="range" data-k="gop" min="0" max="1" step="0.05" value="${e.gop ?? 0.5}"><span data-v="gop">${e.gop ?? 0.5}</span></div>`,
-        false,
-      );
-      h += sec(
-        'rmbg',
-        'Quitar fondo',
-        `<div class="row"><button class="btn sm" data-bgkey="auto">Quitar color de la esquina</button><button class="btn sm" data-bgkey="off"${e.flt && e.flt.key ? '' : ' disabled'}>Restaurar</button></div>
-      ${e.flt && e.flt.key ? `<div class="row"><label style="min-width:96px">Color</label><input type="color" data-f="key" value="${e.flt.key}"></div><div class="row"><label style="min-width:96px">Tolerancia</label><input type="range" data-f="tol" min="0" max="100" value="${e.flt.tol || 25}"><span data-fv="tol">${e.flt.tol || 25}</span></div>` : '<p class="hint">Sirve para fotos con fondo de un solo color. Pon el fondo de la página en Transparente y descarga en PNG.</p>'}`,
-        false,
-      );
-      h += sec(
-        'flt',
-        `Filtros (${Object.keys(PRESETS).length})`,
-        `<div class="fgrid">${Object.keys(PRESETS)
-          .map(
-            n =>
-              `<button class="fp${(e.fp || 'Original') === n ? ' on' : ''}" data-fp="${n}" title="${n}"><span data-fth="${n}"></span>${n}</button>`,
-          )
-          .join('')}</div>`,
-        true,
-      );
-      const du = (e.flt && e.flt.duo) || ['#020821', '#3fe0ff'];
-      h += sec(
-        'adj',
-        'Ajustes manuales',
-        FSL.map(
-          ([k, l, mn, mx]) =>
-            `<div class="row"><label style="min-width:96px">${l}</label><input type="range" data-f="${k}" min="${mn}" max="${mx}" value="${(e.flt && e.flt[k]) || 0}"><span data-fv="${k}" style="min-width:30px;text-align:right">${(e.flt && e.flt[k]) || 0}</span></div>`,
-        ).join(''),
-        false,
-      );
-      h += sec(
-        'col',
-        'Paleta y duotono',
-        `<div class="row"><label style="min-width:96px">Paleta</label><select data-f="pal"><option value="">Ninguna</option>${Object.keys(
-          PALS,
-        )
-          .map(k => `<option value="${k}"${e.flt && e.flt.pal === k ? ' selected' : ''}>${PALN[k]}</option>`)
-          .join('')}</select></div>
-      <div class="mini">Duotono (dos colores)</div><div class="row"><input type="color" data-f="duo0" value="${du[0]}"><input type="color" data-f="duo1" value="${du[1]}"><button class="btn sm" data-duooff="1"${e.flt && e.flt.duo ? '' : ' disabled'}>Quitar</button></div>
-      <div class="row"><button class="btn sm warn" id="fltreset">Quitar todos los filtros</button></div>`,
-        false,
-      );
-    }
-  } else if (t === 'sprite' || t === 'draw') {
-    h += sec('fill', 'Color', sw + gradRow(), true);
-  } else if (t === 'qr') {
-    h += sec(
-      'qr',
-      'Código QR',
-      `<div class="mini">Enlace o texto</div><div class="row"><input type="text" data-k="text" value="${esc(e.text || '')}" maxlength="300"></div>
-    <div class="mini">Color de los cuadros</div><div class="row"><input type="color" data-k="fill" value="${e.fill}"></div><div class="mini">Color de fondo</div><div class="row"><input type="color" data-k="bgc" value="${e.bgc || '#ffffff'}"><button class="btn sm${e.bgc ? '' : ' on'}" data-qrbg="${e.bgc ? 'off' : 'on'}">${e.bgc ? 'Hacer transparente' : 'Transparente'}</button></div>
-    <p class="hint">Verifica el QR con tu teléfono antes de imprimir. Los colores deben contrastar bien.</p>`,
-      true,
-    );
-  } else if (t === 'chart') {
-    h += sec(
-      'ch',
-      'Gráfico',
-      `<div class="mini">Tipo</div><div class="row"><select data-k="ctype">${[
-        ['bar', 'Barras'],
-        ['line', 'Líneas'],
-        ['pie', 'Pastel'],
-      ]
-        .map(([k, l]) => `<option value="${k}"${e.ctype === k ? ' selected' : ''}>${l}</option>`)
-        .join('')}</select></div>
-    <div class="mini">Datos (una línea por dato: nombre, valor)</div><textarea data-k="cdata" rows="7" spellcheck="false">${esc(e.cdata || '')}</textarea>
-    <div class="mini">Color del texto</div><div class="row"><input type="color" data-k="fill" value="${e.fill}"></div>${px}`,
-      true,
-    );
-  } else {
-    const ring = t.startsWith('ring'),
-      ln = t === 'line' || t === 'arrowl';
-    h += sec(
-      'fill',
-      'Relleno y borde',
-      `${sw}
-    ${ln ? '' : gradRow()}
-    ${ring ? `<div class="mini">Grosor del marco</div><div class="row">${nm('th', 'Grosor', e.th || 20)}</div>` : ''}
-    <div class="mini">${ln ? 'Grosor' : 'Borde'}</div><div class="row">${ln ? '' : `<input type="color" data-k="stroke" value="${e.stroke}">`}${nm('sw', 'Grosor', e.sw)}</div>${px}`,
-      true,
-    );
-  }
-  h += sec(
-    'look',
-    'Apariencia y efectos',
-    `<div class="mini">Opacidad</div><div class="row"><input type="range" data-k="op" min="0" max="1" step="0.05" value="${e.op}"></div>
+    return sec('pos', 'Posición y orden', pos, true);
+  },
+  look(c) {
+    const {e, t} = c;
+    return sec(
+      'look',
+      'Apariencia y efectos',
+      `<div class="mini">Opacidad</div><div class="row"><input type="range" data-k="op" min="0" max="1" step="0.05" value="${e.op}"></div>
     <div class="mini">Modo de mezcla</div><div class="row"><select data-k="blend">${BLENDS.map(([k, l]) => `<option value="${k}"${(e.blend || 'normal') === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
     <div class="mini">Sombra pixel</div><div class="row"><input type="checkbox" id="shd" data-k="shadow"${e.shadow ? ' checked' : ''}><label for="shd">Activar</label><input type="color" data-k="sc" value="${e.sc}">${nm('sd', 'Dist.', e.sd)}</div>
     <div class="mini">Estilo</div><div class="row"><button class="btn sm" data-sty="copy">Copiar estilo</button><button class="btn sm" data-sty="paste"${S.styleClip ? '' : ' disabled'}>Pegar estilo</button></div>
     ${t === 'text' ? '' : `<div class="mini">Contorno de sticker</div><div class="row"><input type="color" data-k="olc" value="${e.olc || '#ffffff'}">${nm('ol', 'Grosor', e.ol || 0)}</div>`}`,
-    true,
-  );
-  h += sec('lay', 'Capas', layersHTML(), false);
-  P.innerHTML = h;
-  if (t === 'image' && e.src)
+      true,
+    );
+  },
+  helpers(c) {
+    const {e} = c;
+    const px = `<div class="mini">Pixelado</div><div class="row"><input type="range" data-k="px" min="1" max="40" step="1" value="${e.px}"><span data-v="px">${e.px}</span></div>`;
+    const gradRow = (first = false) =>
+      `<div class="mini">Degradado</div><div class="row"><input type="checkbox" id="grd" data-k="grad"${e.grad ? ' checked' : ''}><label for="grd">Activar</label>${first ? `<input type="color" data-k="fill" value="${e.fill}" aria-label="Primer color">` : ''}<input type="color" data-k="fill2" value="${e.fill2 || '#ffffff'}" aria-label="Segundo color"><select data-k="gang" style="width:96px" aria-label="Dirección del degradado"><option value="v"${e.gang === 'v' ? ' selected' : ''}>Vertical</option><option value="h"${e.gang === 'h' ? ' selected' : ''}>Horizontal</option><option value="d"${e.gang === 'd' || !e.gang ? ' selected' : ''}>Diagonal</option></select></div>`;
+    const sw = `<div class="mini">Color</div><div class="row"><input type="color" data-k="fill" value="${e.fill}"><button class="btn sm" data-dropper="fill">◉ Cuentagotas</button></div>${swHTML('fill')}`;
+    return {px, gradRow, sw};
+  },
+  thumbs(P, e) {
     $$('[data-fth]', P).forEach(sp => {
       const pr = PRESETS[sp.dataset.fth],
         c = bitmap({
@@ -254,6 +124,182 @@ function renderProps() {
       c.style.cssText = 'width:100%;height:auto;display:block;image-rendering:pixelated';
       sp.replaceWith(c);
     });
+  },
+  byType: {
+    text(c) {
+      const {e, t, px, gradRow, sw} = c;
+      let h = '';
+      h += sec(
+        'txt',
+        'Texto',
+        `<div class="mini">Contenido</div><textarea data-k="text" rows="3" spellcheck="false">${esc(e.text || '')}</textarea><div class="mini">Fuente</div><div class="row"><select data-k="font">${Object.entries(
+          FONTG,
+        )
+          .map(
+            ([g, l]) =>
+              `<optgroup label="${g}">${l.map(f => `<option${f === e.font ? ' selected' : ''} style="font-family:'${f}'">${f}</option>`).join('')}</optgroup>`,
+          )
+          .join('')}</select></div>
+    <div class="row wrap">${nm('size', 'Tamaño', e.size)}<label class="num"><span>Interlín.</span><input type="number" step="0.1" data-k="lh" value="${e.lh}"></label><label class="num"><span>Espaciado</span><input type="number" data-k="ls" value="${e.ls}"></label></div>
+    <div class="seg"><button class="btn sm${e.bold ? ' on' : ''}" data-tg="bold"><b>B</b></button><button class="btn sm${e.italic ? ' on' : ''}" data-tg="italic"><i>I</i></button><button class="btn sm${e.upper ? ' on' : ''}" data-tg="upper">Aa→AA</button>
+    ${['left', 'center', 'right'].map(a => `<button class="btn sm${e.align === a ? ' on' : ''}" data-al2="${a}">${{left: 'Izq', center: 'Cen', right: 'Der'}[a]}</button>`).join('')}</div>${sw}${gradRow()}`,
+        true,
+      );
+      h += sec(
+        'tfx',
+        'Efectos de texto',
+        `<div class="mini">Contorno</div><div class="row"><input type="color" data-k="tsc" value="${e.tsc || '#000000'}">${nm('tsw', 'Grosor', e.tsw || 0)}</div>
+    <div class="mini">Resaltado de fondo</div><div class="row"><input type="checkbox" id="tbg" data-k="tbg"${e.tbg ? ' checked' : ''}><label for="tbg">Activar</label><input type="color" data-k="tbc" value="${e.tbc || '#ffd84a'}"></div>`,
+        false,
+      );
+      return h;
+    },
+    image(c) {
+      const {e, t, px, gradRow, sw} = c;
+      let h = '';
+      if (!e.src) {
+        h += sec(
+          'cell',
+          'Foto',
+          `<p class="hint">Esta celda está vacía. Elige una foto o haz clic en una imagen subida (pestaña Imágenes).</p><div class="row"><button class="btn sm on" data-pickimg="1">Elegir fotos…</button></div><p class="hint">Si eliges varias, se reparten en las celdas vacías.</p><input type="file" id="cellfile" accept="image/*" multiple hidden>`,
+          true,
+        );
+      } else {
+        h += sec(
+          'crop',
+          'Recorte y marco',
+          `<div class="row"><button class="btn sm on" data-crop="open">✂ Recortar</button><button class="btn sm" data-crop="reset"${e.crop ? '' : ' disabled'}>Quitar recorte</button></div>
+      <div class="mini">Marco con forma</div><div class="row"><select data-k="mask">${MASKS.map(([k, l]) => `<option value="${k}"${(e.mask || '') === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+      <div class="mini">Borde</div><div class="row"><input type="color" data-k="stroke" value="${e.stroke}">${nm('sw', 'Grosor', e.sw)}</div>
+      <div class="mini">Voltear</div><div class="row"><button class="btn sm${e.fx ? ' on' : ''}" data-flip="fx">↔ Horizontal</button><button class="btn sm${e.fy ? ' on' : ''}" data-flip="fy">↕ Vertical</button></div>${px}`,
+          true,
+        );
+        h += sec(
+          'igr',
+          'Degradado encima',
+          `${gradRow(true)}<div class="mini">Opacidad del degradado</div><div class="row"><input type="range" data-k="gop" min="0" max="1" step="0.05" value="${e.gop ?? 0.5}"><span data-v="gop">${e.gop ?? 0.5}</span></div>`,
+          false,
+        );
+        h += sec(
+          'rmbg',
+          'Quitar fondo',
+          `<div class="row"><button class="btn sm" data-bgkey="auto">Quitar color de la esquina</button><button class="btn sm" data-bgkey="off"${e.flt && e.flt.key ? '' : ' disabled'}>Restaurar</button></div>
+      ${e.flt && e.flt.key ? `<div class="row"><label style="min-width:96px">Color</label><input type="color" data-f="key" value="${e.flt.key}"></div><div class="row"><label style="min-width:96px">Tolerancia</label><input type="range" data-f="tol" min="0" max="100" value="${e.flt.tol || 25}"><span data-fv="tol">${e.flt.tol || 25}</span></div>` : '<p class="hint">Sirve para fotos con fondo de un solo color. Pon el fondo de la página en Transparente y descarga en PNG.</p>'}`,
+          false,
+        );
+        h += sec(
+          'flt',
+          `Filtros (${Object.keys(PRESETS).length})`,
+          `<div class="fgrid">${Object.keys(PRESETS)
+            .map(
+              n =>
+                `<button class="fp${(e.fp || 'Original') === n ? ' on' : ''}" data-fp="${n}" title="${n}"><span data-fth="${n}"></span>${n}</button>`,
+            )
+            .join('')}</div>`,
+          true,
+        );
+        const du = (e.flt && e.flt.duo) || ['#020821', '#3fe0ff'];
+        h += sec(
+          'adj',
+          'Ajustes manuales',
+          FSL.map(
+            ([k, l, mn, mx]) =>
+              `<div class="row"><label style="min-width:96px">${l}</label><input type="range" data-f="${k}" min="${mn}" max="${mx}" value="${(e.flt && e.flt[k]) || 0}"><span data-fv="${k}" style="min-width:30px;text-align:right">${(e.flt && e.flt[k]) || 0}</span></div>`,
+          ).join(''),
+          false,
+        );
+        h += sec(
+          'col',
+          'Paleta y duotono',
+          `<div class="row"><label style="min-width:96px">Paleta</label><select data-f="pal"><option value="">Ninguna</option>${Object.keys(
+            PALS,
+          )
+            .map(
+              k => `<option value="${k}"${e.flt && e.flt.pal === k ? ' selected' : ''}>${PALN[k]}</option>`,
+            )
+            .join('')}</select></div>
+      <div class="mini">Duotono (dos colores)</div><div class="row"><input type="color" data-f="duo0" value="${du[0]}"><input type="color" data-f="duo1" value="${du[1]}"><button class="btn sm" data-duooff="1"${e.flt && e.flt.duo ? '' : ' disabled'}>Quitar</button></div>
+      <div class="row"><button class="btn sm warn" id="fltreset">Quitar todos los filtros</button></div>`,
+          false,
+        );
+      }
+      return h;
+    },
+    sprite(c) {
+      const {e, t, px, gradRow, sw} = c;
+      let h = '';
+      h += sec('fill', 'Color', sw + gradRow(), true);
+      return h;
+    },
+    qr(c) {
+      const {e, t, px, gradRow, sw} = c;
+      let h = '';
+      h += sec(
+        'qr',
+        'Código QR',
+        `<div class="mini">Enlace o texto</div><div class="row"><input type="text" data-k="text" value="${esc(e.text || '')}" maxlength="300"></div>
+    <div class="mini">Color de los cuadros</div><div class="row"><input type="color" data-k="fill" value="${e.fill}"></div><div class="mini">Color de fondo</div><div class="row"><input type="color" data-k="bgc" value="${e.bgc || '#ffffff'}"><button class="btn sm${e.bgc ? '' : ' on'}" data-qrbg="${e.bgc ? 'off' : 'on'}">${e.bgc ? 'Hacer transparente' : 'Transparente'}</button></div>
+    <p class="hint">Verifica el QR con tu teléfono antes de imprimir. Los colores deben contrastar bien.</p>`,
+        true,
+      );
+      return h;
+    },
+    chart(c) {
+      const {e, t, px, gradRow, sw} = c;
+      let h = '';
+      h += sec(
+        'ch',
+        'Gráfico',
+        `<div class="mini">Tipo</div><div class="row"><select data-k="ctype">${[
+          ['bar', 'Barras'],
+          ['line', 'Líneas'],
+          ['pie', 'Pastel'],
+        ]
+          .map(([k, l]) => `<option value="${k}"${e.ctype === k ? ' selected' : ''}>${l}</option>`)
+          .join('')}</select></div>
+    <div class="mini">Datos (una línea por dato: nombre, valor)</div><textarea data-k="cdata" rows="7" spellcheck="false">${esc(e.cdata || '')}</textarea>
+    <div class="mini">Color del texto</div><div class="row"><input type="color" data-k="fill" value="${e.fill}"></div>${px}`,
+        true,
+      );
+      return h;
+    },
+    shape(c) {
+      const {e, t, px, gradRow, sw} = c;
+      let h = '';
+      const ring = t.startsWith('ring'),
+        ln = t === 'line' || t === 'arrowl';
+      h += sec(
+        'fill',
+        'Relleno y borde',
+        `${sw}
+    ${ln ? '' : gradRow()}
+    ${ring ? `<div class="mini">Grosor del marco</div><div class="row">${nm('th', 'Grosor', e.th || 20)}</div>` : ''}
+    <div class="mini">${ln ? 'Grosor' : 'Borde'}</div><div class="row">${ln ? '' : `<input type="color" data-k="stroke" value="${e.stroke}">`}${nm('sw', 'Grosor', e.sw)}</div>${px}`,
+        true,
+      );
+      return h;
+    },
+  },
+};
+function renderProps() {
+  const P = $('#props'),
+    list = selEls(),
+    e = list[0],
+    key = list.map(x => x.id).join(',');
+  if (key !== propsKey) {
+    propsKey = key;
+    playEnter(P, 600);
+  }
+  if (!e) {
+    P.innerHTML = PROPS.page();
+    return;
+  }
+  const c = {e, t: e.type, list, multi: list.length > 1};
+  Object.assign(c, PROPS.helpers(c));
+  const section = {draw: PROPS.byType.sprite}[c.t] || PROPS.byType[c.t] || PROPS.byType.shape;
+  P.innerHTML =
+    PROPS.head(c) + PROPS.pos(c) + section(c) + PROPS.look(c) + sec('lay', 'Capas', layersHTML(), false);
+  if (c.t === 'image' && e.src) PROPS.thumbs(P, e);
 }
 function layersHTML() {
   return (
