@@ -274,6 +274,14 @@ function loadPdfjs() {
     document.head.append(s);
   });
 }
+const pdfError = e =>
+  e && e.message === 'pdfjs'
+    ? 'No se pudo cargar el lector de PDF: revisa tu conexión'
+    : e && e.name === 'PasswordException'
+      ? 'El PDF está protegido con contraseña'
+      : e && e.name === 'InvalidPDFException'
+        ? 'El archivo no es un PDF válido'
+        : 'No se pudo abrir el PDF';
 async function importPDF(file) {
   if (!file) return;
   toast('Leyendo PDF…');
@@ -325,7 +333,7 @@ async function importPDF(file) {
     S.sel = [];
     refresh({props: true, panel: true, fit: true});
     toast(`PDF importado: ${made.length} página(s)${doc.numPages > n ? ' (máx. 30)' : ''}`);
-  } catch {
-    toast('No se pudo abrir el PDF');
+  } catch (e) {
+    toast(pdfError(e));
   }
 }
