@@ -418,6 +418,15 @@ kbd {
 .sp {
   flex: 1;
 }
+#top {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#export-btn {
+  position: sticky;
+  right: 0;
+  flex: none;
+}
 
 /* Rail */
 #rail {
@@ -2026,6 +2035,26 @@ details.sec > :not(summary) {
       "body"
       "side"
       "show";
+  }
+}
+@media (max-width: 1400px) {
+  #top {
+    gap: 6px;
+    padding-right: 10px;
+  }
+  .tgroup {
+    padding-left: 10px;
+  }
+  #logo {
+    min-width: 0;
+  }
+  #name {
+    width: 130px;
+  }
+}
+@media (max-width: 1180px) {
+  #logo span {
+    display: none;
   }
 }
 @media (max-width: 1000px) {
