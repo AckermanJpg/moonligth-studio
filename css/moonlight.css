@@ -1203,7 +1203,7 @@ details.sec > :not(summary) {
 }
 #flash {
   position: fixed;
-  top: 76px;
+  bottom: 52px;
   left: 50%;
   z-index: 70;
   display: none;
