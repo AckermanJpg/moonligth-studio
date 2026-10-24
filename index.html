@@ -33,11 +33,11 @@
           ><span>MOON<b>LIGHT</b>&nbsp;STUDIO</span>
         </div>
         <div class="tgroup menu-item menu-home">
-          <button class="btn sm" id="home-btn" title="Empezar un proyecto nuevo">Inicio</button>
+          <button type="button" class="btn sm" id="home-btn" title="Empezar un proyecto nuevo">Inicio</button>
         </div>
         <div class="tgroup project menu-item menu-project" role="group" aria-label="Proyecto">
           <input id="name" type="text" value="Sin título" aria-label="Nombre del diseño" maxlength="40" />
-          <button class="btn sm" id="sizechip" title="Cambiar tamaño del lienzo">1080 × 1080 px</button>
+          <button type="button" class="btn sm" id="sizechip" title="Cambiar tamaño del lienzo">1080 × 1080 px</button>
         </div>
         <div class="tgroup" role="group" aria-label="Historial">
           <button class="btn sm" id="undo" type="button" title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><span aria-hidden="true">↶</span><span class="lbl"> Deshacer</span></button>
@@ -45,12 +45,12 @@
         </div>
         <span class="sp"></span>
         <div class="tgroup menu-item menu-ver" role="group" aria-label="Ver y guardar">
-          <button class="btn sm" id="help-btn">Ayuda</button>
-          <button class="btn sm" id="present-btn">▶ Presentar</button>
-          <button class="btn sm" id="save-btn">Guardar</button>
+          <button type="button" class="btn sm" id="help-btn">Ayuda</button>
+          <button type="button" class="btn sm" id="present-btn">▶ Presentar</button>
+          <button type="button" class="btn sm" id="save-btn">Guardar</button>
         </div>
         <button class="btn sm" id="more-btn" type="button" aria-label="Más opciones" aria-expanded="false">Más</button>
-        <button class="btn on" id="export-btn">Descargar</button>
+        <button type="button" class="btn on" id="export-btn">Descargar</button>
       </header>
       <nav id="rail" aria-label="Herramientas"></nav>
       <aside id="panel" aria-label="Opciones de la herramienta"></aside>
@@ -66,22 +66,22 @@
       <aside id="props" aria-label="Propiedades"></aside>
       <footer id="bar">
         <div class="bgroup" role="group" aria-label="Páginas">
-          <button class="btn sm" id="pprev" title="Página anterior">◀</button>
+          <button type="button" class="btn sm" id="pprev" title="Página anterior">◀</button>
           <span id="pinfo">1 / 1</span>
-          <button class="btn sm" id="pnext" title="Página siguiente">▶</button>
-          <button class="btn sm" id="padd">+ Página</button>
+          <button type="button" class="btn sm" id="pnext" title="Página siguiente">▶</button>
+          <button type="button" class="btn sm" id="padd">+ Página</button>
         </div>
         <div class="bgroup" role="group" aria-label="Zoom">
-          <button class="btn sm" id="zout" title="Alejar">−</button>
+          <button type="button" class="btn sm" id="zout" title="Alejar">−</button>
           <span id="zinfo">50%</span>
-          <button class="btn sm" id="zin" title="Acercar">+</button>
-          <button class="btn sm" id="zfit">Ajustar</button>
+          <button type="button" class="btn sm" id="zin" title="Acercar">+</button>
+          <button type="button" class="btn sm" id="zfit">Ajustar</button>
         </div>
         <div class="bgroup" role="group" aria-label="Guías">
-          <button class="btn sm" id="tgrid">Cuadrícula</button>
-          <button class="btn sm on" id="tsnap">Imán</button>
-          <button class="btn sm on" id="trulers" title="Mostrar u ocultar reglas y guías">Reglas</button>
-          <button class="btn sm" id="tclear" title="Quitar todas las guías de la página">Quitar guías</button>
+          <button type="button" class="btn sm" id="tgrid">Cuadrícula</button>
+          <button type="button" class="btn sm on" id="tsnap">Imán</button>
+          <button type="button" class="btn sm on" id="trulers" title="Mostrar u ocultar reglas y guías">Reglas</button>
+          <button type="button" class="btn sm" id="tclear" title="Quitar todas las guías de la página">Quitar guías</button>
         </div>
         <span id="savest"></span><span id="toast"></span>
       </footer>
@@ -90,7 +90,7 @@
     <div id="flash" role="status" aria-live="polite"></div>
     <div id="modal"><div id="mbox" role="dialog" aria-modal="true"></div></div>
     <div id="present" role="dialog" aria-modal="true" aria-label="Presentación">
-      <button class="btn" id="pclose">Salir (Esc)</button><img id="pimg" alt="Presentación" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />
+      <button type="button" class="btn" id="pclose">Salir (Esc)</button><img id="pimg" alt="Presentación" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />
     </div>
 
     <script src="js/icons.js"></script>

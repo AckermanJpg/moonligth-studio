@@ -31,6 +31,12 @@ test('el logo aparece una sola vez en el inicio', async ({page}) => {
   await expect(page.locator('#home .hhero .mark')).toBeVisible();
 });
 
+test('todos los botones de index.html declaran su type', async ({page}) => {
+  const html = await (await page.request.get('/index.html')).text();
+  const sinType = [...html.matchAll(/<button\b[^>]*>/g)].filter(m => !/\btype=/.test(m[0]));
+  expect(sinType.map(m => m[0])).toEqual([]);
+});
+
 test.describe('tamaño mínimo de #sizechip (WCAG 2.2, criterio 2.5.8)', () => {
   for (const ancho of [1440, 800, 390]) {
     test(`mide al menos 24 × 24 px a ${ancho} px`, async ({page}) => {
