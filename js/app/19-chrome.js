@@ -148,27 +148,27 @@ const FOCUSABLE =
 const DIALOGS = [$('#present'), $('#modal'), $('#home')];
 const focusables = d => $$(FOCUSABLE, d).filter(e => e.offsetParent !== null);
 const topDialog = () => DIALOGS.find(d => d.classList.contains('on'));
-const dialogObserver = new MutationObserver(list =>
-  list.forEach(({target: d}) => {
-    const on = d.classList.contains('on');
-    if (on === !!d.opener) return;
-    if (!on) {
-      const back = d.opener;
-      d.opener = null;
-      if (back.isConnected) back.focus();
-      return;
-    }
-    d.opener = document.activeElement;
-    const box = d.id === 'modal' ? $('#mbox') : d,
-      h = $('h2,h3', box);
-    if (h && !box.hasAttribute('aria-labelledby')) box.setAttribute('aria-label', h.textContent);
-    (focusables(d)[0] || d).focus();
-  }),
-);
+function syncDialog(d) {
+  const on = d.classList.contains('on');
+  if (on === !!d.opener) return;
+  if (!on) {
+    const back = d.opener;
+    d.opener = null;
+    if (back.isConnected) back.focus();
+    return;
+  }
+  d.opener = document.activeElement;
+  const box = d.id === 'modal' ? $('#mbox') : d,
+    h = $('h2,h3', box);
+  if (h && !box.hasAttribute('aria-labelledby')) box.setAttribute('aria-label', h.textContent);
+  (focusables(d)[0] || d).focus();
+}
+const dialogObserver = new MutationObserver(list => list.forEach(({target}) => syncDialog(target)));
 DIALOGS.forEach(d => {
   d.opener = null;
   d.tabIndex = -1;
   dialogObserver.observe(d, {attributes: true, attributeFilter: ['class']});
+  syncDialog(d);
 });
 addEventListener(
   'keydown',

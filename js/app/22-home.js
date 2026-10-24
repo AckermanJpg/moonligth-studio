@@ -227,6 +227,10 @@ function customForm() {
   }
   <p class="hint">Equivale a <b id="hres"></b></p></div>`;
 }
+const homeSaved = () =>
+  savedInfo
+    ? `<h3 class="hh">O sigue con tu trabajo</h3><button class="hcard wide" data-act="continue"><span data-ic="star"></span><b>Continuar: ${esc(savedInfo.name)}</b><small>${savedInfo.w} × ${savedInfo.h} px · guardado en este navegador</small></button>`
+    : '';
 function homeBody() {
   const st = H.step,
     cat = catOf(H.cat);
@@ -242,7 +246,7 @@ function homeBody() {
       )
       .join('')}</div>
     ${H.style ? `<h3 class="hh">¿Qué vas a crear?</h3><div class="hgrid">${CATS.map(c => `<button class="hcard${H.cat === c.id ? ' on' : ''}" data-act="cat:${c.id}"><span data-ic="${c.spr}"></span><b>${c.name}</b><small>${c.desc}</small></button>`).join('')}</div>` : ''}
-    ${savedInfo ? `<h3 class="hh">O sigue con tu trabajo</h3><button class="hcard wide" data-act="continue"><span data-ic="star"></span><b>Continuar: ${esc(savedInfo.name)}</b><small>${savedInfo.w} × ${savedInfo.h} px · guardado en este navegador</small></button>` : ''}
+    ${homeSaved()}
     <h2>Tu estudio de diseño en el navegador</h2>
     <p class="lead">Editor que corre completo en tu equipo: sin cuenta ni servidor, tus archivos no salen de aquí.</p>
     <ul class="hfacts">${HOME_FACTS.map(([ic, t, d]) => `<li><span data-ic="${ic}"></span><b>${t}</b><small>${d}</small></li>`).join('')}</ul>`;
@@ -515,15 +519,25 @@ function paintBgPreviews() {
 }
 const LOGO_MARK = $('#logo svg').outerHTML;
 let homeKey = '';
+function adoptHome() {
+  homeEl.removeAttribute('data-static');
+  const body = $('.hbody', homeEl);
+  $('h2', body).insertAdjacentHTML('beforebegin', homeSaved());
+  body.insertAdjacentHTML('afterend', homeShow());
+  $('#hside', homeEl).innerHTML = homeSide();
+}
 function renderHome() {
   const last = isFile() ? 2 : 3,
     st = H.step;
-  const key = `${H.step}|${H.cat}|${H.style}`;
+  const key = `${H.step}|${H.cat}|${H.style}`,
+    adopt = homeEl.hasAttribute('data-static') && st === 1 && !S.active;
   if (key !== homeKey) {
     homeKey = key;
-    playEnter(homeEl, 1400);
+    if (!adopt) playEnter(homeEl, 1400);
   }
-  homeEl.innerHTML = `<div class="hwrap"><div class="hhead"><span class="sp"></span>
+  if (adopt) adoptHome();
+  else
+    homeEl.innerHTML = `<div class="hwrap"><div class="hhead"><span class="sp"></span>
     <button class="btn sm" data-act="help">? Ayuda</button>${S.active ? '<button class="btn sm on" data-act="close">Volver al editor</button>' : ''}</div>
     <div class="hmain${st === 1 ? ' cover' : ''}"><section class="hbody">${homeBody()}
     ${st > 1 ? `<div class="hnav"><button class="btn" data-act="back">← Atrás</button><span class="sp"></span>${st < last ? `<button class="btn on" data-act="next"${canNext() ? '' : ' disabled'}>Siguiente →</button>` : `<button class="btn on" data-act="create"${canNext() ? '' : ' disabled'}>${H.sure ? '¿Reemplazar el proyecto actual? Pulsa de nuevo' : 'Crear diseño ✓'}</button>`}</div>` : ''}</section>${st === 1 ? homeShow() : ''}
