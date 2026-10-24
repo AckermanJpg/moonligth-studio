@@ -344,9 +344,7 @@ function showCanvas(i) {
       fonts = [...new Set(page.els.filter(e => e.type === 'text').map(e => e.font))];
     showCache.set(
       i,
-      Promise.all(
-        fonts.flatMap(f => [document.fonts.load(`32px "${f}"`), document.fonts.load(`700 32px "${f}"`)]),
-      )
+      loadFamilies(fonts)
         .catch(() => {})
         .then(() => withSize(w, h, () => renderPageCanvas(page, Math.min(1, 720 / Math.max(w, h))))),
     );

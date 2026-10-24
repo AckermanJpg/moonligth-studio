@@ -108,6 +108,7 @@ function renderPanel() {
   const P = $('#panel'),
     t = S.tab;
   let h = '';
+  if (t === 'text' || t === 'brand') loadAllFonts();
   if (t === 'templates') {
     h = `<h3>Plantillas</h3>${styleSeg()}<div class="grid g2" id="tpls"></div><p class="hint">Al elegir una, reemplaza la página actual. Puedes deshacer con Ctrl+Z.</p>`;
   } else if (t === 'elements') {
@@ -311,16 +312,32 @@ function renderPanel() {
     });
   }
   if (t === 'templates') {
+    const cards = [];
     TPL.forEach((tp, i) => {
       if (tplStyle(tp) !== S.style) return;
       const b = document.createElement('button');
       b.className = 'card tpl';
       b.dataset.tpl = i;
-      const c = renderPageCanvas(tp.build(), 0.1);
+      const pageT = tp.build(),
+        c = renderPageCanvas(pageT, 0.1);
       c.className = S.style === 'pixel' ? 'px' : '';
       b.append(c, tp.name);
       $('#tpls').append(b);
+      cards.push([c, pageT]);
     });
+    const fonts = [
+      ...new Set(cards.flatMap(([, pageT]) => pageT.els.filter(e => e.type === 'text').map(e => e.font))),
+    ];
+    if (fonts.some(f => !fontSheets.has(f)))
+      loadFamilies(fonts)
+        .then(() =>
+          cards.forEach(([c, pageT]) => {
+            const n = renderPageCanvas(pageT, 0.1);
+            n.className = c.className;
+            c.replaceWith(n);
+          }),
+        )
+        .catch(() => {});
   }
   $$('[data-gthumb]', P).forEach(sp => {
     const g = GRIDS[+sp.dataset.gthumb][1],
@@ -432,6 +449,10 @@ $('#panel').addEventListener('click', ev => {
     S.pages[S.cur] = t;
     S.sel = [];
     refresh({props: true});
+    loadFonts().then(() => {
+      bmCache.clear();
+      refresh({});
+    });
   } else if ((b = q('[data-grid]'))) addGrid(+b.dataset.grid);
   else if ((b = q('[data-tool]'))) {
     const k = b.dataset.tool;
@@ -529,7 +550,7 @@ $('#panel').addEventListener('click', ev => {
   else if ((b = q('[data-sprite]'))) add(mk('sprite', {spr: b.dataset.sprite}));
   else if ((b = q('[data-font]'))) {
     const f = b.dataset.font;
-    document.fonts.load(`32px "${f}"`).finally(() => {
+    loadFamily(f).finally(() => {
       add(
         mk('text', {
           text: f,
@@ -544,6 +565,10 @@ $('#panel').addEventListener('click', ev => {
     const o = TEXTS[b.dataset.text];
     const e = mk('text', JSON.parse(JSON.stringify(o)));
     add(e);
+    loadFonts().then(() => {
+      bmCache.clear();
+      refresh({});
+    });
   } else if ((b = q('[data-up]'))) {
     const s = S.uploads[b.dataset.up],
       im = getImg(s),

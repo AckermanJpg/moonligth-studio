@@ -361,12 +361,15 @@ $('#props').addEventListener('input', ev => {
   if (sp) sp.textContent = v;
   renderOverlay();
   if (k === 'font')
-    Promise.all([document.fonts.load(`32px "${v}"`), document.fonts.load(`700 32px "${v}"`)])
+    loadFamily(v)
       .then(() => {
         bmCache.clear();
         refresh({});
       })
       .catch(() => {});
+});
+$('#props').addEventListener('focusin', ev => {
+  if (ev.target.matches('select[data-k="font"]')) loadAllFonts();
 });
 $('#props').addEventListener('click', ev => {
   const q = s => ev.target.closest(s);

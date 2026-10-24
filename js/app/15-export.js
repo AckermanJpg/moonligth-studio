@@ -83,10 +83,43 @@ const usedFonts = () => {
   S.pages.forEach(p => p.els.forEach(e => e.type === 'text' && u.add(e.font)));
   return [...u];
 };
-const loadFonts = () =>
-  Promise.all(
-    usedFonts().flatMap(f => [document.fonts.load(`32px "${f}"`), document.fonts.load(`700 32px "${f}"`)]),
-  ).catch(() => {});
+const FONT_UI = ['Pixelify Sans', 'DotGothic16', 'Jersey 25'];
+const FONT_BOLD = [
+  'Silkscreen',
+  'Pixelify Sans',
+  'Playfair Display',
+  'Merriweather',
+  'Roboto Slab',
+  'Montserrat',
+  'Poppins',
+  'Oswald',
+  'Nunito',
+  'Fredoka',
+  'Space Mono',
+];
+const fontSheets = new Map(FONT_UI.map(f => [f, Promise.resolve()]));
+function addFontSheet(list) {
+  const todo = list.filter(f => FONTS.includes(f) && !fontSheets.has(f));
+  const p = new Promise(res => {
+    if (!todo.length) return res();
+    const l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = `https://fonts.googleapis.com/css2?${todo.map(f => 'family=' + f.replace(/ /g, '+') + (FONT_BOLD.includes(f) ? ':wght@400;700' : '')).join('&')}&display=swap`;
+    l.onload = l.onerror = () => res();
+    document.head.append(l);
+  });
+  todo.forEach(f => fontSheets.set(f, p));
+  return Promise.all(list.map(f => fontSheets.get(f)));
+}
+const loadFamilies = list =>
+  addFontSheet(list).then(() =>
+    Promise.all(
+      list.flatMap(f => [document.fonts.load(`32px "${f}"`), document.fonts.load(`700 32px "${f}"`)]),
+    ),
+  );
+const loadFamily = f => loadFamilies([f]);
+const loadAllFonts = () => addFontSheet(FONTS);
+const loadFonts = () => loadFamilies(usedFonts()).catch(() => {});
 const ELEMENT_TYPES = ['text', 'image', 'sprite', 'draw', 'qr', 'chart', ...SHAPES.map(s => s[0])];
 const isNum = v => typeof v === 'number' && Number.isFinite(v);
 function validateProject(o) {

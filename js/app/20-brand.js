@@ -33,7 +33,7 @@ function applyBrandColor(c) {
 }
 function applyBrandFont(f) {
   const L = selEls().filter(e => e.type === 'text');
-  document.fonts.load(`32px "${f}"`).finally(() => {
+  loadFamily(f).finally(() => {
     if (L.length) {
       touch(true);
       L.forEach(e => (e.font = f));
