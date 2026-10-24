@@ -104,16 +104,13 @@ function bgPreview(k, c1, c2, smooth = S.style === 'normal') {
   }
   return bgCanvas({bg: {pat: k, c1, c2, smooth}}, W, H);
 }
-function renderPanel() {
-  const P = $('#panel'),
-    t = S.tab;
-  let h = '';
-  if (t === 'text' || t === 'brand') loadAllFonts();
-  if (t === 'templates') {
-    h = `<h3>Plantillas</h3>${styleSeg()}<div class="grid g2" id="tpls"></div><p class="hint">Al elegir una, reemplaza la página actual. Puedes deshacer con Ctrl+Z.</p>`;
-  } else if (t === 'elements') {
+const PANELS = {
+  templates() {
+    return `<h3>Plantillas</h3>${styleSeg()}<div class="grid g2" id="tpls"></div><p class="hint">Al elegir una, reemplaza la página actual. Puedes deshacer con Ctrl+Z.</p>`;
+  },
+  elements() {
     const pixel = S.style === 'pixel';
-    h = `<h3>Elementos</h3>${styleSeg()}<div class="row"><input type="text" id="elsearch" placeholder="${pixel ? 'Buscar: corazón, espada, nube…' : 'Buscar: círculo, flecha, globo…'}" aria-label="Buscar elementos"></div>
+    return `<h3>Elementos</h3>${styleSeg()}<div class="row"><input type="text" id="elsearch" placeholder="${pixel ? 'Buscar: corazón, espada, nube…' : 'Buscar: círculo, flecha, globo…'}" aria-label="Buscar elementos"></div>
     <h4>Formas</h4><div class="grid" id="shp">${SHAPES.filter(s => (pixel ? !s[2] : true))
       .map(
         ([k, n]) =>
@@ -135,10 +132,11 @@ function renderPanel() {
         : '<p class="hint">Las pegatinas e íconos pixel están en el estilo Pixel.</p>'
     }
     <p class="hint">Shift + clic para multi-selección. Arrastra las esquinas para escalar.</p>`;
-  } else if (t === 'text') {
+  },
+  text() {
     const pixel = S.style === 'pixel',
       groups = Object.entries(FONTG).filter(([g]) => pixel || g !== 'Pixel');
-    h = `<h3>Texto</h3>${styleSeg()}<h4>Estilos base</h4>${
+    return `<h3>Texto</h3>${styleSeg()}<h4>Estilos base</h4>${
       pixel
         ? `<button class="txtbtn" data-text="h" style="font:400 15px 'Press Start 2P'">Agregar título</button>
     <button class="txtbtn" data-text="s" style="font:400 18px 'Silkscreen'">Agregar subtítulo</button>
@@ -163,15 +161,17 @@ function renderPanel() {
           `<div class="hint">${g}</div>${l.map(f => `<button class="txtbtn" data-font="${f}" style="font:400 20px '${f}',monospace">${f}</button>`).join('')}`,
       )
       .join('')}`;
-  } else if (t === 'images') {
-    h = `<h3>Imágenes</h3><div class="drop" id="drop">Arrastra imágenes aquí o pega con Ctrl+V</div>
+  },
+  images() {
+    return `<h3>Imágenes</h3><div class="drop" id="drop">Arrastra imágenes aquí o pega con Ctrl+V</div>
     <button class="btn" id="pick" style="width:100%">Elegir archivo</button><input type="file" id="file" accept="image/*" multiple hidden>
     <h4>Tus imágenes</h4>${S.uploads.length ? `<div class="ups">${S.uploads.map((s, i) => `<img data-up="${i}" src="${s}" alt="Imagen ${i + 1}" tabindex="0">`).join('')}</div>` : '<p class="hint">Aún no subes ninguna. Usa el control Pixelado para convertirlas en pixel art.</p>'}`;
-  } else if (t === 'bg') {
+  },
+  bg() {
     const b = pg().bg,
       none = b.pat === 'none',
       pixel = S.style === 'pixel';
-    h = `<h3>Fondo</h3>${styleSeg()}<h4>Tipo de fondo</h4><div class="grid g2">${PATS.filter(
+    return `<h3>Fondo</h3>${styleSeg()}<h4>Tipo de fondo</h4><div class="grid g2">${PATS.filter(
       ([k]) => pixel || ['none', 'solid', 'gradient', 'image'].includes(k),
     )
       .map(
@@ -194,9 +194,10 @@ function renderPanel() {
       .join('')}</div>`
     }
     <h4>Todas las páginas</h4><div class="row"><button class="btn sm" data-bgall="1">Usar este fondo en todas</button></div>`;
-  } else if (t === 'draw') {
+  },
+  draw() {
     const d = S.draw;
-    h = `<h3>Dibujar</h3><div class="seg"><button class="btn sm${d.mode === 'brush' ? ' on' : ''}" data-drmode="brush">✎ Pincel</button><button class="btn sm${d.mode === 'erase' ? ' on' : ''}" data-drmode="erase">⌫ Borrador</button><button class="btn sm" data-drmode="off"${d.mode ? '' : ' disabled'}>■ Terminar</button></div>
+    return `<h3>Dibujar</h3><div class="seg"><button class="btn sm${d.mode === 'brush' ? ' on' : ''}" data-drmode="brush">✎ Pincel</button><button class="btn sm${d.mode === 'erase' ? ' on' : ''}" data-drmode="erase">⌫ Borrador</button><button class="btn sm" data-drmode="off"${d.mode ? '' : ' disabled'}>■ Terminar</button></div>
     <h4>Tamaño del pixel</h4><div class="row"><select data-dr="cs">${[4, 6, 8, 12, 16, 24, 32, 48].map(v => `<option value="${v}"${d.cs === v ? ' selected' : ''}>${v} px</option>`).join('')}</select></div>
     <h4>Simetría</h4><div class="row"><select data-dr="mirror" aria-label="Simetría del pincel">${[
       ['off', 'Ninguna'],
@@ -208,9 +209,10 @@ function renderPanel() {
       .join('')}</select></div>
     <h4>Color</h4><div class="row"><input type="color" data-dr="color" value="${d.color}"></div>${swHTML('draw')}
     <p class="hint">${d.mode ? 'Arrastra sobre el lienzo. Esc para terminar.' : 'Elige Pincel o Borrador y arrastra sobre el lienzo.'} Cada trazo se guarda como un objeto que puedes mover y escalar. El borrador funciona sobre dibujos sin girar.</p>`;
-  } else if (t === 'brand') {
+  },
+  brand() {
     const B = S.brand;
-    h = `<h3>Marca</h3><h4>Aplicar color a</h4><div class="seg">${[
+    return `<h3>Marca</h3><h4>Aplicar color a</h4><div class="seg">${[
       ['fill', 'Relleno'],
       ['stroke', 'Borde'],
       ['bg', 'Fondo'],
@@ -227,8 +229,9 @@ function renderPanel() {
     <h4>Fuentes de marca</h4>${B.fonts.map((f, i) => `<button class="txtbtn" data-bfont="${i}" style="font:400 20px '${f}',monospace">${f}${S.brandDel ? '  ×' : ''}</button>`).join('')}
     <div class="row"><select id="bfsel">${FONTS.map(f => `<option>${f}</option>`).join('')}</select><button class="btn sm" data-bact="addfont">Agregar</button></div>
     <p class="hint">Tus colores y fuentes se guardan en este navegador. Clic en un color lo aplica a lo seleccionado; clic en una fuente cambia el texto seleccionado o agrega uno nuevo.</p>`;
-  } else if (t === 'size') {
-    h = `<h3>Tamaño</h3><div class="sumline">Ahora: <b>${S.w} × ${S.h} px</b></div>
+  },
+  size() {
+    return `<h3>Tamaño</h3><div class="sumline">Ahora: <b>${S.w} × ${S.h} px</b></div>
     <h4>Elegir un destino</h4><div class="row"><select id="szsel"><option value="">Elige un destino…</option>${CATS.filter(
       c => DEST[c.id],
     )
@@ -244,10 +247,11 @@ function renderPanel() {
     <p class="hint" id="szres">= ${S.w} × ${S.h} px</p>
     <div class="row"><input type="checkbox" id="szscale" checked><label for="szscale" style="min-width:0">Ajustar el contenido al nuevo tamaño</label></div>
     <button class="btn" id="szapply" style="width:100%">Aplicar tamaño</button><p class="hint">Máximo 5000 px por lado.</p>`;
-  } else if (t === 'export') {
+  },
+  export() {
     const c = S.conv,
       all = c.pages === 'all';
-    h = `<h3>Exportar</h3><h4>Descargar diseño</h4>
+    return `<h3>Exportar</h3><h4>Descargar diseño</h4>
     <div class="seg">${['jpg', 'png', 'webp', 'pdf'].map(f => `<button class="btn sm${c.fmt === f ? ' on' : ''}" data-cvset="fmt:${f}">${f.toUpperCase()}</button>`).join('')}</div>
     <div class="seg" style="margin-top:6px">${[
       ['cur', 'Página actual'],
@@ -281,14 +285,16 @@ function renderPanel() {
     <button class="btn sm" data-cvpick="cvf" style="width:100%;margin-bottom:6px">Imágenes → PDF</button>
     <input type="file" id="cvpdf" accept="application/pdf,.pdf" hidden><input type="file" id="cvj" accept="image/*" multiple hidden><input type="file" id="cvp" accept="image/*" multiple hidden><input type="file" id="cvf" accept="image/*" multiple hidden>
     <p class="hint">Todo se procesa en tu navegador. Cada descarga te pide confirmación.</p>`;
-  } else if (t === 'gif') {
-    h = `<h3>Crear GIF</h3>
+  },
+  gif() {
+    return `<h3>Crear GIF</h3>
     <ol class="how"><li>Sube videos e imágenes</li><li>Ordénalos y recorta cada video</li><li>Elige tamaño, cuadros y colores</li><li>Crea y descarga el GIF</li></ol>
     <button class="btn on" data-studio="gif" style="width:100%">Abrir creador de GIF</button>
     <p class="hint">Tus archivos no se suben a ningún sitio: todo se procesa en tu navegador.</p>`;
-  } else if (t === 'poster' || t === 'split') {
+  },
+  poster(t = 'poster') {
     const poster = t === 'poster';
-    h = `<h3>${poster ? 'Póster en hojas' : 'Separar piezas'}</h3>
+    return `<h3>${poster ? 'Póster en hojas' : 'Separar piezas'}</h3>
     <ol class="how">${
       poster
         ? '<li>Sube tu imagen</li><li>Escribe el tamaño final en cm</li><li>Elige el tamaño de hoja</li><li>Descarga el PDF o ábrelo como proyecto</li>'
@@ -296,12 +302,16 @@ function renderPanel() {
     }</ol>
     <button class="btn on" data-studio="${t}" style="width:100%">${poster ? 'Abrir póster en hojas' : 'Abrir separador de piezas'}</button>
     <p class="hint">Tu imagen original nunca se modifica.</p>`;
-  } else if (t === 'pages') {
-    h = `<h3>Páginas</h3><div class="row"><button class="btn sm" data-pg="add">+ Nueva</button><button class="btn sm" data-pg="dup">Duplicar</button><button class="btn sm warn" data-pg="del">Borrar</button><button class="btn sm" data-pg="l">◀ Mover</button><button class="btn sm" data-pg="r">Mover ▶</button></div><div id="pgl" style="margin-top:10px"></div>`;
-  }
-  if (LEAD[t]) h = h.replace(/(<h3>.*?<\/h3>)/, `$1<p class="lead">${LEAD[t]}</p>`);
-  P.innerHTML = h;
-  if (t === 'bg') {
+  },
+  split(t) {
+    return this.poster(t);
+  },
+  pages() {
+    return `<h3>Páginas</h3><div class="row"><button class="btn sm" data-pg="add">+ Nueva</button><button class="btn sm" data-pg="dup">Duplicar</button><button class="btn sm warn" data-pg="del">Borrar</button><button class="btn sm" data-pg="l">◀ Mover</button><button class="btn sm" data-pg="r">Mover ▶</button></div><div id="pgl" style="margin-top:10px"></div>`;
+  },
+};
+const PANEL_PAINT = {
+  bg(P) {
     const b = pg().bg,
       nb = b.pat === 'none';
     $$('[data-pp]', P).forEach(sp => {
@@ -310,8 +320,8 @@ function renderPanel() {
         'width:56px;height:38px;image-rendering:pixelated;display:block;border:2px solid #fff';
       sp.replaceWith(c);
     });
-  }
-  if (t === 'templates') {
+  },
+  templates() {
     const cards = [];
     TPL.forEach((tp, i) => {
       if (tplStyle(tp) !== S.style) return;
@@ -338,38 +348,51 @@ function renderPanel() {
           }),
         )
         .catch(() => {});
-  }
-  $$('[data-gthumb]', P).forEach(sp => {
-    const g = GRIDS[+sp.dataset.gthumb][1],
-      c = cv(48, 36),
-      x = c.getContext('2d');
-    x.fillStyle = '#3fe0ff';
-    g.forEach(([u, v, w, h]) =>
-      x.fillRect(
-        Math.round(u * 46 + 1),
-        Math.round(v * 34 + 1),
-        Math.max(2, Math.round(w * 46) - 2),
-        Math.max(2, Math.round(h * 34) - 2),
-      ),
-    );
-    sp.replaceWith(c);
-  });
-  $$('[data-ic2]', P).forEach(sp => sp.replaceWith(MoonIcons.el(sp.dataset.ic2)));
-  $$('[data-thumb]', P).forEach(s => {
-    const k = s.dataset.thumb,
-      e = k.startsWith('s:')
-        ? mk('sprite', {spr: k.slice(2), fill: '#3fe0ff'})
-        : mk(k, {
-            w: 64,
-            h: k === 'line' || k === 'arrowl' ? 28 : 64,
-            px: S.style === 'pixel' ? 4 : 1,
-            fill: S.style === 'pixel' ? '#3fe0ff' : STYLE_BASE.normal.fill,
-            sw: k === 'line' || k === 'arrowl' ? 8 : 0,
-          });
-    const c = bitmap(e);
-    c.style.cssText = `width:48px;height:auto;image-rendering:${S.style === 'pixel' ? 'pixelated' : 'auto'}`;
-    s.replaceWith(c);
-  });
+  },
+  thumbs(P) {
+    $$('[data-gthumb]', P).forEach(sp => {
+      const g = GRIDS[+sp.dataset.gthumb][1],
+        c = cv(48, 36),
+        x = c.getContext('2d');
+      x.fillStyle = '#3fe0ff';
+      g.forEach(([u, v, w, h]) =>
+        x.fillRect(
+          Math.round(u * 46 + 1),
+          Math.round(v * 34 + 1),
+          Math.max(2, Math.round(w * 46) - 2),
+          Math.max(2, Math.round(h * 34) - 2),
+        ),
+      );
+      sp.replaceWith(c);
+    });
+    $$('[data-ic2]', P).forEach(sp => sp.replaceWith(MoonIcons.el(sp.dataset.ic2)));
+    $$('[data-thumb]', P).forEach(s => {
+      const k = s.dataset.thumb,
+        e = k.startsWith('s:')
+          ? mk('sprite', {spr: k.slice(2), fill: '#3fe0ff'})
+          : mk(k, {
+              w: 64,
+              h: k === 'line' || k === 'arrowl' ? 28 : 64,
+              px: S.style === 'pixel' ? 4 : 1,
+              fill: S.style === 'pixel' ? '#3fe0ff' : STYLE_BASE.normal.fill,
+              sw: k === 'line' || k === 'arrowl' ? 8 : 0,
+            });
+      const c = bitmap(e);
+      c.style.cssText = `width:48px;height:auto;image-rendering:${S.style === 'pixel' ? 'pixelated' : 'auto'}`;
+      s.replaceWith(c);
+    });
+  },
+};
+function renderPanel() {
+  const P = $('#panel'),
+    t = S.tab;
+  if (t === 'text' || t === 'brand') loadAllFonts();
+  let h = PANELS[t] ? PANELS[t](t) : '';
+  if (LEAD[t]) h = h.replace(/(<h3>.*?<\/h3>)/, `$1<p class="lead">${LEAD[t]}</p>`);
+  P.innerHTML = h;
+  if (t === 'bg') PANEL_PAINT.bg(P);
+  if (t === 'templates') PANEL_PAINT.templates();
+  PANEL_PAINT.thumbs(P);
   if (t === 'pages') renderPageList();
 }
 function renderPageList() {
