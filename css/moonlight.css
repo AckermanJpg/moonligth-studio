@@ -2078,7 +2078,7 @@ details.sec > :not(summary) {
   #app {
     height: auto;
     min-height: 100%;
-    grid-template-rows: 60px auto 52vh auto auto 40px;
+    grid-template-rows: 60px 52px 52vh auto auto 40px;
     grid-template-columns: 1fr;
   }
   #rail {
@@ -2215,7 +2215,7 @@ details.sec > :not(summary) {
     top: 158px;
   }
   #app {
-    grid-template-rows: 60px auto 52vh auto auto auto;
+    grid-template-rows: 60px 52px 52vh auto auto auto;
   }
   #bar {
     flex-wrap: wrap;

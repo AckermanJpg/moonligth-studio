@@ -243,6 +243,8 @@ const store = {
     }
   },
 };
+const rulersPref = store.get(RULERS_KEY);
+S.rulers = rulersPref === null ? !matchMedia('(max-width: 720px)').matches : rulersPref !== '0';
 function save(manual) {
   if (!S.active) return;
   const st = $('#savest');
