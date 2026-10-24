@@ -409,6 +409,9 @@ kbd {
   background: var(--blue);
   transform: translateY(-50%) skewX(-20deg);
 }
+#more-btn {
+  display: none;
+}
 #name {
   width: 170px;
   padding: 6px 8px;
