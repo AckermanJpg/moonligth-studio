@@ -33,6 +33,15 @@ body {
   font-size: 16px;
   line-height: 1.35;
   overflow: hidden;
+  scrollbar-color: var(--royal) var(--deep);
+}
+::selection {
+  background: var(--cyan);
+  color: var(--ink);
+}
+::placeholder {
+  color: var(--mute);
+  opacity: 1;
 }
 button,
 input,
