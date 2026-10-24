@@ -83,7 +83,7 @@ const usedFonts = () => {
   S.pages.forEach(p => p.els.forEach(e => e.type === 'text' && u.add(e.font)));
   return [...u];
 };
-const FONT_UI = ['Pixelify Sans', 'DotGothic16', 'Jersey 25'];
+const FONT_UI = ['Pixelify Sans', 'Jersey 25'];
 const FONT_BOLD = [
   'Silkscreen',
   'Pixelify Sans',
