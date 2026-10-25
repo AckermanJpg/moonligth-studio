@@ -1,5 +1,7 @@
 # Moonlight Studio
 
+[![Pruebas](https://github.com/AckermanJpg/moonligth-studio/actions/workflows/tests.yml/badge.svg)](https://github.com/AckermanJpg/moonligth-studio/actions/workflows/tests.yml)
+
 Editor de diseño que corre en el navegador, con estética de pixel art y una interfaz inspirada en Persona 3. Sirve para armar imágenes (posts, carteles, insignias, miniaturas), imprimirlas en tamaño grande repartidas en hojas, separar un logo en sus piezas y convertir videos o imágenes en GIFs.
 
 No tiene servidor, cuenta ni base de datos. Es HTML, CSS y JavaScript sin framework y sin paso de compilación. Lo que cargas y lo que creas se queda en tu equipo.
