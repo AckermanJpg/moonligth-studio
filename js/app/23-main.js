@@ -1,6 +1,6 @@
 // Print studio bridge
 (() => {
-  Object.assign(window, {openStudio});
+  Object.assign(window, {openStudio, openSearch});
   const hasWork = () => S.active && (S.pages.length > 1 || S.pages.some(p => p.els.length));
   const imagePage = (src, w, h, bg) => {
     const p = newPage(bg ? {pat: 'solid', c1: bg, c2: bg} : {pat: 'none', c1: '#ffffff', c2: '#ffffff'});
@@ -90,6 +90,14 @@
     return studios.then(open).catch(() => {
       studios = null;
       toast('No se pudo cargar la herramienta');
+    });
+  }
+  let search;
+  function openSearch(go) {
+    search ||= loadScript('js/openverse.js').then(() => MoonSearch.mount({readImage, addImage, toast}));
+    return search.then(go).catch(() => {
+      search = null;
+      toast('No se pudo cargar el buscador');
     });
   }
 

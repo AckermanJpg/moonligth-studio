@@ -168,6 +168,7 @@
     images() {
       return `<h3>Imágenes</h3><div class="drop" id="drop">Arrastra imágenes aquí o pega con Ctrl+V</div>
     <button class="btn" id="pick" style="width:100%">Elegir archivo</button><input type="file" id="file" accept="image/*" multiple hidden>
+    <h4>Buscar imágenes</h4><form id="ovform" class="row" role="search"><input type="text" id="ovq" maxlength="200" enterkeyhint="search" placeholder="Ej.: gato, montaña, ciudad" aria-label="Buscar imágenes libres en Openverse"><button class="btn sm" type="submit">Buscar</button></form><p class="hint" id="ovst" role="status"></p><div id="ovres"></div>
     <h4>Tus imágenes</h4>${S.uploads.length ? `<div class="ups">${S.uploads.map((s, i) => `<img data-up="${i}" src="${s}" alt="Imagen ${i + 1}" tabindex="0">`).join('')}</div>` : '<p class="hint">Aún no subes ninguna. Usa el control Pixelado para convertirlas en pixel art.</p>'}`;
     },
     bg() {
@@ -397,6 +398,7 @@
     if (t === 'templates') PANEL_PAINT.templates();
     PANEL_PAINT.thumbs(P);
     if (t === 'pages') renderPageList();
+    if (t === 'images' && window.MoonSearch) MoonSearch.render();
   }
   function renderPageList() {
     const L = $('#pgl');
@@ -724,6 +726,10 @@
   });
   $('#panel').addEventListener('keydown', ev => {
     if (ev.key === 'Enter' && ev.target.matches('.sw,[data-up],.pg')) ev.target.click();
+  });
+  $('#panel').addEventListener('submit', ev => {
+    ev.preventDefault();
+    if (ev.target.id === 'ovform') openSearch(() => MoonSearch.search($('#ovq').value));
   });
   $('#panel').addEventListener('dragover', ev => {
     ev.preventDefault();
