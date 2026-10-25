@@ -731,6 +731,7 @@ let savedInfo;
   reducedMotion.addEventListener('change', showArm);
   function continueSaved() {
     try {
+      if (validateProject(JSON.parse(savedInfo.js))) throw new Error('invalid');
       restore(savedInfo.js);
     } catch {
       toast('No se pudo abrir el proyecto guardado');

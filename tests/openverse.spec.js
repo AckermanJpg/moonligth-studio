@@ -271,29 +271,58 @@ test.describe('buscador de Openverse', () => {
     expect(await page.evaluate(() => window.__xss)).toBeUndefined();
   });
 
-  test('rechaza un JSON con un enlace javascript: en los créditos', async ({page}) => {
-    await open(page);
-    await createProject(page);
-    const antes = await page.evaluate(() => snapshot());
-    await page.evaluate(() => openExport());
-    await page.evaluate(() => {
-      const o = JSON.parse(snapshot());
-      o.pages[0].els.push({
-        id: 'z1',
-        type: 'image',
-        x: 0,
-        y: 0,
-        w: 10,
-        h: 10,
-        src: '',
-        credit: {title: 'a', creator: 'b', license: 'by', url: 'javascript:alert(1)'},
+  const malo = (page, donde) =>
+    page.evaluate(donde => {
+      const o = JSON.parse(snapshot()),
+        credit = {title: 'a', creator: 'b', license: 'by', url: 'javascript:alert(1)'};
+      o.pages[0].els.push({id: 'z1', type: 'image', x: 0, y: 0, w: 10, h: 10, src: '', credit});
+      return JSON.stringify(o);
+    }, donde);
+
+  for (const donde of ['elemento']) {
+    test.describe(`rechaza un credit con javascript: en el ${donde}`, () => {
+      test('desde el JSON del panel Exportar', async ({page}) => {
+        await open(page);
+        await createProject(page);
+        const antes = await page.evaluate(() => snapshot());
+        const js = await malo(page, donde);
+        await page.evaluate(() => openExport());
+        await page.fill('#xjson', js);
+        await page.click('#xload');
+        await expect(page.locator('#toast')).toHaveText('JSON inválido: créditos inválidos');
+        expect(await page.evaluate(() => snapshot())).toBe(antes);
       });
-      document.getElementById('xjson').value = JSON.stringify(o);
+
+      test('desde Abrir un proyecto guardado del estudio de póster', async ({page}) => {
+        await open(page);
+        await createProject(page);
+        const antes = await page.evaluate(() => snapshot());
+        const js = await malo(page, donde);
+        await page.evaluate(() => openStudio(() => MoonStudio.open('poster')));
+        await page.setInputFiles('#st-json', {
+          name: 'malo.moonlight.json',
+          mimeType: 'application/json',
+          buffer: Buffer.from(js),
+        });
+        await expect(page.locator('#toast')).toHaveText('Ese archivo no es un proyecto válido');
+        expect(await page.evaluate(() => snapshot())).toBe(antes);
+      });
+
+      test('desde el autoguardado', async ({page}) => {
+        await open(page);
+        await createProject(page);
+        const js = await malo(page, donde);
+        await page.evaluate(() => (S.active = false));
+        await page.evaluate(js => localStorage.setItem('moonlight-studio-v1', js), js);
+        await page.reload();
+        await page.waitForSelector('#home.on');
+        await page.click('[data-act="continue"]');
+        await expect(page.locator('#toast')).toHaveText('No se pudo abrir el proyecto guardado');
+        await expect(page.locator('#home')).toHaveClass(/on/);
+        expect(await page.evaluate(() => S.active)).toBe(false);
+      });
     });
-    await page.click('#xload');
-    await expect(page.locator('#toast')).toHaveText('JSON inválido: créditos inválidos');
-    expect(await page.evaluate(() => snapshot())).toBe(antes);
-  });
+  }
 
   for (const [q, texto] of [
     ['nada', 'No encontré imágenes libres'],

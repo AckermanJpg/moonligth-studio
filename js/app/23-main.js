@@ -8,6 +8,11 @@
     return p;
   };
   function openProject(o, opt = {}) {
+    const why = validateProject(o);
+    if (why) {
+      toast(`Proyecto inválido: ${why}`);
+      return false;
+    }
     savedInfo = null;
     S.name = o.name || 'Sin título';
     $('#name').value = S.name;
@@ -24,13 +29,11 @@
     resetHistory();
     afterOpen();
     toast(`Proyecto abierto: ${S.name}`);
+    return true;
   }
   function loadProjectJSON(js) {
     try {
-      const o = JSON.parse(js);
-      if (!o || !Array.isArray(o.pages) || !o.pages.length || !o.w || !o.h) return false;
-      openProject(o, {tab: 'images'});
-      return true;
+      return openProject(JSON.parse(js), {tab: 'images'});
     } catch {
       return false;
     }

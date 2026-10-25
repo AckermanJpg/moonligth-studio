@@ -1,7 +1,7 @@
 // Export
 let presIdx;
 (() => {
-  Object.assign(window, {renderPageCanvas, openExport, openPresent, showPres});
+  Object.assign(window, {renderPageCanvas, openExport, openPresent, showPres, validateProject});
   function wrapLines(x, text, maxW) {
     const out = [];
     text.split('\n').forEach(par => {
