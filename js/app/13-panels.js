@@ -277,7 +277,7 @@
     <button class="btn" id="cvgo" style="width:100%">Descargar ${c.fmt.toUpperCase()}${all && c.fmt !== 'pdf' ? ' (ZIP)' : ''}</button>
     <div class="sumline">Salida: <b>${Math.round(S.w * c.scale)} × ${Math.round(S.h * c.scale)} px</b></div>
     <p class="hint">${c.fmt === 'pdf' ? 'El PDF lleva cada página elegida como imagen.' : all ? 'Con varias páginas recibes un ZIP con un archivo por página.' : 'Se guarda una imagen de la página actual.'}</p>${S.pages.some(p => p.bg.pat === 'none') ? `<p class="hint" style="color:var(--gold)">${c.fmt === 'png' ? 'Tu fondo es transparente: el PNG lo conserva.' : 'Tu fondo es transparente. JPG y PDF lo rellenan de blanco; usa PNG para conservarlo.'}</p>` : ''}
-    <div class="row"><button class="btn sm" id="cvprev">Vista previa / JSON</button>${S.pages.some(p => p.els.some(e => e.credit)) ? '<button class="btn sm" id="credcopy">Copiar créditos</button>' : ''}</div>
+    <div class="row"><button class="btn sm" id="cvprev">Vista previa / JSON</button>${projectCredits().length ? '<button class="btn sm" id="credcopy">Copiar créditos</button>' : ''}</div>
     <h4>Exportar en varios tamaños</h4><p class="hint">Adapta la página actual a varios formatos y descarga un ZIP.</p>
     ${MS.map((m, i) => `<div class="row"><input type="checkbox" id="ms${i}" data-ms="${i}"${S.msSel[i] ? ' checked' : ''}><label for="ms${i}" style="min-width:0">${m[0].replace(/_/g, ' ')} · ${m[1]}×${m[2]}</label></div>`).join('')}
     <button class="btn sm" id="msgo" style="width:100%">Descargar ZIP de tamaños</button>
@@ -601,28 +601,32 @@
       const s = S.uploads[b.dataset.up],
         im = getImg(s),
         e0 = prim(),
-        cr = S.pages.flatMap(p => p.els).find(x => x.src === s && x.credit)?.credit;
+        cr = creditOf(s);
       if (e0 && e0.type === 'image' && !e0.src) {
         touch(true);
         e0.src = s;
-        if (cr) e0.credit = {...cr};
+        if (cr) e0.credit = cr;
         refresh({props: true});
       } else {
         const w = im.width || 600,
           h = im.height || 600;
-        addImage(s, w, h, cr && {credit: {...cr}});
+        addImage(s, w, h, cr && {credit: cr});
       }
     } else if (q('[data-bgpick]')) $('#bgfile').click();
     else if ((b = q('[data-bgimg]'))) {
       touch(true);
       pg().bg.src = S.uploads[+b.dataset.bgimg];
+      pg().bg.credit = creditOf(pg().bg.src);
       pg().bg.pat = 'image';
       refresh({panel: true});
     } else if ((b = q('[data-pat]'))) {
       touch(true);
       pg().bg.pat = b.dataset.pat;
       pg().bg.smooth = S.style === 'normal';
-      if (b.dataset.pat === 'image' && !pg().bg.src && S.uploads[0]) pg().bg.src = S.uploads[0];
+      if (b.dataset.pat === 'image' && !pg().bg.src && S.uploads[0]) {
+        pg().bg.src = S.uploads[0];
+        pg().bg.credit = creditOf(S.uploads[0]);
+      }
       if (b.dataset.pat === 'none') S.conv.fmt = 'png';
       refresh({panel: true});
     } else if (q('[data-bgall]')) {
@@ -669,12 +673,10 @@
     } else if (q('#cvgo')) doExport();
     else if (q('#cvprev')) openExport();
     else if (q('#credcopy'))
-      navigator.clipboard
-        .writeText([...new Set(S.pages.flatMap(p => p.els.filter(e => e.credit).map(creditText)))].join('\n'))
-        .then(
-          () => toast('Créditos copiados'),
-          () => toast('No se pudieron copiar los créditos'),
-        );
+      navigator.clipboard.writeText(projectCredits().join('\n')).then(
+        () => toast('Créditos copiados'),
+        () => toast('No se pudieron copiar los créditos'),
+      );
     else if ((b = q('[data-cvpick]'))) $('#' + b.dataset.cvpick).click();
     else if (q('#pick')) $('#file').click();
   });
@@ -720,6 +722,7 @@
           touch(true);
           if (!S.uploads.includes(o.src)) S.uploads.unshift(o.src);
           pg().bg.src = o.src;
+          delete pg().bg.credit;
           pg().bg.pat = 'image';
           refresh({panel: true});
         })

@@ -32,8 +32,10 @@
   let propsKey = '';
   const PROPS = {
     page() {
+      const b = pg().bg;
       return `<h3>Página</h3><div class="sumline">Tamaño: <b>${S.w} × ${S.h} px</b></div><div class="row"><button class="btn sm" data-gotab="size">Cambiar tamaño</button><button class="btn sm" data-gotab="bg">Cambiar fondo</button></div>
     ${sec('aid', 'Ayudas', `<div class="row"><button class="btn sm${S.grid ? ' on' : ''}" data-pr="grid">Cuadrícula</button><button class="btn sm${S.snap ? ' on' : ''}" data-pr="snap">Imán</button></div>`, true)}
+    ${b.pat === 'image' && b.src && b.credit ? sec('bgcredit', 'Créditos del fondo', creditHTML(b.credit, true), true) : ''}
     ${sec('lay', 'Capas', layersHTML(), true)}<p class="hint">Selecciona un objeto para editar su color, tamaño, sombra y más. Doble clic en un texto para escribir.</p>`;
     },
     head(c) {
@@ -169,19 +171,7 @@
             true,
           );
         } else {
-          if (e.credit) {
-            const cr = e.credit,
-              link = (u, t) =>
-                httpsUrl(u)
-                  ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(t)}</a>`
-                  : esc(t);
-            h += sec(
-              'credit',
-              'Créditos',
-              `<p class="hint" id="credit">"${esc(cr.title || 'Sin título')}" de ${esc(cr.creator || 'autor desconocido')}, ${link(cr.licenseUrl, licenseName(cr))}, ${link(cr.url, httpsUrl(cr.url) ? 'ver la obra' : cr.url)}${isAdapted(e) ? ', adaptada' : ''}</p>`,
-              true,
-            );
-          }
+          if (e.credit) h += sec('credit', 'Créditos', creditHTML(e.credit, isAdapted(e)), true);
           h += sec(
             'crop',
             'Recorte y marco',

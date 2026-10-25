@@ -106,9 +106,29 @@ function licenseName(c) {
 function isAdapted(e) {
   return !!(e.crop || e.px > 1 || (e.flt && Object.keys(e.flt).length));
 }
-function creditText(e) {
-  const c = e.credit;
-  return `"${c.title || 'Sin título'}" de ${c.creator || 'autor desconocido'}, ${licenseName(c)}, ${c.url}${isAdapted(e) ? ', adaptada' : ''}`;
+function creditText(c, adapted) {
+  return `"${c.title || 'Sin título'}" de ${c.creator || 'autor desconocido'}, ${licenseName(c)}, ${c.url}${adapted ? ', adaptada' : ''}`;
+}
+function creditHTML(c, adapted) {
+  const link = (u, t) =>
+    httpsUrl(u) ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(t)}</a>` : esc(t);
+  return `<p class="hint" id="credit">"${esc(c.title || 'Sin título')}" de ${esc(c.creator || 'autor desconocido')}, ${link(c.licenseUrl, licenseName(c))}, ${link(c.url, httpsUrl(c.url) ? 'ver la obra' : c.url)}${adapted ? ', adaptada' : ''}</p>`;
+}
+function creditOf(src) {
+  for (const p of S.pages) {
+    const c = (p.bg.src === src && p.bg.credit) || p.els.find(x => x.src === src && x.credit)?.credit;
+    if (c) return {...c};
+  }
+}
+function projectCredits() {
+  return [
+    ...new Set(
+      S.pages.flatMap(p => [
+        ...(p.bg.pat === 'image' && p.bg.src && p.bg.credit ? [creditText(p.bg.credit, true)] : []),
+        ...p.els.filter(e => e.credit).map(e => creditText(e.credit, isAdapted(e))),
+      ]),
+    ),
+  ];
 }
 function readImage(f, max, out) {
   return new Promise((res, rej) => {

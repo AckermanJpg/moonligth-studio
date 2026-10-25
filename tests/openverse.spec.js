@@ -275,11 +275,12 @@ test.describe('buscador de Openverse', () => {
     page.evaluate(donde => {
       const o = JSON.parse(snapshot()),
         credit = {title: 'a', creator: 'b', license: 'by', url: 'javascript:alert(1)'};
-      o.pages[0].els.push({id: 'z1', type: 'image', x: 0, y: 0, w: 10, h: 10, src: '', credit});
+      if (donde === 'fondo') Object.assign(o.pages[0].bg, {pat: 'image', src: '', credit});
+      else o.pages[0].els.push({id: 'z1', type: 'image', x: 0, y: 0, w: 10, h: 10, src: '', credit});
       return JSON.stringify(o);
     }, donde);
 
-  for (const donde of ['elemento']) {
+  for (const donde of ['elemento', 'fondo']) {
     test.describe(`rechaza un credit con javascript: en el ${donde}`, () => {
       test('desde el JSON del panel Exportar', async ({page}) => {
         await open(page);
@@ -323,6 +324,65 @@ test.describe('buscador de Openverse', () => {
       });
     });
   }
+
+  test('el fondo de Openverse guarda su atribución, se muestra y se copia sin repetir', async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await preparar(page, foto);
+    await buscar(page, 'gato');
+    await page.click('#ovres [data-ov="g1"]');
+    await expect.poll(() => credito(page)).toBeTruthy();
+    await page.click('#rail [data-tab="bg"]');
+    await page.click('#panel [data-pat="image"]');
+    await page.click('#panel [data-bgimg="0"]');
+    await page.click('#panel [data-bgall]');
+    const esperado = {
+      title: 'Foto g1',
+      creator: 'Autora g1',
+      license: 'by',
+      version: '4.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+      url: 'https://example.org/obra/g1',
+    };
+    expect(await page.evaluate(() => S.pages[S.cur].bg.credit)).toEqual(esperado);
+    await page.evaluate(() => {
+      S.sel = [];
+      refresh({props: true});
+    });
+    await expect(page.locator('#credit')).toHaveText(
+      '"Foto g1" de Autora g1, CC BY 4.0, ver la obra, adaptada',
+    );
+    await page.evaluate(() => addPage(false));
+    await page.click('#rail [data-tab="bg"]');
+    await page.click('#panel [data-bgall]');
+    await page.click('#rail [data-tab="export"]');
+    await page.click('#credcopy');
+    await expect(page.locator('#toast')).toHaveText(/Créditos copiados/);
+    expect((await page.evaluate(() => navigator.clipboard.readText())).split('\n')).toEqual([
+      '"Foto g1" de Autora g1, CC BY 4.0, https://example.org/obra/g1, adaptada',
+      '"Foto g1" de Autora g1, CC BY 4.0, https://example.org/obra/g1',
+    ]);
+    await expect(page.locator('#savest')).toHaveText(/Guardado/);
+    await page.reload();
+    await page.waitForSelector('#home.on');
+    await page.click('[data-act="continue"]');
+    expect(await page.evaluate(() => S.pages.map(p => p.bg.credit))).toEqual([esperado, esperado]);
+  });
+
+  test('un fondo subido desde archivo no hereda la atribución anterior', async ({page}) => {
+    await preparar(page, foto);
+    await buscar(page, 'gato');
+    await page.click('#ovres [data-ov="g1"]');
+    await expect.poll(() => credito(page)).toBeTruthy();
+    await page.click('#rail [data-tab="bg"]');
+    await page.click('#panel [data-pat="image"]');
+    expect(await page.evaluate(() => !!pg().bg.credit)).toBe(true);
+    await page.setInputFiles('#bgfile', {name: 'mia.jpg', mimeType: 'image/jpeg', buffer: foto});
+    await expect.poll(() => page.evaluate(() => pg().bg.src.length)).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => 'credit' in pg().bg)).toBe(false);
+  });
 
   for (const [q, texto] of [
     ['nada', 'No encontré imágenes libres'],

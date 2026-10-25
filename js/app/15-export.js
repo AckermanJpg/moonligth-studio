@@ -143,6 +143,7 @@ let presIdx;
     if (![o.w, o.h].every(v => isNum(v) && v >= 16 && v <= 5000)) return 'tamaño fuera de rango';
     for (const p of o.pages) {
       if (!p || !Array.isArray(p.els)) return 'página sin elementos';
+      if (p.bg && p.bg.credit !== undefined && !validCredit(p.bg.credit)) return 'créditos inválidos';
       for (const e of p.els) {
         if (!e || !ELEMENT_TYPES.includes(e.type)) return 'tipo de elemento desconocido';
         if (![e.x, e.y, e.w, e.h].every(isNum)) return 'posición o tamaño no numérico';
