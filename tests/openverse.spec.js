@@ -231,6 +231,29 @@ test.describe('buscador de Openverse', () => {
     await expect(page.locator('#credit')).toHaveText('"Foto g2" de Autora g2, CC BY 4.0, ver la obra');
   });
 
+  test('marca la imagen como adaptada y copia los créditos sin repetir', async ({page, context}) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await preparar(page, foto);
+    await buscar(page, 'gato');
+    await page.click('#ovres [data-ov="g1"]');
+    await expect.poll(() => credito(page)).toBeTruthy();
+    await page.click('#rail [data-tab="images"]');
+    await page.locator('#panel [data-up="0"]').click();
+    await expect.poll(() => page.evaluate(() => S.pages[S.cur].els.filter(e => e.credit).length)).toBe(2);
+    await page.locator('#props [data-k="px"]').fill('4');
+    await page.evaluate(() => refresh({props: true}));
+    await expect(page.locator('#credit')).toHaveText(
+      '"Foto g1" de Autora g1, CC BY 4.0, ver la obra, adaptada',
+    );
+    await page.click('#rail [data-tab="export"]');
+    await page.click('#credcopy');
+    await expect(page.locator('#toast')).toHaveText(/Créditos copiados/);
+    expect((await page.evaluate(() => navigator.clipboard.readText())).split('\n')).toEqual([
+      '"Foto g1" de Autora g1, CC BY 4.0, https://example.org/obra/g1',
+      '"Foto g1" de Autora g1, CC BY 4.0, https://example.org/obra/g1, adaptada',
+    ]);
+  });
+
   test('un título con HTML no se ejecuta y un enlace que no es https se muestra como texto', async ({
     page,
   }) => {
