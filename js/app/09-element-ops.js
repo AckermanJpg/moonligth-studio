@@ -92,7 +92,7 @@ function addImage(src, w, h) {
   add(mk('image', {src, w: Math.round(w * k), h: Math.round(h * k), px: 1}));
   if (S.tab === 'images') refresh({panel: true});
 }
-function readImage(f, max) {
+function readImage(f, max, out) {
   return new Promise((res, rej) => {
     if (!f || !f.type.startsWith('image/')) return rej(new Error('type'));
     const r = new FileReader();
@@ -102,10 +102,20 @@ function readImage(f, max) {
       im.onerror = rej;
       im.onload = () => {
         const k = Math.min(1, max / Math.max(im.width, im.height)),
-          c = cv(Math.round(im.width * k), Math.round(im.height * k));
-        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+          c = cv(Math.round(im.width * k), Math.round(im.height * k)),
+          x = c.getContext('2d');
+        x.drawImage(im, 0, 0, c.width, c.height);
+        let src = out
+          ? c.toDataURL(out, 0.85)
+          : c.toDataURL(f.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.92);
+        if (out && !src.startsWith(`data:${out}`)) {
+          const a = x.getImageData(0, 0, c.width, c.height).data;
+          let alpha = false;
+          for (let i = 3; i < a.length && !alpha; i += 4) alpha = a[i] < 255;
+          src = alpha ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.85);
+        }
         res({
-          src: c.toDataURL(f.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.92),
+          src,
           w: c.width,
           h: c.height,
         });
