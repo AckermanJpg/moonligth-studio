@@ -4,17 +4,18 @@
 
 Editor de diseño que corre en el navegador, con estética de pixel art y una interfaz inspirada en Persona 3. Sirve para armar imágenes (posts, carteles, insignias, miniaturas), imprimirlas en tamaño grande repartidas en hojas, separar un logo en sus piezas y convertir videos o imágenes en GIFs.
 
-No tiene servidor, cuenta ni base de datos. Es HTML, CSS y JavaScript sin framework y sin paso de compilación. Lo que cargas y lo que creas se queda en tu equipo.
+No tiene servidor, cuenta ni base de datos. Es HTML, CSS y JavaScript sin framework y sin paso de compilación. Lo que cargas y lo que creas se queda en tu equipo; solo las búsquedas de imágenes salen de él, hacia Openverse.
 
 ## Cómo usarlo
 
 Puedes probarlo en línea en https://ackermanjpg.github.io/moonligth-studio/ o descargarlo y abrir `index.html` con el navegador. No hace falta instalar nada ni levantar un servidor. Está probado en Chromium; los demás navegadores modernos deberían servir, con una excepción: importar GIFs animados usa `ImageDecoder`, que hoy solo existe en Chromium y Safari 16.4 o más reciente.
 
-Necesita conexión a internet para tres cosas:
+Necesita conexión a internet para cuatro cosas:
 
 - las tipografías (Google Fonts),
 - el código QR (`qrcode-generator` 1.4.4, se descarga la primera vez que usas un QR),
-- importar PDFs (`pdf.js` 3.11.174, también bajo demanda).
+- importar PDFs (`pdf.js` 3.11.174, también bajo demanda),
+- buscar imágenes libres: lo que escribes en el buscador se envía a la API de [Openverse](https://openverse.org) (`api.openverse.org`), de donde también se descargan las miniaturas y la imagen elegida. Sin cuenta, Openverse permite 20 búsquedas por minuto y 200 al día.
 
 Las dos librerías se cargan desde cdnjs con hash de integridad (SRI), así que el navegador rechaza el archivo si no coincide con la versión esperada. Todo lo demás funciona sin conexión.
 
@@ -33,6 +34,7 @@ Los objetos que se pueden agregar:
 - 9 cuadrículas de collage con celdas donde se arrastran fotos.
 - Dibujo libre sobre una cuadrícula de píxeles, con pincel, borrador y simetría (horizontal, vertical o en cuatro cuadrantes).
 - Imágenes propias, que se suben, se arrastran o se pegan con `Ctrl+V`.
+- Imágenes libres de Openverse, buscadas desde la pestaña Imágenes. Solo aparecen licencias que permiten uso comercial y modificación (CC BY, CC0 y dominio público) y nunca contenido para adultos. Cada imagen guarda su atribución, que se ve en Propiedades (con "adaptada" si le aplicas filtros, recorte o pixelado) y se copia con "Copiar créditos" en Exportar.
 
 Para trabajar con varios objetos hay selección múltiple, grupos, alineación y distribución, orden de capas, panel de capas con ocultar y bloquear, copiar y pegar estilo, y deshacer o rehacer hasta 100 pasos.
 
