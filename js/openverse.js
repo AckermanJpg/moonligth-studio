@@ -15,6 +15,7 @@
   const $ = id => document.getElementById(id);
   const usable = x =>
     x && typeof x.id === 'string' && /^[\w-]+$/.test(x.id) && LICENSES.includes(x.license) && x.mature !== true;
+  const cut = s => (typeof s === 'string' ? s.slice(0, 300) : '');
   const label = x => `${x.title || 'Sin título'} de ${x.creator || 'autor desconocido'}`;
 
   function thumb(id) {
@@ -125,10 +126,37 @@
     if (more) document.querySelectorAll('#ovres .ovit')[before]?.focus();
   }
 
+  async function pick(id) {
+    const x = st.items.find(i => i.id === id);
+    if (!x) return;
+    core.toast('Descargando imagen…');
+    try {
+      const r = await fetch(`${API}${id}/thumb/?full_size=true`, {mode: 'cors'});
+      if (!r.ok) throw new Error(r.status);
+      const o = await core.readImage(await r.blob(), 1600, 'image/webp');
+      core.addImage(o.src, o.w, o.h, {
+        credit: {
+          title: cut(x.title),
+          creator: cut(x.creator),
+          license: cut(x.license),
+          version: cut(x.license_version),
+          licenseUrl: cut(x.license_url),
+          url: cut(x.foreign_landing_url),
+        },
+      });
+    } catch {
+      discard(id);
+      core.toast('Esa imagen no se pudo descargar; la quité de los resultados');
+    }
+  }
+
   function mount(api) {
     core = api;
     $('panel').addEventListener('click', ev => {
-      if (ev.target.closest('[data-ovmore]')) search(st.q, true);
+      const b = ev.target.closest('[data-ov],[data-ovmore]');
+      if (!b) return;
+      if (b.dataset.ovmore) search(st.q, true);
+      else pick(b.dataset.ov);
     });
   }
 

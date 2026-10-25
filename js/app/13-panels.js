@@ -600,15 +600,17 @@
     } else if ((b = q('[data-up]'))) {
       const s = S.uploads[b.dataset.up],
         im = getImg(s),
-        e0 = prim();
+        e0 = prim(),
+        cr = S.pages.flatMap(p => p.els).find(x => x.src === s && x.credit)?.credit;
       if (e0 && e0.type === 'image' && !e0.src) {
         touch(true);
         e0.src = s;
+        if (cr) e0.credit = {...cr};
         refresh({props: true});
       } else {
         const w = im.width || 600,
           h = im.height || 600;
-        addImage(s, w, h);
+        addImage(s, w, h, cr && {credit: {...cr}});
       }
     } else if (q('[data-bgpick]')) $('#bgfile').click();
     else if ((b = q('[data-bgimg]'))) {

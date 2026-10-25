@@ -176,6 +176,41 @@ test.describe('buscador de Openverse', () => {
     expect(await cspViolations(page)).toEqual([]);
   });
 
+  test('inserta la imagen reducida con su atribución y exporta el PNG', async ({page}) => {
+    const {problems} = await preparar(page, foto);
+    await buscar(page, 'gato');
+    await page.click('#ovres [data-ov="g1"]');
+    await expect.poll(() => credito(page)).toBeTruthy();
+    const e = await credito(page);
+    expect(e.credit).toEqual({
+      title: 'Foto g1',
+      creator: 'Autora g1',
+      license: 'by',
+      version: '4.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+      url: 'https://example.org/obra/g1',
+    });
+    expect(e.src.startsWith('data:image/webp')).toBe(true);
+    const lado = await page.evaluate(
+      src =>
+        new Promise(r => {
+          const im = new Image();
+          im.onload = () => r([im.naturalWidth, im.naturalHeight]);
+          im.src = src;
+        }),
+      e.src,
+    );
+    expect(lado).toEqual([1600, 800]);
+    expect(await page.evaluate(src => S.uploads.includes(src), e.src)).toBe(true);
+
+    await page.click('#rail [data-tab="export"]');
+    await page.click('[data-cvset="fmt:png"]');
+    const [download] = await Promise.all([page.waitForEvent('download'), page.click('#cvgo')]);
+    expect(download.suggestedFilename()).toMatch(/\.png$/);
+    expect(await page.evaluate(() => renderPageCanvas(pg(), 1).toDataURL().length)).toBeGreaterThan(1000);
+    expect(problems.filter(m => /SecurityError|tainted/i.test(m))).toEqual([]);
+  });
+
   for (const [q, texto] of [
     ['nada', 'No encontré imágenes libres'],
     ['caida', 'No se pudo conectar con Openverse'],
@@ -189,6 +224,15 @@ test.describe('buscador de Openverse', () => {
       await expect(page.locator('#ovres .ovit')).toHaveCount(0);
     });
   }
+
+  test('funciona abriendo index.html por file://', async ({page}) => {
+    const {problems} = await preparar(page, foto, FILE_URL);
+    await buscar(page, 'gato');
+    await page.click('#ovres [data-ov="g1"]');
+    await expect.poll(() => credito(page)).toBeTruthy();
+    expect(problems.filter(m => !m.includes('net::ERR_FAILED'))).toEqual([]);
+    expect(await cspViolations(page)).toEqual([]);
+  });
 
   test.describe('móvil 360px', () => {
     test.use({viewport: {width: 360, height: 800}, hasTouch: true, isMobile: true});

@@ -86,10 +86,10 @@ function paste() {
   S.sel = ns.map(e => e.id);
   refresh({props: true});
 }
-function addImage(src, w, h) {
+function addImage(src, w, h, extra) {
   const k = Math.min((S.w * 0.6) / w, (S.h * 0.6) / h, 1);
   S.uploads.includes(src) || S.uploads.unshift(src);
-  add(mk('image', {src, w: Math.round(w * k), h: Math.round(h * k), px: 1}));
+  add(mk('image', {src, w: Math.round(w * k), h: Math.round(h * k), px: 1, ...extra}));
   if (S.tab === 'images') refresh({panel: true});
 }
 function readImage(f, max, out) {
