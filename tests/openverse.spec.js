@@ -202,6 +202,10 @@ test.describe('buscador de Openverse', () => {
     );
     expect(lado).toEqual([1600, 800]);
     expect(await page.evaluate(src => S.uploads.includes(src), e.src)).toBe(true);
+    await expect(page.locator('#credit')).toHaveText('"Foto g1" de Autora g1, CC BY 4.0, ver la obra');
+    await expect(page.locator('#credit a').last()).toHaveAttribute('href', 'https://example.org/obra/g1');
+    await expect(page.locator('#credit a').last()).toHaveAttribute('rel', 'noopener noreferrer');
+    await expect(page.locator('#credit a').last()).toHaveAttribute('target', '_blank');
 
     await page.click('#rail [data-tab="export"]');
     await page.click('[data-cvset="fmt:png"]');
@@ -209,6 +213,39 @@ test.describe('buscador de Openverse', () => {
     expect(download.suggestedFilename()).toMatch(/\.png$/);
     expect(await page.evaluate(() => renderPageCanvas(pg(), 1).toDataURL().length)).toBeGreaterThan(1000);
     expect(problems.filter(m => /SecurityError|tainted/i.test(m))).toEqual([]);
+  });
+
+  test('la atribución se guarda y vuelve tras recargar', async ({page}) => {
+    await preparar(page, foto);
+    await buscar(page, 'gato');
+    await page.click('#ovres [data-ov="h1"], #ovres [data-ov="g2"]');
+    await expect.poll(() => credito(page)).toBeTruthy();
+    await expect(page.locator('#savest')).toHaveText(/Guardado/);
+    await page.reload();
+    await page.waitForSelector('#home.on');
+    await page.click('[data-act="continue"]');
+    await page.evaluate(() => {
+      S.sel = [S.pages[S.cur].els.find(e => e.credit).id];
+      refresh({props: true});
+    });
+    await expect(page.locator('#credit')).toHaveText('"Foto g2" de Autora g2, CC BY 4.0, ver la obra');
+  });
+
+  test('un título con HTML no se ejecuta y un enlace que no es https se muestra como texto', async ({
+    page,
+  }) => {
+    await preparar(page, foto);
+    await buscar(page, 'xss');
+    await expect(page.locator('#ovres [data-ov="x1"]')).toBeVisible();
+    await page.locator('#ovres [data-ov="x1"]').hover();
+    await page.click('#ovres [data-ov="x1"]');
+    await expect.poll(() => credito(page)).toBeTruthy();
+    await expect(page.locator('#credit')).toContainText('"<img src=x onerror="window.__xss=1">"');
+    await expect(page.locator('#credit')).toContainText('javascript:window.__xss=3');
+    await expect(page.locator('#credit a')).toHaveCount(1);
+    await expect(page.locator('#props img[src="x"], #props b, #panel img[src="x"]')).toHaveCount(0);
+    await page.locator('#credit').hover();
+    expect(await page.evaluate(() => window.__xss)).toBeUndefined();
   });
 
   for (const [q, texto] of [

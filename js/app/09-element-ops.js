@@ -92,6 +92,24 @@ function addImage(src, w, h, extra) {
   add(mk('image', {src, w: Math.round(w * k), h: Math.round(h * k), px: 1, ...extra}));
   if (S.tab === 'images') refresh({panel: true});
 }
+const LICENSE_NAMES = {by: 'CC BY', cc0: 'CC0', pdm: 'Marca de dominio público'};
+function httpsUrl(u) {
+  try {
+    return new URL(u).protocol === 'https:' ? u : '';
+  } catch {
+    return '';
+  }
+}
+function licenseName(c) {
+  return `${LICENSE_NAMES[c.license] || String(c.license || '').toUpperCase()}${c.version ? ' ' + c.version : ''}`;
+}
+function isAdapted(e) {
+  return !!(e.crop || e.px > 1 || (e.flt && Object.keys(e.flt).length));
+}
+function creditText(e) {
+  const c = e.credit;
+  return `"${c.title || 'Sin título'}" de ${c.creator || 'autor desconocido'}, ${licenseName(c)}, ${c.url}${isAdapted(e) ? ', adaptada' : ''}`;
+}
 function readImage(f, max, out) {
   return new Promise((res, rej) => {
     if (!f || !f.type.startsWith('image/')) return rej(new Error('type'));

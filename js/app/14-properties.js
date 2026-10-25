@@ -169,6 +169,19 @@
             true,
           );
         } else {
+          if (e.credit) {
+            const cr = e.credit,
+              link = (u, t) =>
+                httpsUrl(u)
+                  ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(t)}</a>`
+                  : esc(t);
+            h += sec(
+              'credit',
+              'Créditos',
+              `<p class="hint" id="credit">"${esc(cr.title || 'Sin título')}" de ${esc(cr.creator || 'autor desconocido')}, ${link(cr.licenseUrl, licenseName(cr))}, ${link(cr.url, httpsUrl(cr.url) ? 'ver la obra' : cr.url)}${isAdapted(e) ? ', adaptada' : ''}</p>`,
+              true,
+            );
+          }
           h += sec(
             'crop',
             'Recorte y marco',
