@@ -131,6 +131,12 @@ let presIdx;
   Object.assign(window, {loadFonts});
   const ELEMENT_TYPES = ['text', 'image', 'sprite', 'draw', 'qr', 'chart', ...SHAPES.map(s => s[0])];
   const isNum = v => typeof v === 'number' && Number.isFinite(v);
+  const validCredit = c =>
+    !!c &&
+    typeof c === 'object' &&
+    !Array.isArray(c) &&
+    Object.values(c).every(v => typeof v === 'string' && v.length <= 300) &&
+    ['url', 'licenseUrl'].every(k => !c[k] || httpsUrl(c[k]));
   function validateProject(o) {
     if (!o || typeof o !== 'object' || !Array.isArray(o.pages) || !o.pages.length)
       return 'faltan las páginas';
@@ -141,6 +147,7 @@ let presIdx;
         if (!e || !ELEMENT_TYPES.includes(e.type)) return 'tipo de elemento desconocido';
         if (![e.x, e.y, e.w, e.h].every(isNum)) return 'posición o tamaño no numérico';
         if (e.type === 'sprite' && !Object.hasOwn(SPR, e.spr)) return 'sprite inexistente';
+        if (e.credit !== undefined && !validCredit(e.credit)) return 'créditos inválidos';
       }
     }
     return '';

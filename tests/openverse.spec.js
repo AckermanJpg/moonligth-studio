@@ -271,6 +271,30 @@ test.describe('buscador de Openverse', () => {
     expect(await page.evaluate(() => window.__xss)).toBeUndefined();
   });
 
+  test('rechaza un JSON con un enlace javascript: en los créditos', async ({page}) => {
+    await open(page);
+    await createProject(page);
+    const antes = await page.evaluate(() => snapshot());
+    await page.evaluate(() => openExport());
+    await page.evaluate(() => {
+      const o = JSON.parse(snapshot());
+      o.pages[0].els.push({
+        id: 'z1',
+        type: 'image',
+        x: 0,
+        y: 0,
+        w: 10,
+        h: 10,
+        src: '',
+        credit: {title: 'a', creator: 'b', license: 'by', url: 'javascript:alert(1)'},
+      });
+      document.getElementById('xjson').value = JSON.stringify(o);
+    });
+    await page.click('#xload');
+    await expect(page.locator('#toast')).toHaveText('JSON inválido: créditos inválidos');
+    expect(await page.evaluate(() => snapshot())).toBe(antes);
+  });
+
   for (const [q, texto] of [
     ['nada', 'No encontré imágenes libres'],
     ['caida', 'No se pudo conectar con Openverse'],
