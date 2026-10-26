@@ -193,6 +193,60 @@
       },
     );
   }
+  function deselect() {
+    if (S.sel.length) {
+      S.sel = [];
+      refresh({props: true});
+    }
+  }
+  function startMarquee(ev, click) {
+    const base = ev.shiftKey ? S.sel.slice() : [],
+      p0 = {x: ev.clientX, y: ev.clientY};
+    let box = null;
+    drag(
+      ev,
+      m => {
+        if (!box && Math.hypot(m.clientX - p0.x, m.clientY - p0.y) <= 4) return;
+        if (!box) {
+          box = document.createElement('div');
+          box.className = 'marq';
+          document.body.append(box);
+        }
+        Object.assign(box.style, {
+          left: Math.min(p0.x, m.clientX) + 'px',
+          top: Math.min(p0.y, m.clientY) + 'px',
+          width: Math.abs(m.clientX - p0.x) + 'px',
+          height: Math.abs(m.clientY - p0.y) + 'px',
+        });
+      },
+      m => {
+        if (!box) {
+          click();
+          return;
+        }
+        box.remove();
+        const r = pageEl.getBoundingClientRect(),
+          x0 = (Math.min(p0.x, m.clientX) - r.left) / S.zoom,
+          x1 = (Math.max(p0.x, m.clientX) - r.left) / S.zoom,
+          y0 = (Math.min(p0.y, m.clientY) - r.top) / S.zoom,
+          y1 = (Math.max(p0.y, m.clientY) - r.top) / S.zoom;
+        const hit = els()
+          .filter(e => {
+            if (e.hidden || e.locked) return false;
+            const a = (e.rot * Math.PI) / 180,
+              hw = (Math.abs(e.w * Math.cos(a)) + Math.abs(e.h * Math.sin(a))) / 2,
+              hh = (Math.abs(e.w * Math.sin(a)) + Math.abs(e.h * Math.cos(a))) / 2,
+              cx = e.x + e.w / 2,
+              cy = e.y + e.h / 2;
+            return cx + hw >= x0 && cx - hw <= x1 && cy + hh >= y0 && cy - hh <= y1;
+          })
+          .map(e => e.id);
+        S.sel = [...new Set([...base, ...expandGroup(hit).filter(i => !findEl(i).hidden)])];
+        refresh({props: true});
+        announceSel();
+      },
+    );
+  }
   pageEl.addEventListener('pointerdown', ev => {
     if (S.pickCb) {
       ev.preventDefault();
@@ -224,35 +278,42 @@
       startResize(ev, h.dataset.h);
       return;
     }
-    const n = ev.target.closest('.el');
+    const n = ev.target.closest('.el'),
+      marq = ev.pointerType !== 'touch';
     if (!n) {
-      if (S.sel.length) {
-        S.sel = [];
-        refresh({props: true});
-      }
+      if (marq) startMarquee(ev, deselect);
+      else deselect();
       return;
     }
     const e = findEl(n.dataset.id);
     if (!e) return;
-    if (ev.shiftKey) {
-      const g = expandGroup([e.id]);
-      S.sel = S.sel.includes(e.id) ? S.sel.filter(i => !g.includes(i)) : [...new Set([...S.sel, ...g])];
-      refresh({props: true});
+    const toggle = () => {
+        const g = expandGroup([e.id]);
+        S.sel = S.sel.includes(e.id) ? S.sel.filter(i => !g.includes(i)) : [...new Set([...S.sel, ...g])];
+        refresh({props: true});
+      },
+      pick = () => {
+        if (!S.sel.includes(e.id)) {
+          S.sel = expandGroup([e.id]);
+          refresh({props: true});
+        }
+      };
+    if (e.locked && marq) {
+      startMarquee(ev, ev.shiftKey ? toggle : pick);
       return;
     }
-    if (!S.sel.includes(e.id)) {
-      S.sel = expandGroup([e.id]);
-      refresh({props: true});
+    if (ev.shiftKey) {
+      toggle();
+      return;
     }
+    pick();
     startMove(ev);
   });
   stageEl.addEventListener('pointerdown', ev => {
     if (ev.target === stageEl || ev.target === wrapEl) {
       if (editing) endEdit();
-      if (S.sel.length) {
-        S.sel = [];
-        refresh({props: true});
-      }
+      if (ev.pointerType !== 'touch') startMarquee(ev, deselect);
+      else deselect();
     }
   });
   pageEl.addEventListener('dblclick', ev => {

@@ -875,6 +875,13 @@ details.sec > :not(summary) {
 [data-selall] {
   margin-bottom: 8px;
 }
+.marq {
+  position: fixed;
+  z-index: 40;
+  border: 1px dashed var(--cyan);
+  background: rgba(63, 224, 255, 0.12);
+  pointer-events: none;
+}
 .layer {
   display: flex;
   align-items: center;
