@@ -168,6 +168,32 @@ for (const width of [360, 390, 430]) {
       await expect(page.locator('#selmsg')).toHaveText('3 elementos seleccionados');
     });
 
+    test('el aviso amarillo no tapa ningún control, ni con el menú Más abierto', async ({page}) => {
+      await open(page);
+      await createProject(page);
+      await expect(page.locator('#flash')).toBeVisible();
+      const tapados = () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('#app button, #app input, #app select')]
+            .filter(n => n.offsetParent)
+            .filter(n => {
+              const r = n.getBoundingClientRect();
+              return [
+                [r.left + r.width / 2, r.top + r.height / 2],
+                [r.left + 2, r.top + 2],
+                [r.right - 2, r.top + 2],
+                [r.left + 2, r.bottom - 2],
+                [r.right - 2, r.bottom - 2],
+              ].some(([x, y]) => document.elementFromPoint(x, y)?.closest('#flash'));
+            })
+            .map(n => n.id || n.textContent.trim()),
+        );
+      expect(await tapados()).toEqual([]);
+      await page.click('#more-btn');
+      await expect(page.locator('#flash')).toBeVisible();
+      expect(await tapados()).toEqual([]);
+    });
+
     test('las reglas están ocultas por defecto y Ajustar aprovecha el espacio', async ({page}) => {
       await open(page);
       await createProject(page);

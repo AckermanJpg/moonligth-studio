@@ -2317,6 +2317,11 @@ details.sec > :not(summary) {
   #bar .bsel {
     display: flex;
   }
+  #flash {
+    top: 124px;
+    bottom: auto;
+    z-index: 58;
+  }
   #app {
     grid-template-rows: 60px 52px 52vh auto auto auto;
   }
