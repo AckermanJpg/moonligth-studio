@@ -130,6 +130,20 @@
       cos = Math.cos(rr),
       sin = Math.sin(rr),
       p0 = {x: ev.clientX, y: ev.clientY};
+    let raf = 0;
+    const paint = () => {
+      raf = 0;
+      const n = $(`.el[data-id="${e.id}"]`);
+      if (n) {
+        place(e, n);
+        if (e.type === 'text') {
+          textStyle($('.txt', n), e);
+          e.h = n.offsetHeight || e.h;
+        }
+      }
+      renderOverlay();
+      syncProps();
+    };
     drag(
       ev,
       m => {
@@ -158,10 +172,14 @@
         e.h = Math.round(nh);
         e.x = Math.round(cx0 + gx - e.w / 2);
         e.y = Math.round(cy0 + gy - e.h / 2);
+        raf = raf || requestAnimationFrame(paint);
+      },
+      () => {
+        cancelAnimationFrame(raf);
         renderStage();
         syncProps();
+        scheduleSave();
       },
-      scheduleSave,
     );
   }
   pageEl.addEventListener('pointerdown', ev => {

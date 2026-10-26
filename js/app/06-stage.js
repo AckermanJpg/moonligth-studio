@@ -1,6 +1,6 @@
 // Stage
 (() => {
-  Object.assign(window, {place, renderStage, renderOverlay, fitZoom, setZoom});
+  Object.assign(window, {place, textStyle, renderStage, renderOverlay, fitZoom, setZoom});
   const pageEl = $('#page'),
     wrapEl = $('#wrap'),
     stageEl = $('#stage');
