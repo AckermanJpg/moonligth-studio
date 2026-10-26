@@ -315,7 +315,8 @@
   }
   function layersHTML() {
     return (
-      [...els()]
+      (els().length ? '<button type="button" class="btn sm" data-selall>Seleccionar todo</button>' : '') +
+      ([...els()]
         .reverse()
         .map(e => {
           const n =
@@ -334,7 +335,7 @@
                 e.type;
           return `<div class="layer${S.sel.includes(e.id) ? ' on' : ''}${e.hidden ? ' hid' : ''}" data-layer="${e.id}"><span>${esc(n) || 'Texto'}</span><button data-lh="${e.id}" title="Mostrar/ocultar">${e.hidden ? 'OFF' : 'ON'}</button><button data-ll="${e.id}" title="Bloquear">${e.locked ? 'LOCK' : '—'}</button></div>`;
         })
-        .join('') || '<p class="hint">Sin objetos todavía.</p>'
+        .join('') || '<p class="hint">Sin objetos todavía.</p>')
     );
   }
   function syncProps() {
@@ -594,7 +595,8 @@
       touch(true);
       e.locked = !e.locked;
       refresh({props: true});
-    } else if ((b = q('[data-layer]'))) {
+    } else if (q('[data-selall]')) selectAll();
+    else if ((b = q('[data-layer]'))) {
       const id = b.dataset.layer;
       S.sel = ev.shiftKey
         ? S.sel.includes(id)

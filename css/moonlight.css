@@ -872,6 +872,9 @@ details.sec > :not(summary) {
 .fp canvas {
   background: var(--navy);
 }
+[data-selall] {
+  margin-bottom: 8px;
+}
 .layer {
   display: flex;
   align-items: center;

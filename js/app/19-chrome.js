@@ -1,6 +1,6 @@
 // Refresh / chrome
 (() => {
-  Object.assign(window, {refresh});
+  Object.assign(window, {refresh, selectAll, announceSel});
   function refresh(o) {
     if (o.fit || S.fit) fitZoom();
     renderStage();
@@ -12,6 +12,17 @@
     }
     updHist();
     scheduleSave();
+  }
+  function selectAll() {
+    S.sel = els()
+      .filter(e => !e.hidden)
+      .map(e => e.id);
+    refresh({props: true});
+    announceSel();
+  }
+  function announceSel() {
+    const n = S.sel.length;
+    $('#selmsg').textContent = n === 1 ? '1 elemento seleccionado' : `${n} elementos seleccionados`;
   }
   function updLayers() {
     $$('#props .layer').forEach(l => l.classList.toggle('on', S.sel.includes(l.dataset.layer)));
@@ -114,10 +125,7 @@
       paste();
     } else if (m && k === 'a') {
       ev.preventDefault();
-      S.sel = els()
-        .filter(e => !e.hidden)
-        .map(e => e.id);
-      refresh({props: true});
+      selectAll();
     } else if (m && k === 's') {
       ev.preventDefault();
       save(true);
