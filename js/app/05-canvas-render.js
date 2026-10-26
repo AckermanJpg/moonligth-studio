@@ -345,7 +345,7 @@
       !!window.qrcode,
     ]);
   }
-  function bitmap(e) {
+  function bitmap(e, keep = true) {
     const k = bitmapKey(e);
     let b = bmCache.get(k);
     if (!b) {
@@ -354,8 +354,10 @@
         const sc = b.width / Math.max(1, e.w);
         outlineC(b, Math.max(1, Math.round(e.ol * sc)), e.olc || '#ffffff');
       }
-      if (bmCache.size > 300) bmCache.clear();
-      bmCache.set(k, b);
+      if (keep) {
+        if (bmCache.size > 300) bmCache.clear();
+        bmCache.set(k, b);
+      }
     }
     const c = cv(b.width, b.height);
     c.getContext('2d').drawImage(b, 0, 0);

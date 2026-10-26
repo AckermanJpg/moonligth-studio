@@ -123,3 +123,33 @@ test('en un texto el gesto actualiza su tamaño de letra y su alto sin renderSta
   expect(r.h).toBe(r.oh);
   await page.mouse.up();
 });
+
+test('quieto más de 150 ms sin soltar, redibuja el bitmap al tamaño actual sin guardarlo en la caché', async ({
+  page,
+}) => {
+  await preparar(page, 'image', {px: 4});
+  await contarRenderStage(page);
+  const antes = await page.evaluate(() => bmCache.size);
+  await arrastrarTirador(page, {soltar: false});
+  await page.waitForTimeout(300);
+  const r = await page.evaluate(() => {
+    const e = prim(),
+      c = document.querySelector(`.el[data-id="${e.id}"] canvas`),
+      d = bitmap(e, false),
+      a = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
+      b = d.getContext('2d').getImageData(0, 0, d.width, d.height).data;
+    return {
+      rs: window.__rs,
+      nuevas: bmCache.size,
+      tam: [c.width, c.height, Math.round(e.w / 4), Math.round(e.h / 4)],
+      iguales: a.length === b.length && a.every((v, i) => v === b[i]),
+      css: c.style.imageRendering,
+    };
+  });
+  expect(r.rs).toBe(0);
+  expect(r.nuevas).toBe(antes);
+  expect(r.tam.slice(0, 2)).toEqual(r.tam.slice(2));
+  expect(r.iguales).toBe(true);
+  expect(r.css).toBe('pixelated');
+  await page.mouse.up();
+});

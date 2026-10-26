@@ -130,7 +130,15 @@
       cos = Math.cos(rr),
       sin = Math.sin(rr),
       p0 = {x: ev.clientX, y: ev.clientY};
-    let raf = 0;
+    let raf = 0,
+      idle = 0;
+    const sharpen = () => {
+      const old = $(`.el[data-id="${e.id}"] canvas`);
+      if (!old) return;
+      const c = bitmap(e, false);
+      c.style.cssText = old.style.cssText;
+      old.replaceWith(c);
+    };
     const paint = () => {
       raf = 0;
       const n = $(`.el[data-id="${e.id}"]`);
@@ -173,9 +181,12 @@
         e.x = Math.round(cx0 + gx - e.w / 2);
         e.y = Math.round(cy0 + gy - e.h / 2);
         raf = raf || requestAnimationFrame(paint);
+        clearTimeout(idle);
+        if (e.type !== 'text') idle = setTimeout(sharpen, 150);
       },
       () => {
         cancelAnimationFrame(raf);
+        clearTimeout(idle);
         renderStage();
         syncProps();
         scheduleSave();
