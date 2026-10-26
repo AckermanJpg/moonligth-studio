@@ -3,6 +3,39 @@ const {open, createProject} = require('./helpers');
 
 const dentro = (box, width) => box && box.x >= 0 && box.x + box.width <= width + 0.5;
 
+async function conElementos(page) {
+  await page.evaluate(() => {
+    const r = (id, x, y) => ({...mk('rect', {x, y, w: 200, h: 200}), id});
+    pg().els = [r('a', 100, 100), r('b', 600, 100), r('c', 100, 600)];
+    S.sel = [];
+    refresh({props: true});
+  });
+}
+
+const enPantalla = (page, x, y) =>
+  page.evaluate(
+    ([x, y]) => {
+      const r = pageEl.getBoundingClientRect();
+      return [r.left + x * S.zoom, r.top + y * S.zoom];
+    },
+    [x, y],
+  );
+
+async function deslizar(page, [x0, y0], [x1, y1], enMedio) {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent', {type: 'touchStart', touchPoints: [{x: x0, y: y0}]});
+  for (let i = 1; i <= 8; i++)
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{x: x0 + ((x1 - x0) * i) / 8, y: y0 + ((y1 - y0) * i) / 8}],
+    });
+  const r = enMedio && (await enMedio());
+  await cdp.send('Input.dispatchTouchEvent', {type: 'touchEnd', touchPoints: []});
+  return r;
+}
+
+const seleccion = page => page.evaluate(() => [...S.sel].sort());
+
 for (const width of [360, 390, 430]) {
   test.describe(`móvil ${width}px`, () => {
     test.use({viewport: {width, height: 800}, hasTouch: true, isMobile: true});
@@ -63,6 +96,76 @@ for (const width of [360, 390, 430]) {
         expect(b.der, b.id).toBeLessThanOrEqual(r.ancho + 0.5);
         expect(b.corta, b.id).toBe(false);
       }
+    });
+
+    test('Selección múltiple: cada toque suma o quita y el arrastre en zona vacía dibuja el recuadro', async ({
+      page,
+    }) => {
+      await open(page);
+      await createProject(page);
+      await conElementos(page);
+      const boton = page.locator('#multi-btn');
+      await expect(boton).toBeVisible();
+      const caja = await boton.boundingBox();
+      expect(caja.width).toBeGreaterThanOrEqual(24);
+      expect(caja.height).toBeGreaterThanOrEqual(24);
+      await expect(boton).toHaveAttribute('aria-pressed', 'false');
+      await boton.tap();
+      await expect(boton).toHaveAttribute('aria-pressed', 'true');
+      expect(await page.evaluate(() => getComputedStyle(stageEl).touchAction)).toBe('none');
+      await page.touchscreen.tap(...(await enPantalla(page, 200, 200)));
+      await page.touchscreen.tap(...(await enPantalla(page, 700, 200)));
+      expect(await seleccion(page)).toEqual(['a', 'b']);
+      await page.touchscreen.tap(...(await enPantalla(page, 200, 200)));
+      expect(await seleccion(page)).toEqual(['b']);
+      await expect(page.locator('#selmsg')).toHaveText('1 elemento seleccionado');
+      const visible = await deslizar(
+        page,
+        await enPantalla(page, 50, 450),
+        await enPantalla(page, 250, 650),
+        () => page.locator('.marq').isVisible(),
+      );
+      expect(visible).toBe(true);
+      expect(await seleccion(page)).toEqual(['b', 'c']);
+      await expect(page.locator('#selmsg')).toHaveText('2 elementos seleccionados');
+      await page.waitForTimeout(700);
+      await boton.tap();
+      await expect(boton).toHaveAttribute('aria-pressed', 'false');
+      expect(await page.evaluate(() => getComputedStyle(stageEl).touchAction)).toBe('auto');
+    });
+
+    test('fuera del modo múltiple el dedo se comporta como antes', async ({page}) => {
+      await open(page);
+      await createProject(page);
+      await conElementos(page);
+      expect(await page.evaluate(() => getComputedStyle(stageEl).touchAction)).toBe('auto');
+      await page.touchscreen.tap(...(await enPantalla(page, 200, 200)));
+      expect(await seleccion(page)).toEqual(['a']);
+      await page.touchscreen.tap(...(await enPantalla(page, 500, 500)));
+      expect(await seleccion(page)).toEqual([]);
+      const visible = await deslizar(
+        page,
+        await enPantalla(page, 50, 450),
+        await enPantalla(page, 250, 650),
+        () => page.locator('.marq').count(),
+      );
+      expect(visible).toBe(0);
+      expect(await seleccion(page)).toEqual([]);
+    });
+
+    test('Seleccionar todo desde el menú Más', async ({page}) => {
+      await open(page);
+      await createProject(page);
+      await conElementos(page);
+      await expect(page.locator('#selall-top')).toBeHidden();
+      await page.click('#more-btn');
+      const b = page.locator('#selall-top');
+      await expect(b).toBeVisible();
+      expect(dentro(await b.boundingBox(), width)).toBeTruthy();
+      await b.click();
+      expect(await seleccion(page)).toEqual(['a', 'b', 'c']);
+      await expect(page.locator('#more-btn')).toHaveAttribute('aria-expanded', 'false');
+      await expect(page.locator('#selmsg')).toHaveText('3 elementos seleccionados');
     });
 
     test('las reglas están ocultas por defecto y Ajustar aprovecha el espacio', async ({page}) => {

@@ -875,6 +875,13 @@ details.sec > :not(summary) {
 [data-selall] {
   margin-bottom: 8px;
 }
+#top .menu-sel,
+#bar .bsel {
+  display: none;
+}
+#stage.multi {
+  touch-action: none;
+}
 .marq {
   position: fixed;
   z-index: 40;
@@ -2273,7 +2280,7 @@ details.sec > :not(summary) {
     left: 0;
     right: 0;
     z-index: 59;
-    height: 156px;
+    height: 204px;
     background: var(--navy);
     border-bottom: 3px solid var(--cyan);
   }
@@ -2303,6 +2310,12 @@ details.sec > :not(summary) {
   }
   #top.open .menu-ver {
     top: 158px;
+  }
+  #top.open .menu-sel {
+    top: 206px;
+  }
+  #bar .bsel {
+    display: flex;
   }
   #app {
     grid-template-rows: 60px 52px 52vh auto auto auto;

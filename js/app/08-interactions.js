@@ -200,7 +200,7 @@
     }
   }
   function startMarquee(ev, click) {
-    const base = ev.shiftKey ? S.sel.slice() : [],
+    const base = ev.shiftKey || S.multi ? S.sel.slice() : [],
       p0 = {x: ev.clientX, y: ev.clientY};
     let box = null;
     drag(
@@ -279,7 +279,7 @@
       return;
     }
     const n = ev.target.closest('.el'),
-      marq = ev.pointerType !== 'touch';
+      marq = ev.pointerType !== 'touch' || S.multi;
     if (!n) {
       if (marq) startMarquee(ev, deselect);
       else deselect();
@@ -291,6 +291,7 @@
         const g = expandGroup([e.id]);
         S.sel = S.sel.includes(e.id) ? S.sel.filter(i => !g.includes(i)) : [...new Set([...S.sel, ...g])];
         refresh({props: true});
+        announceSel();
       },
       pick = () => {
         if (!S.sel.includes(e.id)) {
@@ -299,10 +300,10 @@
         }
       };
     if (e.locked && marq) {
-      startMarquee(ev, ev.shiftKey ? toggle : pick);
+      startMarquee(ev, ev.shiftKey || S.multi ? toggle : pick);
       return;
     }
-    if (ev.shiftKey) {
+    if (ev.shiftKey || S.multi) {
       toggle();
       return;
     }
@@ -312,7 +313,7 @@
   stageEl.addEventListener('pointerdown', ev => {
     if (ev.target === stageEl || ev.target === wrapEl) {
       if (editing) endEdit();
-      if (ev.pointerType !== 'touch') startMarquee(ev, deselect);
+      if (ev.pointerType !== 'touch' || S.multi) startMarquee(ev, deselect);
       else deselect();
     }
   });

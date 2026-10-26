@@ -134,3 +134,9 @@ test('el recuadro expande los grupos y no toma elementos ocultos', async ({page}
   await recuadro(page, [320, 420], [380, 480]);
   expect(await seleccion(page)).toEqual([]);
 });
+
+test('en escritorio no aparecen los botones de móvil', async ({page}) => {
+  await preparar(page);
+  await expect(page.locator('#multi-btn')).toBeHidden();
+  await expect(page.locator('#selall-top')).toBeHidden();
+});

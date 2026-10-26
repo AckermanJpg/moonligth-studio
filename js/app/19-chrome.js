@@ -27,6 +27,13 @@
   function updLayers() {
     $$('#props .layer').forEach(l => l.classList.toggle('on', S.sel.includes(l.dataset.layer)));
   }
+  $('#selall-top').onclick = selectAll;
+  $('#multi-btn').onclick = ev => {
+    S.multi = !S.multi;
+    ev.currentTarget.classList.toggle('on', S.multi);
+    ev.currentTarget.setAttribute('aria-pressed', S.multi);
+    stageEl.classList.toggle('multi', S.multi);
+  };
   $('#undo').onclick = undo;
   $('#redo').onclick = redo;
   $('#name').addEventListener('input', e => {
