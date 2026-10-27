@@ -460,4 +460,69 @@ test.describe('GIF y video como elementos', () => {
     expect(await page.evaluate(() => [prim().type, prim().frames])).toEqual(['media', 12]);
     expect(problems).toEqual([]);
   });
+
+  const ftyp = (major, compat, body = Buffer.alloc(2048)) => {
+    const brands = Buffer.from(major + '\0\0\0\0' + compat.join(''), 'latin1'),
+      head = Buffer.alloc(8);
+    head.writeUInt32BE(8 + brands.length);
+    head.write('ftyp', 4, 'latin1');
+    return Buffer.concat([head, brands, body]);
+  };
+  for (const [major, compat] of [
+    ['heic', ['mif1', 'heic']],
+    ['heix', ['mif1', 'heix']],
+    ['avif', ['avif', 'mif1', 'miaf']],
+    ['mif1', ['mif1', 'heic']],
+    ['qt  ', ['qt  ']],
+    ['heic', ['isom', 'mif1']],
+  ])
+    test(`rechaza un archivo con ftyp de marca «${major.trim()}» (${compat.join(' ').trim()}) como no válido`, async ({
+      page,
+    }) => {
+      await open(page);
+      await createProject(page);
+      await subir(page, {name: 'foto.mp4', mimeType: 'video/mp4', buffer: ftyp(major, compat)});
+      await expect(page.locator('#toast')).toHaveText('El archivo no es un GIF, MP4 ni WebM válido');
+      expect(await page.evaluate(() => els().length)).toBe(0);
+    });
+
+  test('acepta un MP4 cuya marca principal es mp42 o que solo declara isom entre las compatibles', async ({
+    page,
+  }) => {
+    await open(page);
+    await createProject(page);
+    const mp4 = fs.readFileSync(path.join(__dirname, 'fixtures', 'clip-10s.mp4'));
+    for (const [k, brand] of [
+      [8, 'mp42'],
+      [8, 'zzzz'],
+    ]) {
+      const b = Buffer.from(mp4);
+      b.write(brand, k, 'latin1');
+      const n = await subir(page, {name: brand + '.mp4', mimeType: 'video/mp4', buffer: b});
+      await page.waitForFunction(n => els().length === n + 1, n);
+    }
+    expect(await page.evaluate(() => els().map(e => e.kind))).toEqual(['video', 'video']);
+  });
+
+  test('un MP4 con marca válida que no se puede reproducir muestra un mensaje y no se agrega', async ({
+    page,
+  }) => {
+    await open(page);
+    await createProject(page);
+    await subir(page, {name: 'roto.mp4', mimeType: 'video/mp4', buffer: ftyp('isom', ['isom', 'mp41'])});
+    await expect(page.locator('#toast')).toHaveText('No se pudo reproducir este video');
+    expect(await page.evaluate(() => els().length)).toBe(0);
+  });
+
+  test('si el video falla al cargar en el lienzo, se quita el elemento con un aviso', async ({page}) => {
+    await open(page);
+    await createProject(page);
+    const v = await agregar(page, 'clip-10s.webm');
+    await page.evaluate(id => {
+      document.querySelector(`#page .el[data-id="${id}"] video`).dispatchEvent(new Event('error'));
+    }, v);
+    await expect(page.locator('#toast')).toHaveText('No se pudo reproducir este video');
+    expect(await page.evaluate(id => !!findEl(id), v)).toBe(false);
+    await expect(page.locator(`#page .el[data-id="${v}"]`)).toHaveCount(0);
+  });
 });

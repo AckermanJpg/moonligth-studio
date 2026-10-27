@@ -33,11 +33,22 @@
     asked = false,
     note = '';
 
+  const MP4_BRANDS = ['isom', 'iso2', 'iso3', 'iso4', 'iso5', 'iso6', 'mp41', 'mp42', 'avc1', 'M4V ', 'dash'],
+    NOT_VIDEO = ['heic', 'heix', 'heim', 'heis', 'hevc', 'hevx', 'avif', 'avis', 'mif1', 'msf1', 'qt  '];
   async function sniff(blob) {
-    const b = new Uint8Array(await blob.slice(0, 12).arrayBuffer()),
+    const b = new Uint8Array(await blob.slice(0, 256).arrayBuffer()),
       s = String.fromCharCode(...b);
     if (/^GIF8[79]a/.test(s)) return 'image/gif';
-    if (s.slice(4, 8) === 'ftyp') return 'video/mp4';
+    if (s.slice(4, 8) === 'ftyp') {
+      const major = s.slice(8, 12),
+        compat =
+          s
+            .slice(16, Math.min(s.length, (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3]))
+            .match(/[^]{4}/g) || [];
+      return !NOT_VIDEO.includes(major) && [major, ...compat].some(x => MP4_BRANDS.includes(x))
+        ? 'video/mp4'
+        : '';
+    }
     if (b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3) return 'video/webm';
     return '';
   }
@@ -159,6 +170,7 @@
         v.playsInline = true;
         v.preload = 'auto';
         v.src = m.url;
+        v.addEventListener('error', () => players.get(e.id) === pl && broken(e.id));
         pl.el = v;
       } else {
         pl.el = cv(m.w, m.h);
@@ -173,6 +185,14 @@
       m = blobs.get(e.src.slice(REF.length));
     if (pl) return pl.kind === 'gif' || pl.el.readyState >= 2 ? pl.el : null;
     return m && m.kind === 'gif' ? m.frames[0] : null;
+  }
+  function broken(id) {
+    if (!findEl(id)) return;
+    touch(true);
+    pg().els.splice(pg().els.indexOf(findEl(id)), 1);
+    S.sel = S.sel.filter(x => x !== id);
+    refresh({props: true});
+    toast('No se pudo reproducir este video');
   }
   function drop(id) {
     const pl = players.get(id);
