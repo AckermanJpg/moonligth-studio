@@ -38,7 +38,6 @@
   function seekTo(v, t) {
     return new Promise(res => {
       const target = Math.min(Math.max(0, t + 1e-4), Math.max(0, v.duration - 0.001));
-      if (Math.abs(v.currentTime - target) < 0.001 && v.readyState >= 2) return res();
       let seeked = false,
         shown = !v.requestVideoFrameCallback,
         wait = 0;

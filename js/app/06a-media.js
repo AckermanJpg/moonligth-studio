@@ -100,6 +100,7 @@
           dur: v.duration,
           poster: cv(v.videoWidth, v.videoHeight),
         };
+      await MoonGif.seekTo(v, 0);
       m.poster.getContext('2d').drawImage(v, 0, 0);
       v.removeAttribute('src');
       v.load();
