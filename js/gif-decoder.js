@@ -34,6 +34,20 @@
     return v;
   }
 
+  function seekTo(v, t) {
+    return new Promise(res => {
+      const target = Math.min(Math.max(0, t), Math.max(0, v.duration - 0.001));
+      if (Math.abs(v.currentTime - target) < 0.001 && v.readyState >= 2) return res();
+      const done = () => {
+        v.removeEventListener('seeked', done);
+        clearTimeout(timer);
+        res();
+      };
+      const timer = setTimeout(done, 4000);
+      v.addEventListener('seeked', done);
+      v.currentTime = target;
+    });
+  }
   function palette(b, p, n) {
     const pal = new Uint32Array(256);
     for (let i = 0; i < n; i++, p += 3) pal[i] = 0xff000000 | (b[p + 2] << 16) | (b[p + 1] << 8) | b[p];
@@ -225,5 +239,5 @@
     return {w: W, h: H, frames, times, duration: at, count};
   }
 
-  window.MoonGif = Object.assign(window.MoonGif || {}, {decodeGif, openVideo, once});
+  window.MoonGif = Object.assign(window.MoonGif || {}, {decodeGif, openVideo, once, seekTo});
 })();

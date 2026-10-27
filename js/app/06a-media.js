@@ -18,6 +18,8 @@
     hasInlineMedia,
     importMedia,
     exportJSON,
+    mediaTrack,
+    mediaLongest,
   });
   const REF = '@db:',
     MB = 1048576,
@@ -77,7 +79,16 @@
     const url = URL.createObjectURL(blob);
     try {
       const v = await MoonGif.openVideo(url),
-        m = {blob, kind: 'video', url, w: v.videoWidth, h: v.videoHeight, dur: v.duration};
+        m = {
+          blob,
+          kind: 'video',
+          url,
+          w: v.videoWidth,
+          h: v.videoHeight,
+          dur: v.duration,
+          poster: cv(v.videoWidth, v.videoHeight),
+        };
+      m.poster.getContext('2d').drawImage(v, 0, 0);
       v.removeAttribute('src');
       v.load();
       if (m.dur > 15.05) throw new Error('secs');
@@ -183,8 +194,8 @@
   function mediaFrame(e) {
     const pl = players.get(e.id),
       m = blobs.get(e.src.slice(REF.length));
-    if (pl) return pl.kind === 'gif' || pl.el.readyState >= 2 ? pl.el : null;
-    return m && m.kind === 'gif' ? m.frames[0] : null;
+    if (pl && (pl.kind === 'gif' || pl.el.readyState >= 2)) return pl.el;
+    return m ? (m.kind === 'gif' ? m.frames[0] : m.poster) : null;
   }
   function broken(id) {
     if (!findEl(id)) return;
@@ -204,10 +215,14 @@
     }
     players.delete(id);
   }
+  function frameIndex(m, at, from = 0) {
+    const t = m.times;
+    let i = from < 0 || t[from] > at ? 0 : from;
+    while (i + 1 < t.length && t[i + 1] <= at) i++;
+    return i;
+  }
   function paintGif(pl) {
-    const t = pl.m.times;
-    let i = pl.idx < 0 || t[pl.idx] > pl.pos ? 0 : pl.idx;
-    while (i + 1 < t.length && t[i + 1] <= pl.pos) i++;
+    const i = frameIndex(pl.m, pl.pos, pl.idx);
     if (i === pl.idx) return;
     pl.idx = i;
     const x = pl.el.getContext('2d');
@@ -283,6 +298,36 @@
   $('#pauseall').addEventListener('click', pauseAll);
   document.addEventListener('visibilitychange', mediaSync);
 
+  function mediaLongest(p) {
+    return Math.max(0, ...p.els.filter(e => e.type === 'media' && !e.hidden).map(e => e.dur));
+  }
+  async function mediaTrack(p) {
+    const vids = new Map();
+    for (const e of p.els) {
+      const m = e.type === 'media' && blobs.get(e.src.slice(REF.length));
+      if (m && m.kind === 'video' && !vids.has(e.src)) {
+        const v = await MoonGif.openVideo(m.url);
+        v.loop = true;
+        vids.set(e.src, {v, m});
+      }
+    }
+    const pick = t => e => {
+      const m = e.type === 'media' && blobs.get(e.src.slice(REF.length));
+      if (!m) return null;
+      return m.kind === 'gif' ? m.frames[frameIndex(m, t % m.dur)] : vids.get(e.src).v;
+    };
+    return {
+      pick,
+      seek: t => Promise.all([...vids.values()].map(({v, m}) => MoonGif.seekTo(v, t % m.dur))),
+      play: () => Promise.all([...vids.values()].map(({v}) => v.play().catch(() => {}))),
+      close: () =>
+        vids.forEach(({v}) => {
+          v.pause();
+          v.removeAttribute('src');
+          v.load();
+        }),
+    };
+  }
   const inlineOf = e => e.type === 'media' && typeof e.src === 'string' && e.src.startsWith('data:');
   function hasInlineMedia(o) {
     return o.pages.some(p => p.els.some(inlineOf));

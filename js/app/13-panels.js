@@ -255,18 +255,36 @@
     },
     export() {
       const c = S.conv,
-        all = c.pages === 'all';
+        longest = mediaLongest(pg()),
+        anim = (c.fmt === 'gif' || c.fmt === 'video') && longest > 0,
+        all = c.pages === 'all' && !anim,
+        fmts = [
+          ['jpg', 'JPG'],
+          ['png', 'PNG'],
+          ['webp', 'WEBP'],
+          ['pdf', 'PDF'],
+          ...(longest
+            ? [
+                ['gif', 'GIF animado'],
+                ['video', 'Video'],
+              ]
+            : []),
+        ];
       return `<h3>Exportar</h3><h4>Descargar diseño</h4>
-    <div class="seg">${['jpg', 'png', 'webp', 'pdf'].map(f => `<button class="btn sm${c.fmt === f ? ' on' : ''}" data-cvset="fmt:${f}">${f.toUpperCase()}</button>`).join('')}</div>
-    <div class="seg" style="margin-top:6px">${[
-      ['cur', 'Página actual'],
-      ['all', 'Todas'],
-    ]
-      .map(
-        ([k, l]) =>
-          `<button class="btn sm${c.pages === k ? ' on' : ''}" data-cvset="pages:${k}">${l}</button>`,
-      )
-      .join('')}</div>
+    <div class="seg">${fmts.map(([f, l]) => `<button class="btn sm${c.fmt === f ? ' on' : ''}" data-cvset="fmt:${f}">${l}</button>`).join('')}</div>
+    ${
+      anim
+        ? `<div class="row wrap" style="margin-top:6px"><label class="num"><span>Cuadros/s</span><input type="number" data-cv="fps" min="1" max="30" step="1" value="${c.fps || (c.fmt === 'gif' ? 10 : 30)}"></label><label class="num"><span>Duración s</span><input type="number" data-cv="dur" min="0.5" max="30" step="0.1" value="${c.dur || Math.round(longest * 10) / 10}"></label></div>`
+        : `<div class="seg" style="margin-top:6px">${[
+            ['cur', 'Página actual'],
+            ['all', 'Todas'],
+          ]
+            .map(
+              ([k, l]) =>
+                `<button class="btn sm${c.pages === k ? ' on' : ''}" data-cvset="pages:${k}">${l}</button>`,
+            )
+            .join('')}</div>`
+    }
     <div class="row"><label>Escala</label><select data-cv="scale" style="width:90px">${[
       [0.5, '0.5×'],
       [1, '1×'],
@@ -274,10 +292,10 @@
     ]
       .map(([v, l]) => `<option value="${v}"${c.scale === v ? ' selected' : ''}>${l}</option>`)
       .join('')}</select></div>
-    <div class="row"><label>Calidad</label><input type="range" data-cv="q" min="50" max="100" value="${c.q}"><span id="qv">${c.q}</span></div>
-    <button class="btn" id="cvgo" style="width:100%">Descargar ${c.fmt.toUpperCase()}${all && c.fmt !== 'pdf' ? ' (ZIP)' : ''}</button>
+    ${anim ? '' : `<div class="row"><label>Calidad</label><input type="range" data-cv="q" min="50" max="100" value="${c.q}"><span id="qv">${c.q}</span></div>`}
+    <button class="btn" id="cvgo" style="width:100%">${anim ? (c.fmt === 'gif' ? 'Descargar GIF animado' : 'Grabar y descargar video') : `Descargar ${c.fmt.toUpperCase()}${all && c.fmt !== 'pdf' ? ' (ZIP)' : ''}`}</button>
     <div class="sumline">Salida: <b>${Math.round(S.w * c.scale)} × ${Math.round(S.h * c.scale)} px</b></div>
-    <p class="hint">${c.fmt === 'pdf' ? 'El PDF lleva cada página elegida como imagen.' : all ? 'Con varias páginas recibes un ZIP con un archivo por página.' : 'Se guarda una imagen de la página actual.'}</p>${S.pages.some(p => p.bg.pat === 'none') ? `<p class="hint" style="color:var(--gold)">${c.fmt === 'png' ? 'Tu fondo es transparente: el PNG lo conserva.' : 'Tu fondo es transparente. JPG y PDF lo rellenan de blanco; usa PNG para conservarlo.'}</p>` : ''}
+    <p class="hint">${anim ? (c.fmt === 'gif' ? 'Se combinan el fondo y las capas de la página actual con los cuadros de sus GIF y videos. Si salen demasiados cuadros, el tamaño se reduce.' : 'Se graba la página actual en tiempo real (tarda lo que dura), sin sonido.') : c.fmt === 'pdf' ? 'El PDF lleva cada página elegida como imagen.' : all ? 'Con varias páginas recibes un ZIP con un archivo por página.' : 'Se guarda una imagen de la página actual.'}</p>${S.pages.some(p => p.bg.pat === 'none') ? `<p class="hint" style="color:var(--gold)">${c.fmt === 'png' ? 'Tu fondo es transparente: el PNG lo conserva.' : 'Tu fondo es transparente. JPG y PDF lo rellenan de blanco; usa PNG para conservarlo.'}</p>` : ''}
     <div class="row"><button class="btn sm" id="cvprev">Vista previa / JSON</button>${projectCredits().length ? '<button class="btn sm" id="credcopy">Copiar créditos</button>' : ''}</div>
     <h4>Exportar en varios tamaños</h4><p class="hint">Adapta la página actual a varios formatos y descarga un ZIP.</p>
     ${MS.map((m, i) => `<div class="row"><input type="checkbox" id="ms${i}" data-ms="${i}"${S.msSel[i] ? ' checked' : ''}><label for="ms${i}" style="min-width:0">${m[0].replace(/_/g, ' ')} · ${m[1]}×${m[2]}</label></div>`).join('')}
@@ -695,7 +713,7 @@
     } else if (t.dataset.cv) {
       S.conv[t.dataset.cv] = +t.value;
       if (t.dataset.cv === 'q') $('#qv').textContent = t.value;
-      else renderPanel();
+      else if (t.dataset.cv !== 'fps' && t.dataset.cv !== 'dur') renderPanel();
     } else if (t.id === 'fitpdf') S.conv.fitpdf = t.checked;
     else if (t.dataset.dr) {
       const k = t.dataset.dr;

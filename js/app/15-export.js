@@ -48,7 +48,7 @@ let presIdx;
   }
   const smoothImage = e => e.px <= 1 && !['sprite', 'draw', 'qr'].includes(e.type);
   Object.assign(window, {smoothImage});
-  function renderPageCanvas(p, scale) {
+  function renderPageCanvas(p, scale, pick = mediaFrame) {
     const W = Math.round(S.w * scale),
       H = Math.round(S.h * scale),
       c = cv(W, H),
@@ -75,7 +75,7 @@ let presIdx;
       else {
         x.imageSmoothingEnabled = smoothImage(e);
         x.imageSmoothingQuality = 'high';
-        x.drawImage(bitmap(e), 0, 0, e.w, e.h);
+        x.drawImage((e.type === 'media' && pick(e)) || bitmap(e), 0, 0, e.w, e.h);
       }
       x.restore();
     });

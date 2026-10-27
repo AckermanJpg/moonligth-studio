@@ -304,21 +304,6 @@
     return {w, h: Math.max(16, Math.round(w / ratio))};
   }
 
-  function seekTo(v, t) {
-    return new Promise(res => {
-      const target = Math.min(Math.max(0, t), Math.max(0, v.duration - 0.001));
-      if (Math.abs(v.currentTime - target) < 0.001 && v.readyState >= 2) return res();
-      const done = () => {
-        v.removeEventListener('seeked', done);
-        clearTimeout(timer);
-        res();
-      };
-      const timer = setTimeout(done, 4000);
-      v.addEventListener('seeked', done);
-      v.currentTime = target;
-    });
-  }
-
   function drawFit(x, el, sw, sh, W, H) {
     const o = st.out;
     x.fillStyle = o.bg;
@@ -349,7 +334,7 @@
 
   async function sourceAt(c, t) {
     if (c.kind === 'video') {
-      await seekTo(c.el, t);
+      await G.seekTo(c.el, t);
       return c.el;
     }
     let i = c.times.length - 1;

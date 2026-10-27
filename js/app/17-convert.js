@@ -167,8 +167,88 @@
       );
     }
   }
+  const VIDEO_TYPES = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'],
+    ANIM_PIXELS = 90e6;
+  const onWhite = cn => {
+    const f = cv(cn.width, cn.height),
+      fx = f.getContext('2d', {willReadFrequently: true});
+    fx.fillStyle = '#ffffff';
+    fx.fillRect(0, 0, f.width, f.height);
+    fx.drawImage(cn, 0, 0);
+    return f;
+  };
+  async function exportAnimated() {
+    const c = S.conv,
+      p = pg(),
+      longest = mediaLongest(p);
+    if (!longest) return toast('Esta página no tiene GIF ni videos');
+    const gif = c.fmt === 'gif',
+      fps = clamp(Math.round(c.fps || (gif ? 10 : 30)), 1, 30),
+      dur = clamp(c.dur || longest, 0.5, 30),
+      n = Math.max(1, Math.round(dur * fps)),
+      sc = gif ? Math.min(c.scale, Math.sqrt(ANIM_PIXELS / (S.w * S.h * n))) : c.scale,
+      mime = !gif && window.MediaRecorder && VIDEO_TYPES.find(t => MediaRecorder.isTypeSupported(t)),
+      base = slug(S.name);
+    if (!gif && !mime) return toast('Este navegador no puede grabar video');
+    toast('Preparando…');
+    await loadFonts();
+    await loadScript('js/gif-decoder.js');
+    const tr = await mediaTrack(p),
+      frame = t => onWhite(renderPageCanvas(p, sc, tr.pick(t)));
+    try {
+      if (gif) {
+        await loadScript('js/gif-encoder.js');
+        const frames = [];
+        let cn;
+        for (let k = 0; k < n; k++) {
+          await tr.seek(k / fps);
+          cn = frame(k / fps);
+          frames.push({
+            data: cn.getContext('2d').getImageData(0, 0, cn.width, cn.height).data,
+            delay: 1 / fps,
+          });
+          if (k % 5 === 0) toast(`Componiendo cuadros: ${k + 1} de ${n}`);
+        }
+        toast('Creando GIF…');
+        await new Promise(r => setTimeout(r, 30));
+        return saveFile(base + '.gif', MoonGif.encode(frames, cn.width, cn.height, {dither: false}));
+      }
+      const first = frame(0),
+        out = cv(first.width, first.height),
+        x = out.getContext('2d'),
+        stream = out.captureStream(fps),
+        rec = new MediaRecorder(stream, {mimeType: mime, videoBitsPerSecond: 8e6}),
+        chunks = [],
+        stopped = new Promise(r => (rec.onstop = r));
+      rec.ondataavailable = ev => ev.data.size && chunks.push(ev.data);
+      await tr.seek(0);
+      x.drawImage(first, 0, 0);
+      await tr.play();
+      rec.start(250);
+      const t0 = performance.now();
+      let shown = -1;
+      await new Promise(res => {
+        const step = () => {
+          const t = (performance.now() - t0) / 1000;
+          if (t >= dur) return res();
+          x.drawImage(frame(t), 0, 0);
+          if (Math.floor(t) !== shown) toast(`Grabando video: ${(shown = Math.floor(t))} de ${dur} s`);
+          requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+      rec.stop();
+      await stopped;
+      stream.getTracks().forEach(t => t.stop());
+      const type = mime.split(';')[0];
+      return saveFile(`${base}.${type === 'video/mp4' ? 'mp4' : 'webm'}`, new Blob(chunks, {type}));
+    } finally {
+      tr.close();
+    }
+  }
   async function doExport() {
     const c = S.conv;
+    if (c.fmt === 'gif' || c.fmt === 'video') return exportAnimated();
     toast('Generando…');
     await loadFonts();
     const idxs = c.pages === 'all' ? S.pages.map((_, i) => i) : [S.cur],
