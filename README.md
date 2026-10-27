@@ -88,7 +88,7 @@ Se ajusta cuánto del fondo se quita, cuántos colores buscar, qué tan distinto
 
 ### Crear GIF
 
-Combina clips en una secuencia: videos, GIFs animados, imágenes sueltas o las páginas del proyecto abierto. Cada video o GIF se recorta con inicio y fin, se acelera o se frena, y se puede reproducir al revés. A las imágenes se les define cuántos segundos duran. Entre clips hay corte directo o fundido.
+Combina clips en una secuencia: videos, GIFs animados, imágenes sueltas o las páginas del proyecto abierto. Un GIF largo se corta en 300 cuadros; si aun así sus cuadros suman más de 90 millones de píxeles, se usa solo el primero y se avisa. Cada video o GIF se recorta con inicio y fin, se acelera o se frena, y se puede reproducir al revés. A las imágenes se les define cuántos segundos duran. Entre clips hay corte directo o fundido.
 
 La salida se configura con el ancho (hasta 1000 px), la forma (la del primer clip, 1:1, 16:9, 9:16 o 4:3), cómo encajar cada clip (completo, llenando con recorte o estirado), los cuadros por segundo (de 2 a 30), el número de colores (256, 128, 64 o 32) y las repeticiones. Tiene dos opciones extra: ida y vuelta (boomerang) y una hoja de sprites en PNG con hasta 64 cuadros.
 
@@ -176,8 +176,8 @@ Dado el tamaño final, el de la hoja, el margen y el traslape, se calcula cuánt
 ## Límites conocidos
 
 - Un solo proyecto guardado a la vez. Al guardar el primer GIF o video se pide al navegador almacenamiento persistente; si lo niega, puede borrar los medios cuando le falte espacio.
-- Un GIF del editor ocupa en memoria unos 4 bytes por píxel y cuadro: el más grande permitido (unos 90 millones de píxeles) usa alrededor de 300 MB.
-- El WebM que graban Firefox y algunos Chromium no lleva la duración en la cabecera: se reproduce entero, pero algunos reproductores no muestran el total.
+- Un GIF del editor guarda cada cuadro como viene en el archivo (un byte por píxel del rectángulo que cambia) y una imagen completa cada 50 cuadros. El más grande permitido (unos 90 millones de píxeles) ocupa entre 20 y 85 MB según cuánto cambie cada cuadro. Saltar a un cuadro lejano puede tardar hasta unos 30 ms.
+- En Firefox el video sale a unos 20 a 25 cuadros por segundo aunque se pidan 30: es el ritmo al que ese navegador captura el lienzo, aun con una página vacía. Chromium graba a 30.
 - Los videos se leen con el navegador: si no entiende el formato o el códec, el clip no se carga. MP4 con H.264 y WebM suelen funcionar.
 - El GIF no lleva sonido y su ancho máximo es de 1000 px. El tamaño total (ancho por alto por cuadros) tiene un tope de unos 90 millones de píxeles.
 - Para separar piezas, las imágenes mayores de 3600 px se reducen antes de analizarlas.
