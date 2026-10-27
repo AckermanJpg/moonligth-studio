@@ -8,7 +8,7 @@ No tiene servidor, cuenta ni base de datos. Es HTML, CSS y JavaScript sin framew
 
 ## Cómo usarlo
 
-Puedes probarlo en línea en https://ackermanjpg.github.io/moonligth-studio/ o descargarlo y abrir `index.html` con el navegador. No hace falta instalar nada ni levantar un servidor. Está probado en Chromium; los demás navegadores modernos deberían servir, con una excepción: importar GIFs animados usa `ImageDecoder`, que hoy solo existe en Chromium y Safari 16.4 o más reciente.
+Puedes probarlo en línea en https://ackermanjpg.github.io/moonligth-studio/ o descargarlo y abrir `index.html` con el navegador. No hace falta instalar nada ni levantar un servidor. Está probado en Chromium y Firefox; los demás navegadores modernos deberían servir. Los GIF animados se leen con un decodificador propio, así que no dependen de `ImageDecoder`.
 
 Necesita conexión a internet para cuatro cosas:
 
@@ -55,6 +55,12 @@ A cada imagen se le puede aplicar:
 - Quitar fondo.
 - Máscara con forma, volteo, contorno tipo sticker y control del tamaño del píxel.
 
+### GIF y video en el diseño
+
+Desde la pestaña Imágenes se puede agregar un GIF animado (hasta 8 MB y 300 cuadros) o un video MP4 o WebM (hasta 30 MB y 15 s) como un objeto más: se mueve, se redimensiona, se gira, cambia de opacidad y de capa, y se deshace igual que una imagen. Se reproduce en bucle y siempre sin sonido. El tipo se reconoce por los primeros bytes del archivo, no por la extensión.
+
+Cada uno tiene Reproducir/Pausar en Propiedades, y "Pausar todo" en la barra superior (en el menú Más en el móvil) detiene todos. Si el sistema pide reducir el movimiento, arrancan en pausa.
+
 ### Póster en hojas
 
 Toma una imagen y la reparte en hojas para pegarlas y obtener el tamaño final. Se escribe el tamaño del diseño completo (en cm, mm, pulgadas o metros) o el número de hojas, y se elige el papel: A5, A4, A3, A2, Carta, Oficio, Tabloide o medidas propias.
@@ -90,7 +96,9 @@ Desde un clip también se pueden convertir sus cuadros en páginas del editor pa
 
 ### Exportar y convertir
 
-- Imagen: PNG, JPG, WebP, a escala 0.5×, 1× o 2×.
+- Imagen: PNG, JPG, WebP, a escala 0.5×, 1× o 2×. Los GIF y videos salen con el cuadro que se ve en ese momento.
+- GIF animado de la página actual: combina el fondo y las capas con los cuadros de sus GIF y videos. Se eligen los cuadros por segundo y la duración (por defecto, la del medio más largo).
+- Video de la página actual, grabado en tiempo real: MP4 si el navegador lo permite y si no WebM.
 - PDF de una o varias páginas.
 - ZIP con una imagen por página.
 - Exportar de una vez en 8 tamaños para redes (Instagram cuadrado, vertical e historia, X, YouTube, Facebook, Pinterest y LinkedIn).
@@ -127,6 +135,7 @@ js/icons.js             iconos de la interfaz (SVG)
 js/print-tools.js       cálculo del póster y separación de piezas
 js/print-studio.js      ventana del póster y de las piezas
 js/gif-encoder.js       codificador de GIF
+js/gif-decoder.js       decodificador de GIF y utilidades de video
 js/gif-studio.js        ventana del creador de GIF
 js/app/01 … 23-*.js     el editor, dividido por responsabilidad
 ```
@@ -139,7 +148,9 @@ Todo el estado vive en un objeto `S`: páginas, objetos de cada página, selecci
 
 El historial guarda una instantánea JSON del proyecto por cada cambio. Las imágenes (que llegan como `data:` URL de varios megas) no se copian en cada instantánea: se registran una sola vez y las copias llevan una referencia corta. Sin esto, 100 pasos con una foto grande ocupaban cientos de megas.
 
-El proyecto se guarda solo en el `localStorage` del navegador, un segundo después de cada cambio. Solo cabe un proyecto a la vez.
+El proyecto se guarda solo en el navegador, un segundo después de cada cambio. Las imágenes, GIF y videos van a IndexedDB y el `localStorage` guarda el proyecto con referencias cortas (`@db:`) a ellos; si IndexedDB no está disponible, las imágenes se guardan dentro del proyecto como antes. Solo cabe un proyecto a la vez. Si al continuar falta alguna imagen o video, el proyecto abre igual y deja un aviso en su lugar.
+
+El JSON que se copia desde Exportar lleva las imágenes y los medios dentro, para que abra en cualquier navegador. Si con los videos pasa de unos 20 MB, se ofrece exportarlo sin ellos.
 
 ### Archivos sin librerías
 
@@ -164,7 +175,9 @@ Dado el tamaño final, el de la hoja, el margen y el traslape, se calcula cuánt
 
 ## Límites conocidos
 
-- Un solo proyecto guardado a la vez, y el `localStorage` suele ofrecer unos 5 MB, así que los proyectos con muchas fotos grandes pueden no guardarse.
+- Un solo proyecto guardado a la vez. Al guardar el primer GIF o video se pide al navegador almacenamiento persistente; si lo niega, puede borrar los medios cuando le falte espacio.
+- Un GIF del editor ocupa en memoria unos 4 bytes por píxel y cuadro: el más grande permitido (unos 90 millones de píxeles) usa alrededor de 300 MB.
+- El WebM que graban Firefox y algunos Chromium no lleva la duración en la cabecera: se reproduce entero, pero algunos reproductores no muestran el total.
 - Los videos se leen con el navegador: si no entiende el formato o el códec, el clip no se carga. MP4 con H.264 y WebM suelen funcionar.
 - El GIF no lleva sonido y su ancho máximo es de 1000 px. El tamaño total (ancho por alto por cuadros) tiene un tope de unos 90 millones de píxeles.
 - Para separar piezas, las imágenes mayores de 3600 px se reducen antes de analizarlas.
@@ -178,7 +191,7 @@ Las pruebas se hicieron a mano y con scripts temporales sobre Chromium, y el có
 
 ## Privacidad
 
-No usa analítica ni cookies. Los archivos que abres no se suben a ningún servidor. El proyecto se guarda en el `localStorage` del navegador. Se conecta a Google Fonts para las tipografías y a cdnjs para las librerías de QR y PDF.
+No usa analítica ni cookies. Los archivos que abres no se suben a ningún servidor. El proyecto se guarda en el `localStorage` y en IndexedDB del navegador. Se conecta a Google Fonts para las tipografías y a cdnjs para las librerías de QR y PDF.
 
 ## Licencia
 
