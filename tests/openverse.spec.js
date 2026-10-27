@@ -224,6 +224,7 @@ test.describe('buscador de Openverse', () => {
     await page.reload();
     await page.waitForSelector('#home.on');
     await page.click('[data-act="continue"]');
+    await page.waitForFunction(() => !document.getElementById('home').classList.contains('on'));
     await page.evaluate(() => {
       S.sel = [S.pages[S.cur].els.find(e => e.credit).id];
       refresh({props: true});
@@ -368,6 +369,7 @@ test.describe('buscador de Openverse', () => {
     await page.reload();
     await page.waitForSelector('#home.on');
     await page.click('[data-act="continue"]');
+    await page.waitForFunction(() => !document.getElementById('home').classList.contains('on'));
     expect(await page.evaluate(() => S.pages.map(p => p.bg.credit))).toEqual([esperado, esperado]);
   });
 

@@ -729,10 +729,11 @@ let savedInfo;
   homeEl.addEventListener('focusout', ev => ev.target.closest('.hshow') && showLive(false));
   document.addEventListener('visibilitychange', showArm);
   reducedMotion.addEventListener('change', showArm);
-  function continueSaved() {
+  async function continueSaved() {
     try {
-      if (validateProject(JSON.parse(savedInfo.js))) throw new Error('invalid');
-      restore(savedInfo.js);
+      const js = await unpackProject(savedInfo.js);
+      if (validateProject(JSON.parse(js))) throw new Error('invalid');
+      restore(js);
     } catch {
       toast('No se pudo abrir el proyecto guardado');
       return;

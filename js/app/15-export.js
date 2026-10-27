@@ -151,6 +151,7 @@ let presIdx;
         if (e.credit !== undefined && !validCredit(e.credit)) return 'créditos inválidos';
       }
     }
+    if (/"@db:/.test(JSON.stringify(o))) return 'falta una imagen guardada';
     return '';
   }
   async function openExport() {

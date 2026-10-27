@@ -197,9 +197,9 @@ let uid, hist, clip, editing;
       : value;
   const expandImages = (key, value) =>
     typeof value === 'string' && value.startsWith(IMG_REF) ? imageById[+value.slice(IMG_REF.length)] : value;
-  function snapshot(forHistory = false) {
+  function snapshot(forHistory = false, replacer) {
     const state = {name: S.name, w: S.w, h: S.h, cur: S.cur, pages: S.pages};
-    return JSON.stringify(state, forHistory ? compactImages : undefined);
+    return JSON.stringify(state, forHistory ? compactImages : replacer);
   }
   function resetHistory() {
     hist = [];
@@ -274,15 +274,22 @@ let uid, hist, clip, editing;
   Object.assign(window, {store});
   const rulersPref = store.get(RULERS_KEY);
   S.rulers = rulersPref === null ? !matchMedia('(max-width: 720px)').matches : rulersPref !== '0';
+  let saving = Promise.resolve();
   function save(manual) {
+    return (saving = saving.catch(() => {}).then(() => write(manual)));
+  }
+  async function write(manual) {
     if (!S.active) return;
-    const st = $('#savest');
-    if (!store.set(KEY, snapshot())) {
+    const st = $('#savest'),
+      out = await packProject();
+    if (!S.active) return;
+    if (!store.set(KEY, out.js)) {
       if (manual || !st.classList.contains('bad')) toast('No se pudo guardar: memoria local llena');
       st.classList.add('bad');
       st.textContent = 'Sin guardar: memoria llena';
       return;
     }
+    if (out.sweep) out.sweep();
     const d = new Date();
     st.classList.remove('bad');
     st.textContent =
