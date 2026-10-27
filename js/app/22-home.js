@@ -548,6 +548,7 @@ let savedInfo;
     if (adopt) adoptHome();
     else
       homeEl.innerHTML = `<div class="hwrap"><div class="hhead"><span class="sp"></span>
+    <button class="btn sm" data-act="news"><span aria-hidden="true">★</span> Novedades</button>
     <button class="btn sm" data-act="help">? Ayuda</button>${S.active ? '<button class="btn sm on" data-act="close">Volver al editor</button>' : ''}</div>
     <div class="hmain${st === 1 ? ' cover' : ''}"><section class="hbody">${homeBody()}
     ${st > 1 ? `<div class="hnav"><button class="btn" data-act="back">← Atrás</button><span class="sp"></span>${st < last ? `<button class="btn on" data-act="next"${canNext() ? '' : ' disabled'}>Siguiente →</button>` : `<button class="btn on" data-act="create"${canNext() ? '' : ' disabled'}>${H.sure ? '¿Reemplazar el proyecto actual? Pulsa de nuevo' : 'Crear diseño ✓'}</button>`}</div>` : ''}</section>${st === 1 ? homeShow() : ''}
@@ -563,6 +564,7 @@ let savedInfo;
     paintSide();
     hres();
     mountShow();
+    markNews();
   }
   function hres() {
     const e = $('#hres');
@@ -663,6 +665,7 @@ let savedInfo;
     } else if (a === 'continue') continueSaved();
     else if (a === 'close') closeHome();
     else if (a === 'help') openHelp();
+    else if (a === 'news') openNews();
     else if (a === 'create') {
       if (S.active && !H.sure) {
         H.sure = true;

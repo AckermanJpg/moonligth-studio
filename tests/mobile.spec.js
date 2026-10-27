@@ -64,7 +64,15 @@ for (const width of [360, 390, 430]) {
     test('el menú Más guarda lo demás de la barra superior', async ({page}) => {
       await open(page);
       await createProject(page);
-      const resto = ['#home-btn', '#name', '#sizechip', '#help-btn', '#present-btn', '#save-btn'];
+      const resto = [
+        '#home-btn',
+        '#name',
+        '#sizechip',
+        '#news-btn',
+        '#help-btn',
+        '#present-btn',
+        '#save-btn',
+      ];
       await expect(page.locator('#more-btn')).toBeVisible();
       await expect(page.locator('#more-btn')).toHaveAttribute('aria-expanded', 'false');
       for (const id of resto) await expect(page.locator(id), id).toBeHidden();
@@ -237,6 +245,33 @@ for (const width of [360, 390, 430]) {
       expect(r.lado / r.util).toBeGreaterThan(0.95);
       const ajustar = await page.locator('#zfit').boundingBox();
       expect(ajustar.x + ajustar.width).toBeGreaterThanOrEqual(width - 12);
+    });
+
+    test('con novedades sin leer, Más lleva el punto y lo dice; Novedades está dentro y lo quita', async ({
+      page,
+    }) => {
+      await page.addInitScript(() => {
+        if (!sessionStorage.getItem('sembrado')) {
+          localStorage.setItem('moonlight-news-v1', JSON.stringify({aviso: '1.1.0', leido: '1.1.0'}));
+          sessionStorage.setItem('sembrado', '1');
+        }
+      });
+      await open(page);
+      await createProject(page);
+      const mas = page.locator('#more-btn'),
+        nov = page.locator('#news-btn');
+      await expect(mas).toHaveClass(/\bunread\b/);
+      await expect(mas).toHaveAttribute('aria-label', 'Más opciones: hay novedades sin leer');
+      await mas.click();
+      await expect(nov).toBeVisible();
+      await expect(nov).toHaveClass(/\bunread\b/);
+      expect(dentro(await nov.boundingBox(), width)).toBeTruthy();
+      await nov.click();
+      await expect(page.locator('#mbox h3')).toHaveText('Novedades');
+      await page.click('#xclose');
+      await expect(mas).not.toHaveClass(/\bunread\b/);
+      await expect(mas).toHaveAttribute('aria-label', 'Más opciones');
+      await expect(nov).not.toHaveClass(/\bunread\b/);
     });
 
     test('las pestañas muestran que siguen hacia la derecha', async ({page}) => {
