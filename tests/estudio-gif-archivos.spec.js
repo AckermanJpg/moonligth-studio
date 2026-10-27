@@ -53,3 +53,20 @@ test('el estudio de GIF corta en 300 cuadros un GIF más largo, sin rechazarlo',
   await expect(page.locator('#gif-clips .piece')).toHaveCount(1);
   expect(await pistas(page)).toEqual(['GIF animado · 8 × 8 px · 15 s · 300 cuadros']);
 });
+
+test('el estudio de GIF no anima un GIF cuyos cuadros suman más de 90 Mpx y lo dice', async ({page}) => {
+  await abrirEstudio(page);
+  await page.setInputFiles('#gif-file', file('90mpx-excede.gif'));
+  await expect(page.locator('#toast')).toHaveText(
+    'El GIF es demasiado grande para animarlo: sus cuadros suman más de 90 Mpx. Se usará su primer cuadro',
+  );
+  await expect(page.locator('#gif-clips .piece')).toHaveCount(1);
+  expect((await pistas(page))[0]).toBe('Imagen · 600 × 600 px');
+});
+
+test('el estudio de GIF recorta a 300 cuadros antes de aplicar el tope de 90 Mpx', async ({page}) => {
+  await abrirEstudio(page);
+  await page.setInputFiles('#gif-file', file('90mpx-recorta.gif'));
+  await expect(page.locator('#gif-clips .piece')).toHaveCount(1);
+  expect(await pistas(page)).toEqual(['GIF animado · 547 × 547 px · 15 s · 300 cuadros']);
+});

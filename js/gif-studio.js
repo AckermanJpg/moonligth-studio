@@ -223,7 +223,7 @@
   }
 
   async function decodeGif(file) {
-    const g = G.decodeGif(await file.arrayBuffer(), {max: MAX_GIF_FRAMES}),
+    const g = G.decodeGif(await file.arrayBuffer(), {max: MAX_GIF_FRAMES, maxPixels: MAX_PIXELS}),
       {frames, times, w, h, duration} = g,
       view = G.gifView(g),
       el = core.cv(w, h);
@@ -250,8 +250,12 @@
       try {
         const anim = await decodeGif(file);
         if (anim.frames.length > 1) return anim;
-      } catch {
-        core.toast('No se pudo leer la animación; se usará su primer cuadro');
+      } catch (e) {
+        core.toast(
+          e.message === 'pixels'
+            ? 'El GIF es demasiado grande para animarlo: sus cuadros suman más de 90 Mpx. Se usará su primer cuadro'
+            : 'No se pudo leer la animación; se usará su primer cuadro',
+        );
       }
     }
     const url = URL.createObjectURL(file),
