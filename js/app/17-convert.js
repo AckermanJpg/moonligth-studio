@@ -177,6 +177,63 @@
     fx.drawImage(cn, 0, 0);
     return f;
   };
+  const vlen = x => Math.clz32(x) - 23;
+  function ebml(b, p) {
+    const idn = vlen(b[p]),
+      q = p + idn,
+      sn = vlen(b[q]);
+    if (idn > 4 || sn > 8 || q + sn > b.length) throw new Error('webm');
+    let id = 0,
+      size = b[q] & (0xff >> sn);
+    for (let i = 0; i < idn; i++) id = id * 256 + b[p + i];
+    for (let i = 1; i < sn; i++) size = size * 256 + b[q + i];
+    return {id, q, sn, data: q + sn, size: size === 2 ** (7 * sn) - 1 ? -1 : size};
+  }
+  async function webmDuration(blob, ms) {
+    const b = new Uint8Array(await blob.slice(0, 4096).arrayBuffer()),
+      rest = blob.slice(b.length);
+    try {
+      let e = ebml(b, 0);
+      if (e.id !== 0x1a45dfa3) return blob;
+      const seg = ebml(b, e.data + e.size);
+      if (seg.id !== 0x18538067) return blob;
+      for (let p = seg.data; (e = ebml(b, p)).id !== 0x1549a966; p = e.data + e.size)
+        if (e.size < 0 || e.id === 0x1f43b675 || (e.id === 0x114d9b74 && e.size)) return blob;
+      const end = e.data + e.size;
+      if (end > b.length) return blob;
+      let scale = 1e6,
+        dur = null;
+      for (let q = e.data; q < end;) {
+        const c = ebml(b, q);
+        if (c.id === 0x2ad7b1) for (let i = 0, v = 0; i < c.size; i++) scale = v = v * 256 + b[c.data + i];
+        if (c.id === 0x4489) dur = c;
+        q = c.data + c.size;
+      }
+      const value = (ms * 1e6) / scale;
+      if (dur) {
+        const dv = new DataView(b.buffer);
+        if (dur.size === 8) dv.setFloat64(dur.data, value);
+        else if (dur.size === 4) dv.setFloat32(dur.data, value);
+        else return blob;
+        return new Blob([b, rest], {type: blob.type});
+      }
+      const size = e.size + 11;
+      if (size >= 2 ** (7 * e.sn) - 1) return blob;
+      const head = new Uint8Array(b.length + 11),
+        dv = new DataView(head.buffer);
+      head.set(b.subarray(0, e.q));
+      for (let i = e.sn - 1, v = size; i >= 0; i--, v = Math.floor(v / 256)) head[e.q + i] = v & 0xff;
+      head[e.q] |= 0x80 >> (e.sn - 1);
+      head.set(b.subarray(e.data, end), e.data);
+      head.set([0x44, 0x89, 0x88], end);
+      dv.setFloat64(end + 3, value);
+      head.set(b.subarray(end), end + 11);
+      return new Blob([head, rest], {type: blob.type});
+    } catch {
+      return blob;
+    }
+  }
+  Object.assign(window, {webmDuration});
   async function exportAnimated() {
     const c = S.conv,
       p = pg(),
@@ -237,11 +294,14 @@
         };
         requestAnimationFrame(step);
       });
+      const took = performance.now() - t0;
       rec.stop();
       await stopped;
       stream.getTracks().forEach(t => t.stop());
-      const type = mime.split(';')[0];
-      return saveFile(`${base}.${type === 'video/mp4' ? 'mp4' : 'webm'}`, new Blob(chunks, {type}));
+      const type = mime.split(';')[0],
+        blob = new Blob(chunks, {type});
+      if (type === 'video/mp4') return saveFile(base + '.mp4', blob);
+      return saveFile(base + '.webm', await webmDuration(blob, took));
     } finally {
       tr.close();
     }

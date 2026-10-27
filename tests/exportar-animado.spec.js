@@ -276,35 +276,42 @@ test.describe('exportar con GIF y video', () => {
     expect(n).toBeGreaterThan(5);
   });
 
-  test('Video: dura lo esperado y no está vacío', async ({page}) => {
-    test.setTimeout(90000);
-    await open(page);
-    await createProject(page);
-    await fotoDeFondo(page);
-    const g = await agregar(page, 'anim.gif');
-    await arriba(page, g);
-    const r = await exportar(page, 'video', {dur: 3});
-    expect(r.name).toMatch(/\.(mp4|webm)$/);
-    expect(r.bytes.length).toBeGreaterThan(1000);
-    const meta = await page.evaluate(
-      async ([bytes, type]) => {
-        const v = document.createElement('video');
-        v.muted = true;
-        v.src = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type}));
-        await new Promise((res, rej) => {
-          v.onloadedmetadata = res;
-          v.onerror = rej;
+  for (const [formato, soloWebm] of [
+    ['', false],
+    [' en WebM', true],
+  ])
+    test(`Video${formato}: el archivo declara su duración sin tener que buscar al final y no está vacío`, async ({
+      page,
+    }) => {
+      test.setTimeout(90000);
+      if (soloWebm)
+        await page.addInitScript(() => {
+          const ok = MediaRecorder.isTypeSupported;
+          MediaRecorder.isTypeSupported = t => !t.startsWith('video/mp4') && ok.call(MediaRecorder, t);
         });
-        if (!isFinite(v.duration)) {
-          v.currentTime = 1e9;
-          await new Promise(r => (v.ondurationchange = r));
-        }
-        return {dur: v.duration, w: v.videoWidth, h: v.videoHeight};
-      },
-      [[...r.bytes], r.name.endsWith('mp4') ? 'video/mp4' : 'video/webm'],
-    );
-    console.log(`Video: ${r.name}, ${r.bytes.length} bytes, ${meta.dur.toFixed(2)} s, ${meta.w}×${meta.h}`);
-    expect(Math.abs(meta.dur - 3)).toBeLessThanOrEqual(0.5);
-    expect(meta.w).toBeGreaterThan(0);
-  });
+      await open(page);
+      await createProject(page);
+      await fotoDeFondo(page);
+      const g = await agregar(page, 'anim.gif');
+      await arriba(page, g);
+      const r = await exportar(page, 'video', {dur: 3});
+      expect(r.name).toMatch(soloWebm ? /\.webm$/ : /\.(mp4|webm)$/);
+      expect(r.bytes.length).toBeGreaterThan(1000);
+      const meta = await page.evaluate(
+        async ([bytes, type]) => {
+          const v = document.createElement('video');
+          v.muted = true;
+          v.src = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type}));
+          await new Promise((res, rej) => {
+            v.onloadedmetadata = res;
+            v.onerror = rej;
+          });
+          return {dur: v.duration, w: v.videoWidth, h: v.videoHeight};
+        },
+        [[...r.bytes], r.name.endsWith('mp4') ? 'video/mp4' : 'video/webm'],
+      );
+      console.log(`Video: ${r.name}, ${r.bytes.length} bytes, ${meta.dur} s, ${meta.w}×${meta.h}`);
+      expect(Math.abs(meta.dur - 3)).toBeLessThanOrEqual(0.2);
+      expect(meta.w).toBeGreaterThan(0);
+    });
 });
