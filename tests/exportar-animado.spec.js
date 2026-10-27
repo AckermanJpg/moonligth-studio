@@ -103,6 +103,35 @@ test.describe('exportar con GIF y video', () => {
     expect(colores).toBeGreaterThan(10);
   });
 
+  for (const [name, n] of [
+    ['clip-10s.webm', 100],
+    ['anim.gif', 12],
+  ])
+    test(`al exportar a 10 fps no se pierde ningún cuadro de ${name}`, async ({page}) => {
+      test.setTimeout(60000);
+      await open(page);
+      await createProject(page);
+      await agregar(page, name);
+      const r = await page.evaluate(async n => {
+        const tr = await mediaTrack(pg()),
+          e = prim(),
+          c = cv(e.nw, e.nh),
+          x = c.getContext('2d', {willReadFrequently: true}),
+          vistos = [];
+        for (let k = 0; k < n; k++) {
+          await tr.seek(k / 10);
+          x.clearRect(0, 0, c.width, c.height);
+          x.drawImage(tr.pick(k / 10)(e), 0, 0);
+          vistos.push(c.toDataURL());
+        }
+        tr.close();
+        const dup = vistos.flatMap((v, i) => (i && v === vistos[i - 1] ? [i] : []));
+        return {distintos: new Set(vistos).size, dup};
+      }, n);
+      expect(r.dup).toEqual([]);
+      expect(r.distintos).toBe(n);
+    });
+
   test('PDF con un GIF se descarga', async ({page}) => {
     await open(page);
     await createProject(page);

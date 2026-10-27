@@ -36,15 +36,31 @@
 
   function seekTo(v, t) {
     return new Promise(res => {
-      const target = Math.min(Math.max(0, t), Math.max(0, v.duration - 0.001));
+      const target = Math.min(Math.max(0, t + 1e-4), Math.max(0, v.duration - 0.001));
       if (Math.abs(v.currentTime - target) < 0.001 && v.readyState >= 2) return res();
+      let seeked = false,
+        shown = !v.requestVideoFrameCallback,
+        wait = 0;
       const done = () => {
-        v.removeEventListener('seeked', done);
+        v.removeEventListener('seeked', onSeeked);
+        if (cb) v.cancelVideoFrameCallback(cb);
         clearTimeout(timer);
+        clearTimeout(wait);
         res();
       };
-      const timer = setTimeout(done, 4000);
-      v.addEventListener('seeked', done);
+      const onSeeked = () => {
+        seeked = true;
+        if (shown) done();
+        else wait = setTimeout(done, 250);
+      };
+      const timer = setTimeout(done, 4000),
+        cb =
+          !shown &&
+          v.requestVideoFrameCallback(() => {
+            shown = true;
+            if (seeked) done();
+          });
+      v.addEventListener('seeked', onSeeked);
       v.currentTime = target;
     });
   }
@@ -229,14 +245,14 @@
       if (g.disp === 3) saved = cvs.slice();
       decodeFrame(cvs, W, H, data, minBits, x0, y0, w, h, pal, g.trans, pk & 0x40);
       frames.push(frameCanvas(cvs, W, H));
-      times.push(at);
-      at += g.delay ? Math.max(0.02, g.delay / 100) : 0.1;
+      times.push(at / 100);
+      at += g.delay ? Math.max(2, g.delay) : 10;
       if (g.disp === 2)
         for (let y = y0; y < Math.min(H, y0 + h); y++) cvs.fill(0, y * W + x0, y * W + Math.min(W, x0 + w));
       else if (g.disp === 3) cvs.set(saved);
     }
     if (!frames.length) throw new Error('gif');
-    return {w: W, h: H, frames, times, duration: at, count};
+    return {w: W, h: H, frames, times, duration: at / 100, count};
   }
 
   window.MoonGif = Object.assign(window.MoonGif || {}, {decodeGif, openVideo, once, seekTo});
