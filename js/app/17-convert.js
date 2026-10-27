@@ -169,14 +169,6 @@
   }
   const VIDEO_TYPES = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'],
     ANIM_PIXELS = 90e6;
-  const onWhite = cn => {
-    const f = cv(cn.width, cn.height),
-      fx = f.getContext('2d', {willReadFrequently: true});
-    fx.fillStyle = '#ffffff';
-    fx.fillRect(0, 0, f.width, f.height);
-    fx.drawImage(cn, 0, 0);
-    return f;
-  };
   const vlen = x => Math.clz32(x) - 23;
   function ebml(b, p) {
     const idn = vlen(b[p]),
@@ -251,7 +243,8 @@
     await loadFonts();
     await loadScript('js/gif-decoder.js');
     const tr = await mediaTrack(p),
-      frame = t => onWhite(renderPageCanvas(p, sc, tr.pick(t)));
+      anim = pageAnimator(p, sc),
+      frame = t => anim(tr.pick(t));
     try {
       if (gif) {
         await loadScript('js/gif-encoder.js');

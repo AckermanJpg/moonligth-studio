@@ -1,7 +1,7 @@
 // Export
 let presIdx;
 (() => {
-  Object.assign(window, {renderPageCanvas, openExport, openPresent, showPres, validateProject});
+  Object.assign(window, {renderPageCanvas, pageAnimator, openExport, openPresent, showPres, validateProject});
   function wrapLines(x, text, maxW) {
     const out = [];
     text.split('\n').forEach(par => {
@@ -48,16 +48,8 @@ let presIdx;
   }
   const smoothImage = e => e.px <= 1 && !['sprite', 'draw', 'qr'].includes(e.type);
   Object.assign(window, {smoothImage});
-  function renderPageCanvas(p, scale, pick = mediaFrame) {
-    const W = Math.round(S.w * scale),
-      H = Math.round(S.h * scale),
-      c = cv(W, H),
-      x = c.getContext('2d');
-    x.imageSmoothingEnabled = false;
-    if (p.bg.pat !== 'none') x.drawImage(bgCanvas(p, S.w, S.h), 0, 0, W, H);
-    x.save();
-    x.scale(scale, scale);
-    p.els.forEach(e => {
+  function drawEls(x, els, scale, pick) {
+    els.forEach(e => {
       if (e.hidden || (e.type === 'image' && !e.src)) return;
       x.save();
       x.globalCompositeOperation = e.blend && e.blend !== 'normal' ? e.blend : 'source-over';
@@ -79,8 +71,40 @@ let presIdx;
       }
       x.restore();
     });
+  }
+  function renderPageCanvas(p, scale, pick = mediaFrame) {
+    const W = Math.round(S.w * scale),
+      H = Math.round(S.h * scale),
+      c = cv(W, H),
+      x = c.getContext('2d');
+    x.imageSmoothingEnabled = false;
+    if (p.bg.pat !== 'none') x.drawImage(bgCanvas(p, S.w, S.h), 0, 0, W, H);
+    x.save();
+    x.scale(scale, scale);
+    drawEls(x, p.els, scale, pick);
     x.restore();
     return c;
+  }
+  function pageAnimator(p, scale) {
+    const i = p.els.findIndex(e => e.type === 'media'),
+      base = renderPageCanvas({...p, els: p.els.slice(0, i)}, scale),
+      rest = p.els.slice(i),
+      layer = cv(base.width, base.height),
+      lx = layer.getContext('2d'),
+      out = cv(base.width, base.height),
+      ox = out.getContext('2d', {willReadFrequently: true});
+    ox.fillStyle = '#ffffff';
+    return pick => {
+      lx.clearRect(0, 0, layer.width, layer.height);
+      lx.drawImage(base, 0, 0);
+      lx.save();
+      lx.scale(scale, scale);
+      drawEls(lx, rest, scale, pick);
+      lx.restore();
+      ox.fillRect(0, 0, out.width, out.height);
+      ox.drawImage(layer, 0, 0);
+      return out;
+    };
   }
   const usedFonts = () => {
     const u = new Set(['Press Start 2P', 'Silkscreen', 'VT323', 'DotGothic16', 'Pixelify Sans']);

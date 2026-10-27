@@ -182,6 +182,60 @@ test.describe('exportar con GIF y video', () => {
     expect(r.dif).toEqual([]);
   });
 
+  test('al exportar animado, lo que está debajo de los medios se dibuja una vez y cada cuadro da los mismos píxeles', async ({
+    page,
+  }) => {
+    test.setTimeout(60000);
+    await open(page);
+    await createProject(page);
+    await fotoDeFondo(page);
+    await arriba(page, await agregar(page, 'anim.gif'));
+    await agregar(page, 'clip-10s.webm');
+    const r = await page.evaluate(async () => {
+      pg().els.push(
+        mk('text', {text: 'Encima', x: 40, y: 300, w: 600, h: 90, shadow: true, op: 0.8}),
+        mk('sprite', {spr: 'star', x: 500, y: 40, w: 98, h: 98, op: 0.6}),
+      );
+      refresh({});
+      await loadFonts();
+      const p = pg(),
+        foto = bitmap(p.els[0]),
+        tr = await mediaTrack(p),
+        sc = 0.7,
+        anim = pageAnimator(p, sc),
+        px = c => c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
+        blanco = c => {
+          const f = cv(c.width, c.height),
+            x = f.getContext('2d');
+          x.fillStyle = '#ffffff';
+          x.fillRect(0, 0, f.width, f.height);
+          x.drawImage(c, 0, 0);
+          return f;
+        },
+        proto = CanvasRenderingContext2D.prototype,
+        draw = proto.drawImage,
+        dif = [];
+      let fotos = 0;
+      for (const t of [0, 0.35, 1.1, 2, 3.7]) {
+        await tr.seek(t);
+        proto.drawImage = function (src, ...a) {
+          if (src === foto) fotos++;
+          return draw.call(this, src, ...a);
+        };
+        const nuevo = px(anim(tr.pick(t)));
+        proto.drawImage = draw;
+        const viejo = px(blanco(renderPageCanvas(p, sc, tr.pick(t))));
+        let d = 0;
+        for (let i = 0; i < viejo.length; i++) if (viejo[i] !== nuevo[i]) d++;
+        dif.push(d);
+      }
+      tr.close();
+      return {dif, fotos};
+    });
+    expect(r.dif).toEqual([0, 0, 0, 0, 0]);
+    expect(r.fotos).toBe(0);
+  });
+
   test('PDF con un GIF se descarga', async ({page}) => {
     await open(page);
     await createProject(page);
