@@ -730,8 +730,9 @@ let savedInfo;
   document.addEventListener('visibilitychange', showArm);
   reducedMotion.addEventListener('change', showArm);
   async function continueSaved() {
+    let js, missing;
     try {
-      const js = await unpackProject(savedInfo.js);
+      ({js, missing} = await unpackProject(savedInfo.js));
       if (validateProject(JSON.parse(js))) throw new Error('invalid');
       restore(js);
     } catch {
@@ -744,13 +745,19 @@ let savedInfo;
     S.sel = [];
     S.tab = 'elements';
     afterOpen();
+    if (missing)
+      toast(
+        missing === 1
+          ? 'Falta 1 imagen o video guardado; quedó marcado en el lienzo'
+          : `Faltan ${missing} imágenes o videos guardados; quedaron marcados en el lienzo`,
+      );
   }
   function afterOpen() {
     savedInfo = null;
     S.uploads = [];
     S.pages.forEach(p =>
       p.els.forEach(e => {
-        if (e.type === 'image' && !S.uploads.includes(e.src)) S.uploads.push(e.src);
+        if (e.type === 'image' && e.src && !S.uploads.includes(e.src)) S.uploads.push(e.src);
       }),
     );
     closeHome();

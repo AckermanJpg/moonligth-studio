@@ -167,7 +167,7 @@
           h += sec(
             'cell',
             'Foto',
-            `<p class="hint">Esta celda está vacía. Elige una foto o haz clic en una imagen subida (pestaña Imágenes).</p><div class="row"><button class="btn sm on" data-pickimg="1">Elegir fotos…</button></div><p class="hint">Si eliges varias, se reparten en las celdas vacías.</p><input type="file" id="cellfile" accept="image/*" multiple hidden>`,
+            `<p class="hint">${e.missing ? 'Falta esta imagen: no se encontró en este navegador. Elige otra foto para reemplazarla o bórrala.' : 'Esta celda está vacía. Elige una foto o haz clic en una imagen subida (pestaña Imágenes).'}</p><div class="row"><button class="btn sm on" data-pickimg="1">Elegir fotos…</button></div><p class="hint">Si eliges varias, se reparten en las celdas vacías.</p><input type="file" id="cellfile" accept="image/*" multiple hidden>`,
             true,
           );
         } else {

@@ -83,31 +83,59 @@ test('un proyecto guardado con el formato anterior abre y pasa sus imágenes a I
   expect(await page.evaluate(() => S.pages[0].els[0].src)).toBe(src);
 });
 
-test('una referencia a una imagen que no está en IndexedDB no abre el proyecto ni lo borra', async ({
-  page,
-}) => {
-  await open(page);
-  const js = await page.evaluate(() => {
-    const js = JSON.stringify({
-      name: 'Roto',
-      w: 1080,
-      h: 1080,
-      pages: [
-        {
-          bg: {pat: 'solid', c1: '#fff', c2: '#fff'},
-          els: [{id: 'e1', type: 'image', src: '@db:nada', x: 0, y: 0, w: 9, h: 9}],
-        },
-      ],
-    });
-    localStorage.setItem(KEY, js);
-    return js;
-  });
+test('si al continuar falta una imagen, el proyecto abre con un aviso en su lugar', async ({page}) => {
+  const problems = await open(page);
+  await page.evaluate(() =>
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        name: 'Roto',
+        w: 1080,
+        h: 1080,
+        pages: [
+          {
+            bg: {pat: 'image', src: '@db:fondo', c1: '#123456', c2: '#123456'},
+            els: [
+              mk('image', {id: 'e1', src: '@db:nada', x: 10, y: 20, w: 300, h: 200, px: 1}),
+              mk('text', {id: 'e2', x: 0, y: 400}),
+            ],
+          },
+        ],
+      }),
+    ),
+  );
   await page.reload();
   await page.waitForSelector('#home.on');
   await page.click('[data-act="continue"]');
-  await expect(page.locator('#toast')).toHaveText('No se pudo abrir el proyecto guardado');
-  await expect(page.locator('#home')).toHaveClass(/on/);
-  expect(await page.evaluate(() => localStorage.getItem(KEY))).toBe(js);
+  await page.waitForFunction(() => !document.getElementById('home').classList.contains('on'));
+  await expect(page.locator('#toast')).toHaveText(
+    'Faltan 2 imágenes o videos guardados; quedaron marcados en el lienzo',
+  );
+  const e1 = await page.evaluate(() => {
+    const {src, missing, x, y, w, h} = S.pages[0].els[0];
+    return {src, missing, x, y, w, h, bg: S.pages[0].bg.src};
+  });
+  expect(e1).toEqual({src: null, missing: true, x: 10, y: 20, w: 300, h: 200, bg: null});
+  expect(await page.evaluate(() => S.uploads)).toEqual([]);
+  await expect(page.locator('#page .el[data-id="e1"]')).toContainText('Falta esta imagen');
+  await page.evaluate(() => {
+    S.sel = ['e1'];
+    refresh({props: true});
+  });
+  await expect(page.locator('#props')).toContainText('Falta esta imagen');
+  const c = await page.evaluate(() => {
+    const c = cv(40, 30);
+    c.getContext('2d').fillRect(0, 0, 40, 30);
+    return c.toDataURL('image/png');
+  });
+  await page.setInputFiles('#cellfile', {
+    name: 'nueva.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(c.split(',')[1], 'base64'),
+  });
+  await expect(page.locator('#page .el[data-id="e1"]')).not.toContainText('Falta esta imagen');
+  expect(await page.evaluate(() => S.pages[0].els[0].src.slice(0, 14))).toBe('data:image/png');
+  expect(problems).toEqual([]);
 });
 
 test('un JSON importado con una referencia @db: desconocida se rechaza', async ({page}) => {

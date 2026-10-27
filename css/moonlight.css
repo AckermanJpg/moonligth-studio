@@ -1194,6 +1194,20 @@ details.sec > :not(summary) {
 .el.locked {
   cursor: default;
 }
+.el .miss {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0.4em;
+  text-align: center;
+  font-family: 'Pixelify Sans', monospace;
+  line-height: 1.2;
+  color: var(--ink);
+  background: var(--gold);
+  border: 0.15em dashed var(--ink);
+  pointer-events: none;
+}
 .el .txt {
   width: 100%;
   min-height: 1em;

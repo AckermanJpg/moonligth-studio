@@ -72,6 +72,13 @@
           const c = bitmap(e);
           c.style.cssText = `width:100%;height:100%;display:block;image-rendering:${smoothImage(e) ? 'auto' : 'pixelated'}`;
           n.append(c);
+          if (e.missing && !e.src) {
+            const m = document.createElement('span');
+            m.className = 'miss';
+            m.textContent = 'Falta esta imagen';
+            m.style.fontSize = Math.max(14, Math.min(e.w, e.h) / 9) + 'px';
+            n.append(m);
+          }
         }
       }
       n.className = 'el' + (e.locked ? ' locked' : '');

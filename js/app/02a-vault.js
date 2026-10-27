@@ -94,7 +94,7 @@
   }
   async function unpackProject(js) {
     const want = [...refsOf(js)];
-    if (!want.length) return js;
+    if (!want.length) return {js, missing: 0};
     const got = await vault.getAll(want),
       urls = new Map();
     for (const [id, b] of got) {
@@ -102,12 +102,17 @@
       urls.set(id, v);
       ids.set(v, id);
     }
-    return JSON.stringify(
-      JSON.parse(js, (k, v) =>
-        typeof v === 'string' && v.startsWith(REF) && urls.has(v.slice(REF.length))
-          ? urls.get(v.slice(REF.length))
-          : v,
-      ),
-    );
+    let missing = 0;
+    const out = JSON.parse(js, (k, v) => {
+      if (typeof v === 'string' && v.startsWith(REF) && urls.has(v.slice(REF.length)))
+        return urls.get(v.slice(REF.length));
+      if (v && typeof v === 'object' && typeof v.src === 'string' && v.src.startsWith(REF)) {
+        missing++;
+        if (v.type) Object.assign(v, {type: 'image', src: null, missing: true, px: 1});
+        else v.src = null;
+      }
+      return v;
+    });
+    return {js: JSON.stringify(out), missing};
   }
 })();
