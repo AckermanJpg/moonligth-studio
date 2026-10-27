@@ -3,7 +3,7 @@ window.MoonNews = [
     v: '1.2.0',
     date: '2026-10-27',
     notes: [
-      'Nuevo botón Novedades, junto a Ayuda, para ver qué cambió en cada versión.',
+      'Nuevo botón Novedades, en el inicio y en la barra de abajo del editor, para ver qué cambió en cada versión.',
       'Un punto amarillo te avisa cuando hay una versión que aún no has visto.',
       'Al abrir Moonlight después de una actualización, un aviso pequeño te lo cuenta y se cierra solo.',
     ],

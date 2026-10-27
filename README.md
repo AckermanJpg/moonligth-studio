@@ -137,10 +137,11 @@ js/print-studio.js      ventana del póster y de las piezas
 js/gif-encoder.js       codificador de GIF
 js/gif-decoder.js       decodificador de GIF y utilidades de video
 js/gif-studio.js        ventana del creador de GIF
+js/novedades.js         versiones y notas sencillas del botón Novedades
 js/app/01 … 23-*.js     el editor, dividido por responsabilidad
 ```
 
-Los archivos de `js/app/` van de datos y estado (`01-data`, `02-core`) a dibujo de objetos y filtros (`03` a `05`), lienzo e interacción (`06` a `12`), paneles (`13`, `14`), exportación y conversión (`15` a `17`), plantillas, refresco de la interfaz y atajos, kit de marca, exportar en varios tamaños y menú de inicio (`18` a `22`) y el arranque (`23-main`).
+Los archivos de `js/app/` van de datos y estado (`01-data`, `02-core`) a dibujo de objetos y filtros (`03` a `05`), lienzo e interacción (`06` a `12`), paneles (`13`, `14`), exportación y conversión (`15` a `17`), plantillas, refresco de la interfaz y atajos, kit de marca, exportar en varios tamaños y menú de inicio (`18` a `22`), el botón Novedades y su aviso (`22a-news`) y el arranque (`23-main`).
 
 ### El modelo
 
@@ -184,6 +185,12 @@ Dado el tamaño final, el de la hoja, el margen y el traslape, se calcula cuánt
 - El PDF del póster y de las piezas es de imágenes, no de vectores.
 - Todos los cálculos pesados corren en el hilo principal. Separar un logo de 3600 por 2400 px tarda alrededor de un segundo.
 - No hay pruebas automáticas en el repositorio.
+
+## Versiones
+
+Versión actual: **1.2.0** (2026-10-27). Agrega el botón Novedades, que cuenta en lenguaje sencillo qué cambió en cada versión, y un aviso discreto la primera vez que se abre Moonlight después de una actualización.
+
+Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
 
 ## Estado del proyecto
 

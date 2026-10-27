@@ -8,7 +8,7 @@ La sección «Para quien usa Moonlight» es la que aparece en el botón Novedade
 
 ### Para quien usa Moonlight
 
-- Nuevo botón Novedades, junto a Ayuda, para ver qué cambió en cada versión.
+- Nuevo botón Novedades, en el inicio y en la barra de abajo del editor, para ver qué cambió en cada versión.
 - Un punto amarillo te avisa cuando hay una versión que aún no has visto.
 - Al abrir Moonlight después de una actualización, un aviso pequeño te lo cuenta y se cierra solo.
 
@@ -16,10 +16,16 @@ La sección «Para quien usa Moonlight» es la que aparece en el botón Novedade
 
 - `CHANGELOG.md` con las versiones desde v1.0.0 y etiquetas anotadas `v1.0.0` (4ce9cf9), `v1.1.0` (2e8f56d) y `v1.2.0`.
 - `js/novedades.js`: script clásico con `window.MoonNews`, la lista de versiones con sus notas sencillas. Funciona por `file://` y no cambia la CSP.
-- Botón «★ Novedades» en el inicio y en la barra superior del editor (en móvil, dentro de «Más»). Abre `#modal` con las notas sencillas de todas las versiones.
+- Botón «★ Novedades»: en el inicio junto a Ayuda; en el editor, en la barra inferior antes del estado de guardado (solo la estrella hasta 1100 px), porque la barra superior no tenía sitio; en móvil, dentro de «Más». Abre `#modal` con las notas sencillas de todas las versiones.
 - Punto amarillo en «Novedades» y, en móvil, en «Más», con el aviso en el `aria-label`, mientras la versión actual no se haya leído.
 - Aviso al abrir tras una actualización: `role="status"`, no mueve el foco, se cierra solo o con Escape y sale una vez por versión. No sale en la primera visita, que es la de quien no tiene versión guardada, autoguardado ni imágenes en IndexedDB.
 - Prueba que compara versión, fecha y cada nota sencilla de `js/novedades.js` con este archivo, y la versión del README.
+- `vault.count()` en `02a-vault.js` para saber si hay imágenes guardadas.
+
+### Problemas conocidos
+
+- La barra superior del editor ya no tenía sitio antes de esta versión: entre 721 y 1280 px «Descargar» tapa botones (por ejemplo, «Guardar» a 1024 y a 1280 px).
+- La barra inferior del editor se corta entre 721 y 900 px (antes ya cortaba «Quitar guías» y el estado de guardado); ahí «Novedades» queda fuera de la vista en el editor, pero sigue en el inicio y en el aviso.
 
 ## [1.1.0] - 2026-10-27
 
