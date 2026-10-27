@@ -24,8 +24,8 @@ async function compare(page, bytes) {
       times.push(Math.round(at * 1000));
       at += Math.max(0.02, (image.duration || 100000) / 1e6);
       image.close();
-      const a = x.getImageData(0, 0, c.width, c.height).data,
-        b = own.frames[i].getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      const a = x.getImageData(0, 0, own.w, own.h).data,
+        b = own.frames[i].getContext('2d').getImageData(0, 0, own.w, own.h).data;
       let d = 0;
       for (let k = 0; k < a.length; k += 4)
         if (
@@ -133,4 +133,59 @@ test('un archivo que no es GIF lanza un error', async ({page}) => {
     }
   });
   expect(msg).toBe('gif');
+});
+
+test.describe('archivos dañados o maliciosos', () => {
+  test.beforeEach(async ({page}) => {
+    await page.addInitScript(() => {
+      window.maxAlloc = 0;
+      for (const k of ['Uint8Array', 'Uint16Array', 'Uint32Array', 'Uint8ClampedArray']) {
+        const T = window[k];
+        window[k] = new Proxy(T, {
+          construct(t, args) {
+            if (typeof args[0] === 'number') window.maxAlloc = Math.max(window.maxAlloc, args[0]);
+            return Reflect.construct(t, args);
+          },
+        });
+      }
+    });
+  });
+  const casos = [
+    ['cortado.gif', {}, 'gif'],
+    ['gigante.gif', {maxPixels: 90e6}, 'pixels'],
+    ['gigante.gif', {}, 'pixels'],
+    ['rect-gigante.gif', {}, 'gif'],
+    ['lzw-invalido.gif', {}, 'gif'],
+    ['miles.gif', {reject: 300, maxPixels: 90e6}, 'frames'],
+    ['miles.gif', {maxPixels: 90e6}, 'pixels'],
+  ];
+  for (const [name, opts, err] of casos)
+    test(`${name} ${JSON.stringify(opts)} falla con «${err}» sin reservar memoria de más`, async ({page}) => {
+      await open(page);
+      const r = await page.evaluate(
+        async ([bytes, opts]) => {
+          await loadScript('js/gif-decoder.js');
+          window.maxAlloc = 0;
+          const t = performance.now();
+          let msg = 'sin error';
+          try {
+            MoonGif.decodeGif(new Uint8Array(bytes).buffer, opts);
+          } catch (e) {
+            msg = e.message;
+          }
+          return {msg, ms: performance.now() - t, alloc: window.maxAlloc};
+        },
+        [fixture(name), opts],
+      );
+      expect(r.msg).toBe(err);
+      expect(r.ms).toBeLessThan(500);
+      expect(r.alloc).toBeLessThanOrEqual(5e6);
+    });
+
+  test('un cuadro que sale de la pantalla lógica se recorta igual que con ImageDecoder', async ({page}) => {
+    await open(page);
+    const r = await compare(page, fixture('fuera.gif'));
+    expect(r).toMatchObject({n: 12, count: 12, frames: 12, size: [64, 48]});
+    expect(r.diffs).toEqual(Array(12).fill(0));
+  });
 });

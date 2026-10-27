@@ -434,4 +434,30 @@ test.describe('GIF y video como elementos', () => {
     expect(js).not.toContain('video/webm');
     expect(js).not.toContain('@db:');
   });
+
+  for (const [name, msg] of [
+    ['cortado.gif', 'El GIF está dañado y no se puede leer'],
+    ['gigante.gif', 'El GIF es demasiado grande para animarlo aquí'],
+    ['rect-gigante.gif', 'El GIF está dañado y no se puede leer'],
+    ['lzw-invalido.gif', 'El GIF está dañado y no se puede leer'],
+    ['miles.gif', 'El GIF tiene más de 300 cuadros'],
+  ])
+    test(`${name} muestra «${msg}» en menos de 2 s`, async ({page}) => {
+      await open(page);
+      await createProject(page);
+      await page.click('#rail [data-tab="images"]');
+      const t = Date.now();
+      await page.setInputFiles('#file', file(name));
+      await expect(page.locator('#toast')).toHaveText(msg, {timeout: 2000});
+      expect(Date.now() - t).toBeLessThan(2000);
+      expect(await page.evaluate(() => els().length)).toBe(0);
+    });
+
+  test('un GIF con un cuadro fuera de la pantalla lógica se agrega recortado', async ({page}) => {
+    const problems = await open(page);
+    await createProject(page);
+    await agregar(page, 'fuera.gif');
+    expect(await page.evaluate(() => [prim().type, prim().frames])).toEqual(['media', 12]);
+    expect(problems).toEqual([]);
+  });
 });

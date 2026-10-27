@@ -48,20 +48,19 @@
     mime === 'image/gif'
       ? size > 8 * MB && 'El GIF pesa más de 8 MB'
       : size > 30 * MB && 'El video pesa más de 30 MB';
+  const REASONS = {
+    pixels: 'El GIF es demasiado grande para animarlo aquí',
+    frames: 'El GIF tiene más de 300 cuadros',
+    secs: 'El video dura más de 15 s',
+  };
   const reason = (e, gif) =>
-    / /.test(e.message)
-      ? e.message
-      : e.message === 'pixels'
-        ? 'El GIF es demasiado grande para animarlo aquí'
-        : gif
-          ? 'No se pudo leer el GIF'
-          : 'No se pudo leer el video';
+    REASONS[e.message] ||
+    (gif ? 'El GIF está dañado y no se puede leer' : 'No se pudo reproducir este video');
 
   async function decode(blob) {
     await loadScript('js/gif-decoder.js');
     if (blob.type === 'image/gif') {
-      const g = MoonGif.decodeGif(await blob.arrayBuffer(), {max: 301, maxPixels: MAX_PIXELS});
-      if (g.count > 300) throw new Error('El GIF tiene más de 300 cuadros');
+      const g = MoonGif.decodeGif(await blob.arrayBuffer(), {reject: 300, maxPixels: MAX_PIXELS});
       return {blob, kind: 'gif', w: g.w, h: g.h, dur: g.duration, frames: g.frames, times: g.times};
     }
     const url = URL.createObjectURL(blob);
@@ -70,7 +69,7 @@
         m = {blob, kind: 'video', url, w: v.videoWidth, h: v.videoHeight, dur: v.duration};
       v.removeAttribute('src');
       v.load();
-      if (m.dur > 15.05) throw new Error('El video dura más de 15 s');
+      if (m.dur > 15.05) throw new Error('secs');
       return m;
     } catch (e) {
       URL.revokeObjectURL(url);
