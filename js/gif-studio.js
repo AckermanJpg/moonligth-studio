@@ -223,14 +223,19 @@
   }
 
   async function decodeGif(file) {
-    const {frames, times, w, h, duration} = G.decodeGif(await file.arrayBuffer(), {max: MAX_GIF_FRAMES});
+    const g = G.decodeGif(await file.arrayBuffer(), {max: MAX_GIF_FRAMES}),
+      {frames, times, w, h, duration} = g,
+      view = G.gifView(g),
+      el = core.cv(w, h);
+    el.getContext('2d').drawImage(view.show(0), 0, 0);
     return {
       id: nextId++,
       kind: 'anim',
       name: file.name,
       frames,
       times,
-      el: frames[0],
+      view,
+      el,
       w,
       h,
       duration,
@@ -339,7 +344,7 @@
     }
     let i = c.times.length - 1;
     while (i > 0 && c.times[i] > t) i--;
-    return c.frames[i];
+    return c.view.show(i);
   }
 
   const clipTime = (c, k, n, fps) => c.start + ((c.reverse ? n - 1 - k : k) * c.speed) / fps;

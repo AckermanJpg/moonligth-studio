@@ -1,5 +1,6 @@
 (() => {
-  const MAX_CANVAS = 268e6;
+  const MAX_CANVAS = 268e6,
+    KEY = 50;
   const PASSES = [
     [0, 8],
     [4, 8],
@@ -75,7 +76,7 @@
     return p + 1;
   }
 
-  function decodeFrame(cvs, W, H, data, minBits, x0, y0, w, h, pal, trans, interlaced) {
+  function decodeFrame(idx, cw, ch, data, minBits, w, h, interlaced) {
     const prefix = new Uint16Array(4096),
       suffix = new Uint8Array(4096),
       stack = new Uint8Array(4097),
@@ -95,15 +96,15 @@
       col = 0,
       pass = 0,
       [row, step] = interlaced ? PASSES[0] : [0, 1],
-      base = y0 < H ? y0 * W + x0 : -1;
+      base = row < ch ? row * cw : -1;
     const put = c => {
-      if (base >= 0 && x0 + col < W && c !== trans) cvs[base + col] = pal[c];
+      if (base >= 0 && col < cw) idx[base + col] = c;
       op++;
       if (++col === w) {
         col = 0;
         row += step;
         while (row >= h && pass < 3) [row, step] = PASSES[++pass];
-        base = y0 + row < H ? (y0 + row) * W + x0 : -1;
+        base = row < ch ? row * cw : -1;
       }
     };
     while (op < n) {
@@ -154,6 +155,17 @@
     }
   }
 
+  function draw(cvs, W, f) {
+    const {x, y, w, h, idx, pal, trans} = f;
+    for (let r = 0, k = 0; r < h; r++)
+      for (let o = (y + r) * W + x, e = o + w; o < e; o++, k++) if (idx[k] !== trans) cvs[o] = pal[idx[k]];
+  }
+
+  function dispose(cvs, W, f, saved) {
+    if (f.disp === 2) for (let r = f.y; r < f.y + f.h; r++) cvs.fill(0, r * W + f.x, r * W + f.x + f.w);
+    else if (f.disp === 3) cvs.set(saved);
+  }
+
   function scan(b, p) {
     let count = 0;
     while (p < b.length) {
@@ -169,14 +181,6 @@
     }
     if (!count) throw new Error('gif');
     return count;
-  }
-
-  function frameCanvas(cvs, W, H) {
-    const c = document.createElement('canvas');
-    c.width = W;
-    c.height = H;
-    c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(cvs.slice().buffer), W, H), 0, 0);
-    return c;
   }
 
   function decodeGif(buf, o = {}) {
@@ -196,6 +200,7 @@
     const gct = b[10] & 0x80 ? palette(b, 13, 2 << (b[10] & 7)) : new Uint32Array(256),
       cvs = new Uint32Array(W * H),
       frames = [],
+      keys = [],
       times = [];
     let gce = null,
       at = 0,
@@ -242,18 +247,53 @@
       }
       p++;
       if (minBits < 2 || minBits > 8) throw new Error('gif');
+      const cw = Math.max(0, Math.min(w, W - x0)),
+        ch = Math.max(0, Math.min(h, H - y0)),
+        f = {x: x0, y: y0, w: cw, h: ch, idx: new Uint8Array(cw * ch), pal, trans: g.trans, disp: g.disp};
+      decodeFrame(f.idx, cw, ch, data, minBits, w, h, pk & 0x40);
+      if (frames.length % KEY === 0) keys.push(cvs.slice());
       if (g.disp === 3) saved = cvs.slice();
-      decodeFrame(cvs, W, H, data, minBits, x0, y0, w, h, pal, g.trans, pk & 0x40);
-      frames.push(frameCanvas(cvs, W, H));
+      draw(cvs, W, f);
+      frames.push(f);
       times.push(at / 100);
       at += g.delay ? Math.max(2, g.delay) : 10;
-      if (g.disp === 2)
-        for (let y = y0; y < Math.min(H, y0 + h); y++) cvs.fill(0, y * W + x0, y * W + Math.min(W, x0 + w));
-      else if (g.disp === 3) cvs.set(saved);
+      dispose(cvs, W, f, saved);
     }
     if (!frames.length) throw new Error('gif');
-    return {w: W, h: H, frames, times, duration: at / 100, count};
+    return {w: W, h: H, frames, keys, times, duration: at / 100, count};
   }
 
-  window.MoonGif = Object.assign(window.MoonGif || {}, {decodeGif, openVideo, once, seekTo});
+  function gifView(g) {
+    const W = g.w,
+      cvs = new Uint32Array(W * g.h),
+      img = new ImageData(new Uint8ClampedArray(cvs.buffer), W, g.h),
+      canvas = document.createElement('canvas'),
+      x = canvas.getContext('2d');
+    canvas.width = W;
+    canvas.height = g.h;
+    let cur = -1,
+      saved = null;
+    const step = i => {
+      const f = g.frames[i];
+      if (f.disp === 3) saved = cvs.slice();
+      draw(cvs, W, f);
+    };
+    function show(i) {
+      if (i === cur) return canvas;
+      if (cur < 0 || i < cur || Math.floor(i / KEY) > Math.floor(cur / KEY)) {
+        cvs.set(g.keys[Math.floor(i / KEY)]);
+        cur = Math.floor(i / KEY) * KEY;
+        step(cur);
+      }
+      while (cur < i) {
+        dispose(cvs, W, g.frames[cur], saved);
+        step(++cur);
+      }
+      x.putImageData(img, 0, 0);
+      return canvas;
+    }
+    return {canvas, show};
+  }
+
+  window.MoonGif = Object.assign(window.MoonGif || {}, {decodeGif, gifView, openVideo, once, seekTo});
 })();

@@ -10,6 +10,7 @@ async function compare(page, bytes) {
     await loadScript('js/gif-decoder.js');
     const buf = bytes ? new Uint8Array(bytes).buffer : window.bigGif,
       own = MoonGif.decodeGif(buf),
+      view = MoonGif.gifView(own),
       dec = new ImageDecoder({data: buf, type: 'image/gif'});
     await dec.tracks.ready;
     const n = dec.tracks.selectedTrack.frameCount,
@@ -25,7 +26,7 @@ async function compare(page, bytes) {
       at += Math.max(0.02, (image.duration || 100000) / 1e6);
       image.close();
       const a = x.getImageData(0, 0, own.w, own.h).data,
-        b = own.frames[i].getContext('2d').getImageData(0, 0, own.w, own.h).data;
+        b = view.show(i).getContext('2d').getImageData(0, 0, own.w, own.h).data;
       let d = 0;
       for (let k = 0; k < a.length; k += 4)
         if (
@@ -70,6 +71,54 @@ test('el decodificador propio da los mismos cuadros que ImageDecoder en un GIF c
   expect(r).toMatchObject({n: 12, count: 12, frames: 12, size: [64, 48]});
   expect(r.diffs).toEqual(Array(12).fill(0));
 });
+
+test('el decodificador propio da los mismos cuadros que ImageDecoder en un GIF de 130 cuadros con disposal, paletas locales y entrelazado', async ({
+  page,
+}) => {
+  await open(page);
+  const r = await compare(page, fixture('largo.gif'));
+  expect(r).toMatchObject({n: 130, count: 130, frames: 130, size: [96, 72]});
+  expect(r.diffs).toEqual(Array(130).fill(0));
+  expect(r.own).toEqual(r.times);
+});
+
+const referencia = require('./fixtures/gif-referencia.json');
+for (const [name, hashes] of Object.entries(referencia))
+  test(`${name}: el formato indexado muestra los mismos cuadros que el formato anterior, en orden y saltando`, async ({
+    page,
+  }) => {
+    await open(page);
+    const r = await page.evaluate(
+      async ([bytes, n]) => {
+        await loadScript('js/gif-decoder.js');
+        const g = MoonGif.decodeGif(new Uint8Array(bytes).buffer),
+          view = MoonGif.gifView(g),
+          hash = async c => {
+            const d = c.getContext('2d').getImageData(0, 0, g.w, g.h).data,
+              h = new Uint8Array(await crypto.subtle.digest('SHA-256', d));
+            return [...h.subarray(0, 8)].map(x => x.toString(16).padStart(2, '0')).join('');
+          },
+          orden = [...Array(n).keys()];
+        let seed = 3;
+        for (let i = 0; i < n * 2; i++) {
+          seed = (seed * 1664525 + 1013904223) >>> 0;
+          orden.push(seed % n);
+        }
+        orden.push(n - 1, 0, n - 1);
+        const vistos = [];
+        for (const i of orden) vistos.push([i, await hash(view.show(i))]);
+        return {
+          vistos,
+          lienzos: g.frames.filter(f => f instanceof HTMLCanvasElement).length,
+          claves: g.keys.length,
+        };
+      },
+      [fixture(name), hashes.length],
+    );
+    expect(r.lienzos).toBe(0);
+    expect(r.claves).toBe(Math.ceil(hashes.length / 50));
+    for (const [i, h] of r.vistos) expect(h, `cuadro ${i}`).toBe(hashes[i]);
+  });
 
 test('decodifica un GIF de 8 MB en menos de 1 s y con los mismos cuadros que ImageDecoder', async ({
   page,

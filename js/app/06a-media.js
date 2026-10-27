@@ -73,8 +73,20 @@
   async function decode(blob) {
     await loadScript('js/gif-decoder.js');
     if (blob.type === 'image/gif') {
-      const g = MoonGif.decodeGif(await blob.arrayBuffer(), {reject: 300, maxPixels: MAX_PIXELS});
-      return {blob, kind: 'gif', w: g.w, h: g.h, dur: g.duration, frames: g.frames, times: g.times};
+      const g = MoonGif.decodeGif(await blob.arrayBuffer(), {reject: 300, maxPixels: MAX_PIXELS}),
+        first = cv(g.w, g.h);
+      first.getContext('2d').drawImage(MoonGif.gifView(g).show(0), 0, 0);
+      return {
+        blob,
+        kind: 'gif',
+        w: g.w,
+        h: g.h,
+        dur: g.duration,
+        gif: g,
+        frames: g.frames,
+        times: g.times,
+        first,
+      };
     }
     const url = URL.createObjectURL(blob);
     try {
@@ -184,7 +196,8 @@
         v.addEventListener('error', () => players.get(e.id) === pl && broken(e.id));
         pl.el = v;
       } else {
-        pl.el = cv(m.w, m.h);
+        pl.view = MoonGif.gifView(m.gif);
+        pl.el = pl.view.canvas;
         paintGif(pl);
       }
       players.set(e.id, pl);
@@ -195,7 +208,7 @@
     const pl = players.get(e.id),
       m = blobs.get(e.src.slice(REF.length));
     if (pl && (pl.kind === 'gif' || pl.el.readyState >= 2)) return pl.el;
-    return m ? (m.kind === 'gif' ? m.frames[0] : m.poster) : null;
+    return m ? (m.kind === 'gif' ? m.first : m.poster) : null;
   }
   function broken(id) {
     if (!findEl(id)) return;
@@ -225,9 +238,7 @@
     const i = frameIndex(pl.m, pl.pos, pl.idx);
     if (i === pl.idx) return;
     pl.idx = i;
-    const x = pl.el.getContext('2d');
-    x.clearRect(0, 0, pl.el.width, pl.el.height);
-    x.drawImage(pl.m.frames[i], 0, 0);
+    pl.view.show(i);
   }
   function frame(now) {
     raf = 0;
@@ -302,9 +313,11 @@
     return Math.max(0, ...p.els.filter(e => e.type === 'media' && !e.hidden).map(e => e.dur));
   }
   async function mediaTrack(p) {
-    const vids = new Map();
+    const vids = new Map(),
+      gifs = new Map();
     for (const e of p.els) {
       const m = e.type === 'media' && blobs.get(e.src.slice(REF.length));
+      if (m && m.kind === 'gif' && !gifs.has(e.src)) gifs.set(e.src, MoonGif.gifView(m.gif));
       if (m && m.kind === 'video' && !vids.has(e.src)) {
         const v = await MoonGif.openVideo(m.url);
         v.loop = true;
@@ -314,7 +327,7 @@
     const pick = t => e => {
       const m = e.type === 'media' && blobs.get(e.src.slice(REF.length));
       if (!m) return null;
-      return m.kind === 'gif' ? m.frames[frameIndex(m, t % m.dur)] : vids.get(e.src).v;
+      return m.kind === 'gif' ? gifs.get(e.src).show(frameIndex(m, t % m.dur)) : vids.get(e.src).v;
     };
     return {
       pick,

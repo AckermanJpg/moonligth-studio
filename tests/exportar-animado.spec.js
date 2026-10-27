@@ -132,6 +132,56 @@ test.describe('exportar con GIF y video', () => {
       expect(r.distintos).toBe(n);
     });
 
+  test('los cuadros exportados de un GIF indexado coinciden píxel a píxel con los del formato anterior', async ({
+    page,
+  }) => {
+    test.setTimeout(60000);
+    await open(page);
+    await createProject(page);
+    await fotoDeFondo(page);
+    const g = await agregar(page, 'largo.gif');
+    await arriba(page, g);
+    const r = await page.evaluate(async () => {
+      const e = prim(),
+        buf = await (await fetch('tests/fixtures/largo.gif')).arrayBuffer(),
+        dec = new ImageDecoder({data: buf, type: 'image/gif'});
+      await dec.tracks.ready;
+      const n = dec.tracks.selectedTrack.frameCount,
+        antes = [],
+        tiempos = [];
+      let at = 0;
+      for (let i = 0; i < n; i++) {
+        const {image} = await dec.decode({frameIndex: i}),
+          c = cv(e.nw, e.nh);
+        c.getContext('2d').drawImage(image, 0, 0);
+        tiempos.push(at);
+        at += Math.max(2, Math.round(image.duration / 1e4) || 10);
+        image.close();
+        antes.push(c);
+      }
+      dec.close();
+      const tr = await mediaTrack(pg()),
+        dif = [];
+      let seed = 5;
+      for (let k = 0; k < 160; k++) {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        const i = k < n ? k : seed % n,
+          t = tiempos[i] / 100 + 0.001,
+          a = renderPageCanvas(pg(), 1, tr.pick(t)).getContext('2d').getImageData(0, 0, S.w, S.h).data,
+          b = renderPageCanvas(pg(), 1, () => antes[i])
+            .getContext('2d')
+            .getImageData(0, 0, S.w, S.h).data;
+        let d = 0;
+        for (let j = 0; j < a.length; j++) if (a[j] !== b[j]) d++;
+        if (d) dif.push([i, d]);
+      }
+      tr.close();
+      return {n, dif};
+    });
+    expect(r.n).toBe(130);
+    expect(r.dif).toEqual([]);
+  });
+
   test('PDF con un GIF se descarga', async ({page}) => {
     await open(page);
     await createProject(page);
