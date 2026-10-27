@@ -26,6 +26,7 @@
         }),
     );
   const vault = {
+    count: () => tx('readonly', s => s.count()).then(q => q.result),
     putAll: list => tx('readwrite', s => list.forEach(([id, blob]) => s.put({blob, t: Date.now()}, id))),
     getAll: list =>
       tx('readonly', s => {

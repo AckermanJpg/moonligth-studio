@@ -75,3 +75,90 @@ test('en el editor, Novedades está en la barra inferior, lleva el punto y abre 
   await expect(boton).not.toHaveClass(/\bunread\b/);
   await expect(boton).toHaveAccessibleName('Novedades');
 });
+
+const aviso = page => page.locator('#news-note');
+const recargar = async page => {
+  await page.reload();
+  await page.waitForSelector('#home.on');
+  await page.waitForTimeout(800);
+};
+
+test.describe('aviso al abrir después de una actualización', () => {
+  test('en la primera visita no sale el aviso ni el punto, y se guarda la versión actual', async ({page}) => {
+    await open(page);
+    await page.waitForTimeout(800);
+    await expect(aviso(page)).toBeHidden();
+    await expect(page.locator('#home [data-act="news"]')).not.toHaveClass(/\bunread\b/);
+    const actual = await page.evaluate(() => MoonNews[0].v);
+    expect(await page.evaluate(k => JSON.parse(localStorage.getItem(k)), NEWS_KEY)).toEqual({
+      aviso: actual,
+      leido: actual,
+    });
+    await recargar(page);
+    await expect(aviso(page)).toBeHidden();
+  });
+
+  test('con un autoguardado de antes sale una vez, sin robar el foco, y el punto sigue hasta leer', async ({
+    page,
+  }) => {
+    await open(page);
+    await createProject(page);
+    await page.waitForFunction(k => localStorage.getItem(k), 'moonlight-studio-v1');
+    await page.evaluate(k => localStorage.removeItem(k), NEWS_KEY);
+    await page.reload();
+    await page.waitForSelector('#home.on');
+    await expect(aviso(page)).toBeVisible();
+    await expect(aviso(page)).toHaveAttribute('role', 'status');
+    await expect(aviso(page)).toContainText(await page.evaluate(() => MoonNews[0].v));
+    expect(
+      await page.evaluate(() => document.getElementById('news-note').contains(document.activeElement)),
+    ).toBe(false);
+    await expect(page.locator('#home [data-act="news"]')).toHaveClass(/\bunread\b/);
+    await recargar(page);
+    await expect(aviso(page)).toBeHidden();
+    await expect(page.locator('#home [data-act="news"]')).toHaveClass(/\bunread\b/);
+  });
+
+  test('con solo imágenes en IndexedDB también cuenta como visita previa', async ({page}) => {
+    await open(page);
+    await page.evaluate(async k => {
+      await vault.putAll([['iprueba', new Blob(['x'], {type: 'image/png'})]]);
+      localStorage.removeItem(k);
+    }, NEWS_KEY);
+    await page.reload();
+    await page.waitForSelector('#home.on');
+    await expect(aviso(page)).toBeVisible();
+  });
+
+  test('con una versión anterior guardada sale el aviso y Escape lo cierra sin mover el foco', async ({
+    page,
+  }) => {
+    await conEstado(page, {aviso: '1.1.0', leido: '1.1.0'});
+    await open(page);
+    await expect(aviso(page)).toBeVisible();
+    const antes = await page.evaluate(() => document.activeElement.outerHTML.slice(0, 80));
+    await page.keyboard.press('Escape');
+    await expect(aviso(page)).toBeHidden();
+    expect(await page.evaluate(() => document.activeElement.outerHTML.slice(0, 80))).toBe(antes);
+    await recargar(page);
+    await expect(aviso(page)).toBeHidden();
+  });
+
+  test('se cierra solo', async ({page}) => {
+    test.setTimeout(30000);
+    await conEstado(page, {aviso: '1.1.0', leido: '1.1.0'});
+    await open(page);
+    await expect(aviso(page)).toBeVisible();
+    await expect(aviso(page)).toBeHidden({timeout: 13000});
+  });
+
+  test('«Ver novedades» abre las notas, quita el punto y cierra el aviso', async ({page}) => {
+    await conEstado(page, {aviso: '1.1.0', leido: '1.1.0'});
+    await open(page);
+    await aviso(page).getByRole('button', {name: 'Ver novedades'}).click();
+    await expect(page.locator('#mbox h3')).toHaveText('Novedades');
+    await expect(aviso(page)).toBeHidden();
+    await page.click('#xclose');
+    await expect(page.locator('#home [data-act="news"]')).not.toHaveClass(/\bunread\b/);
+  });
+});

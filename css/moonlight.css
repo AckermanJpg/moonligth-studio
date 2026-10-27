@@ -1363,6 +1363,29 @@ details.sec > :not(summary) {
 #flash.on {
   display: block;
 }
+#news-note {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 65;
+  display: none;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  max-width: 380px;
+  padding: 12px 14px;
+  background: var(--navy);
+  border-left: 4px solid var(--gold);
+  box-shadow: 6px 6px 0 var(--blue);
+}
+#news-note.on {
+  display: flex;
+}
+#news-note p {
+  flex-basis: 100%;
+  margin: 0;
+  font-weight: 700;
+}
 
 /* Home */
 #home {
@@ -2294,6 +2317,12 @@ details.sec > :not(summary) {
   }
   #news-bar + #savest {
     margin-left: auto;
+  }
+  #news-note {
+    right: 8px;
+    left: 8px;
+    bottom: 8px;
+    max-width: none;
   }
   #top {
     gap: 4px;
