@@ -168,6 +168,31 @@ for (const width of [360, 390, 430]) {
       await expect(page.locator('#selmsg')).toHaveText('3 elementos seleccionados');
     });
 
+    test('Pausar todo desde el menú Más, sin tapar las otras opciones', async ({page}) => {
+      await open(page);
+      await createProject(page);
+      const gif = [...require('fs').readFileSync(require('path').join(__dirname, 'fixtures', 'anim.gif'))];
+      await page.evaluate(b => loadMedia(new File([new Uint8Array(b)], 'a.gif', {type: 'image/gif'})), gif);
+      await page.waitForFunction(() => els().length === 1);
+      await expect(page.locator('#pauseall')).toBeHidden();
+      await page.click('#more-btn');
+      const b = page.locator('#pauseall');
+      await expect(b).toBeVisible();
+      const box = await b.boundingBox(),
+        sel = await page.locator('#selall-top').boundingBox();
+      expect(dentro(box, width)).toBeTruthy();
+      expect(box.y).toBeGreaterThanOrEqual(sel.y + sel.height);
+      const tope = await page.evaluate(() => {
+        const r = document.getElementById('pauseall').getBoundingClientRect();
+        return !!document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2).closest('.menu-media');
+      });
+      expect(tope).toBe(true);
+      await b.click();
+      await expect(b).toHaveAttribute('aria-pressed', 'true');
+      await expect(page.locator('#more-btn')).toHaveAttribute('aria-expanded', 'false');
+      expect(await page.evaluate(() => mediaPaused(els()[0].id))).toBe(true);
+    });
+
     test('el aviso amarillo no tapa ningún control, ni con el menú Más abierto', async ({page}) => {
       await open(page);
       await createProject(page);

@@ -1,7 +1,7 @@
 const {test, expect} = require('@playwright/test');
 const {FILE_URL, open, createProject} = require('./helpers');
 
-const PESADOS = ['print-tools.js', 'print-studio.js', 'gif-encoder.js', 'gif-studio.js'];
+const PESADOS = ['print-tools.js', 'print-studio.js', 'gif-encoder.js', 'gif-decoder.js', 'gif-studio.js'];
 
 test('al cargar no se piden los módulos de póster, separar piezas y GIF', async ({page}) => {
   const pedidas = [];

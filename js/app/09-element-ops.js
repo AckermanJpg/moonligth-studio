@@ -164,6 +164,7 @@ function readImage(f, max, out) {
   });
 }
 function loadFile(f) {
+  if (isMediaFile(f)) return loadMedia(f);
   readImage(f, 1600)
     .then(o => addImage(o.src, o.w, o.h))
     .catch(() => toast('Solo se aceptan imágenes'));

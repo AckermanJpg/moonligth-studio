@@ -129,7 +129,7 @@ let presIdx;
   Object.assign(window, {loadAllFonts});
   const loadFonts = () => loadFamilies(usedFonts()).catch(() => {});
   Object.assign(window, {loadFonts});
-  const ELEMENT_TYPES = ['text', 'image', 'sprite', 'draw', 'qr', 'chart', ...SHAPES.map(s => s[0])];
+  const ELEMENT_TYPES = ['text', 'image', 'media', 'sprite', 'draw', 'qr', 'chart', ...SHAPES.map(s => s[0])];
   const isNum = v => typeof v === 'number' && Number.isFinite(v);
   const validCredit = c =>
     !!c &&
@@ -137,6 +137,25 @@ let presIdx;
     !Array.isArray(c) &&
     Object.values(c).every(v => typeof v === 'string' && v.length <= 300) &&
     ['url', 'licenseUrl'].every(k => !c[k] || httpsUrl(c[k]));
+  function mediaWhy(e) {
+    const gif = e.mime === 'image/gif';
+    if (!MEDIA_MIMES.includes(e.mime) || e.kind !== (gif ? 'gif' : 'video'))
+      return 'tipo de medio no permitido';
+    if (
+      typeof e.src !== 'string' ||
+      !(e.src.startsWith('@db:') || e.src.startsWith(`data:${e.mime};base64,`))
+    )
+      return 'medio sin archivo';
+    if (
+      !isNum(e.dur) ||
+      e.dur <= 0 ||
+      e.dur > (gif ? 3600 : 15.05) ||
+      ![e.nw, e.nh].every(v => isNum(v) && v >= 1 && v <= 20000) ||
+      (gif && !(Number.isInteger(e.frames) && e.frames >= 2 && e.frames <= 300))
+    )
+      return 'medio fuera de rango';
+    return '';
+  }
   function validateProject(o) {
     if (!o || typeof o !== 'object' || !Array.isArray(o.pages) || !o.pages.length)
       return 'faltan las páginas';
@@ -149,9 +168,11 @@ let presIdx;
         if (![e.x, e.y, e.w, e.h].every(isNum)) return 'posición o tamaño no numérico';
         if (e.type === 'sprite' && !Object.hasOwn(SPR, e.spr)) return 'sprite inexistente';
         if (e.credit !== undefined && !validCredit(e.credit)) return 'créditos inválidos';
+        if (e.type === 'media' && mediaWhy(e)) return mediaWhy(e);
       }
     }
-    if (/"@db:/.test(JSON.stringify(o))) return 'falta una imagen guardada';
+    if ((JSON.stringify(o).match(/"@db:[^"]*"/g) || []).some(s => !hasMedia(s.slice(5, -1))))
+      return 'falta una imagen guardada';
     return '';
   }
   async function openExport() {
@@ -160,10 +181,16 @@ let presIdx;
     M.innerHTML = `<h3>Compartir / Exportar</h3><div class="row"><label>Escala</label><select id="xs" style="width:90px"><option value="1">1×</option><option value="2">2×</option><option value="0.5">0.5×</option></select>
   <button class="btn sm" id="xcur">PNG página actual</button><button class="btn sm" id="xall">Todas las páginas</button><button class="btn sm" id="xcopy">Copiar imagen</button><button class="btn sm warn" id="xclose">Cerrar</button></div>
   <p class="hint">Haz clic derecho o mantén pulsada la imagen para guardarla. Para descargarla directo, usa el botón Descargar del panel Exportar.</p><div id="xout"></div>
-  <h4>Proyecto (JSON)</h4><textarea id="xjson" aria-label="JSON del proyecto" spellcheck="false"></textarea><div class="row"><button class="btn sm" id="xload">Cargar JSON</button><button class="btn sm" id="xjcopy">Copiar JSON</button></div>`;
-    $('#xjson').value = snapshot();
+  <h4>Proyecto (JSON)</h4><div id="xjbig"></div><textarea id="xjson" aria-label="JSON del proyecto" spellcheck="false"></textarea><div class="row"><button class="btn sm" id="xload">Cargar JSON</button><button class="btn sm" id="xjcopy">Copiar JSON</button></div>`;
     $('#modal').classList.add('on');
+    bigJSON = await exportJSON();
+    if (bigJSON.length > 20e6 && S.pages.some(p => p.els.some(e => e.type === 'media' && e.kind === 'video')))
+      $('#xjbig').innerHTML =
+        `<p class="hint" id="xbig" style="color:var(--gold)">Con los videos, el JSON pesa ${Math.round(bigJSON.length / MB)} MB: puede fallar al copiarlo o al abrirlo en otro lado. Expórtalo sin los videos para que funcione en cualquier navegador.</p><div class="row"><button class="btn sm on" id="xnovid">Exportar sin videos</button><button class="btn sm" id="xvid">Incluir los videos igual</button></div>`;
+    else $('#xjson').value = bigJSON;
   }
+  let bigJSON = '';
+  const MB = 1048576;
   $('#mbox').addEventListener('click', async ev => {
     const id = ev.target.id,
       sc = () => +$('#xs').value;
@@ -177,6 +204,9 @@ let presIdx;
         $('#xout').append(im);
       });
     };
+    if (id === 'xnovid') $('#xjson').value = await exportJSON(true);
+    else if (id === 'xvid') $('#xjson').value = bigJSON;
+    if (id === 'xnovid' || id === 'xvid') $('#xjbig').innerHTML = '';
     if (id === 'xclose') $('#modal').classList.remove('on');
     else if (id === 'xcur') show([S.cur]);
     else if (id === 'xall') show(S.pages.map((_, i) => i));
@@ -199,20 +229,26 @@ let presIdx;
         $('#xjson').select();
       }
     } else if (id === 'xload') {
-      let why;
+      let why, o;
       try {
-        why = validateProject(JSON.parse($('#xjson').value));
+        o = JSON.parse($('#xjson').value);
+        why = validateProject(o);
       } catch {
         why = 'no se puede leer';
       }
       if (why) toast(`JSON inválido: ${why}`);
       else {
+        const missing = await importMedia(o);
         try {
           touch(true);
-          restore($('#xjson').value);
+          restore(JSON.stringify(o));
           $('#modal').classList.remove('on');
           refresh({props: true, panel: true, fit: true});
-          toast('Proyecto cargado');
+          toast(
+            missing
+              ? `Proyecto cargado; ${missing === 1 ? '1 medio no se pudo leer' : missing + ' medios no se pudieron leer'}`
+              : 'Proyecto cargado',
+          );
         } catch {
           hist.pop();
           toast('JSON inválido');

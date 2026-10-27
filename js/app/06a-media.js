@@ -1,0 +1,301 @@
+// Media
+(() => {
+  Object.assign(window, {
+    isMediaFile,
+    loadMedia,
+    adoptBlob,
+    hasMedia,
+    keepMedia,
+    unsavedMedia,
+    takeSaveNote,
+    mediaNode,
+    mediaFrame,
+    mediaSync,
+    mediaGC,
+    mediaPaused,
+    toggleMedia,
+    pauseAll,
+    hasInlineMedia,
+    importMedia,
+    exportJSON,
+  });
+  const REF = '@db:',
+    MB = 1048576,
+    MAX_PIXELS = 90e6,
+    MEDIA_MIMES = ['image/gif', 'video/mp4', 'video/webm'],
+    blobs = new Map(),
+    players = new Map(),
+    reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  Object.assign(window, {MEDIA_MIMES});
+  let allPaused = false,
+    raf = 0,
+    last = 0,
+    asked = false,
+    note = '';
+
+  async function sniff(blob) {
+    const b = new Uint8Array(await blob.slice(0, 12).arrayBuffer()),
+      s = String.fromCharCode(...b);
+    if (/^GIF8[79]a/.test(s)) return 'image/gif';
+    if (s.slice(4, 8) === 'ftyp') return 'video/mp4';
+    if (b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3) return 'video/webm';
+    return '';
+  }
+  function isMediaFile(f) {
+    return f.type === 'image/gif' || f.type.startsWith('video/') || /\.(gif|mp4|webm)$/i.test(f.name);
+  }
+  const tooBig = (mime, size) =>
+    mime === 'image/gif'
+      ? size > 8 * MB && 'El GIF pesa más de 8 MB'
+      : size > 30 * MB && 'El video pesa más de 30 MB';
+  const reason = (e, gif) =>
+    / /.test(e.message)
+      ? e.message
+      : e.message === 'pixels'
+        ? 'El GIF es demasiado grande para animarlo aquí'
+        : gif
+          ? 'No se pudo leer el GIF'
+          : 'No se pudo leer el video';
+
+  async function decode(blob) {
+    await loadScript('js/gif-decoder.js');
+    if (blob.type === 'image/gif') {
+      const g = MoonGif.decodeGif(await blob.arrayBuffer(), {max: 301, maxPixels: MAX_PIXELS});
+      if (g.count > 300) throw new Error('El GIF tiene más de 300 cuadros');
+      return {blob, kind: 'gif', w: g.w, h: g.h, dur: g.duration, frames: g.frames, times: g.times};
+    }
+    const url = URL.createObjectURL(blob);
+    try {
+      const v = await MoonGif.openVideo(url),
+        m = {blob, kind: 'video', url, w: v.videoWidth, h: v.videoHeight, dur: v.duration};
+      v.removeAttribute('src');
+      v.load();
+      if (m.dur > 15.05) throw new Error('El video dura más de 15 s');
+      return m;
+    } catch (e) {
+      URL.revokeObjectURL(url);
+      throw e;
+    }
+  }
+  function element(id, m) {
+    return mk('media', {
+      src: REF + id,
+      mime: m.blob.type,
+      kind: m.kind,
+      dur: Math.round(m.dur * 1000) / 1000,
+      nw: m.w,
+      nh: m.h,
+      frames: m.kind === 'gif' ? m.frames.length : 0,
+      w: m.w,
+      h: m.h,
+      px: 1,
+    });
+  }
+  async function loadMedia(f) {
+    const mime = await sniff(f);
+    if (!mime) return toast('El archivo no es un GIF, MP4 ni WebM válido');
+    const big = tooBig(mime, f.size);
+    if (big) return toast(big);
+    let m;
+    try {
+      m = await decode(new Blob([f], {type: mime}));
+    } catch (e) {
+      return toast(reason(e, mime === 'image/gif'));
+    }
+    if (m.kind === 'gif' && m.frames.length === 1)
+      return readImage(f, 1600)
+        .then(o => addImage(o.src, o.w, o.h))
+        .catch(() => toast('Solo se aceptan imágenes'));
+    const id = newId();
+    blobs.set(id, m);
+    keep([[id, m]]).catch(() => {});
+    add(element(id, m));
+  }
+  async function adoptBlob(id, blob) {
+    blobs.set(id, Object.assign(await decode(blob), {saved: true}));
+  }
+  function hasMedia(id) {
+    return blobs.has(id);
+  }
+
+  function keep(list) {
+    return vault.putAll(list.map(([id, m]) => [id, m.blob])).then(() => {
+      list.forEach(([, m]) => (m.saved = true));
+      if (asked || !navigator.storage || !navigator.storage.persist) return;
+      asked = true;
+      navigator.storage.persist().then(
+        ok => ok || (note = ' · el navegador podría borrar los GIF y videos si le falta espacio'),
+        () => {},
+      );
+    });
+  }
+  const used = () =>
+    new Set(S.pages.flatMap(p => p.els.filter(e => e.type === 'media').map(e => e.src.slice(REF.length))));
+  const pending = () => [...blobs].filter(([id, m]) => !m.saved && used().has(id));
+  function keepMedia() {
+    const list = pending();
+    return list.length ? keep(list) : undefined;
+  }
+  function unsavedMedia() {
+    return pending().length > 0;
+  }
+  function takeSaveNote() {
+    const n = note;
+    note = '';
+    return n;
+  }
+
+  function mediaNode(e) {
+    const m = blobs.get(e.src.slice(REF.length));
+    if (!m) return null;
+    let pl = players.get(e.id);
+    if (!pl || pl.src !== e.src) {
+      drop(e.id);
+      pl = {src: e.src, kind: m.kind, m, paused: allPaused || reduced.matches, pos: 0, idx: -1};
+      if (m.kind === 'video') {
+        const v = document.createElement('video');
+        v.muted = true;
+        v.defaultMuted = true;
+        v.loop = true;
+        v.playsInline = true;
+        v.preload = 'auto';
+        v.src = m.url;
+        pl.el = v;
+      } else {
+        pl.el = cv(m.w, m.h);
+        paintGif(pl);
+      }
+      players.set(e.id, pl);
+    }
+    return pl.el;
+  }
+  function mediaFrame(e) {
+    const pl = players.get(e.id),
+      m = blobs.get(e.src.slice(REF.length));
+    if (pl) return pl.kind === 'gif' || pl.el.readyState >= 2 ? pl.el : null;
+    return m && m.kind === 'gif' ? m.frames[0] : null;
+  }
+  function drop(id) {
+    const pl = players.get(id);
+    if (!pl) return;
+    if (pl.kind === 'video') {
+      pl.el.pause();
+      pl.el.removeAttribute('src');
+      pl.el.load();
+    }
+    players.delete(id);
+  }
+  function paintGif(pl) {
+    const t = pl.m.times;
+    let i = pl.idx < 0 || t[pl.idx] > pl.pos ? 0 : pl.idx;
+    while (i + 1 < t.length && t[i + 1] <= pl.pos) i++;
+    if (i === pl.idx) return;
+    pl.idx = i;
+    const x = pl.el.getContext('2d');
+    x.clearRect(0, 0, pl.el.width, pl.el.height);
+    x.drawImage(pl.m.frames[i], 0, 0);
+  }
+  function frame(now) {
+    raf = 0;
+    const dt = last ? Math.min(0.25, (now - last) / 1000) : 0;
+    let any = false;
+    last = now;
+    players.forEach(pl => {
+      if (pl.kind !== 'gif' || pl.paused) return;
+      any = true;
+      pl.pos = (pl.pos + dt) % pl.m.dur;
+      paintGif(pl);
+    });
+    if (any && !document.hidden) raf = requestAnimationFrame(frame);
+  }
+  function mediaSync() {
+    const live = new Set(
+      S.active
+        ? pg()
+            .els.filter(e => e.type === 'media' && !e.hidden)
+            .map(e => e.id)
+        : [],
+    );
+    players.forEach((pl, id) => (live.has(id) && pl.el.isConnected) || drop(id));
+    players.forEach(pl => {
+      if (pl.kind !== 'video') return;
+      if (pl.paused || document.hidden) pl.el.pause();
+      else pl.el.play().catch(() => {});
+    });
+    if (document.hidden || ![...players.values()].some(pl => pl.kind === 'gif' && !pl.paused)) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    } else if (!raf) {
+      last = 0;
+      raf = requestAnimationFrame(frame);
+    }
+    const b = $('#pauseall'),
+      any = S.active && S.pages.some(p => p.els.some(e => e.type === 'media'));
+    b.parentElement.hidden = !any;
+    $('#top').classList.toggle('media', any);
+    b.setAttribute('aria-pressed', String(allPaused));
+  }
+  function mediaGC() {
+    const u = used();
+    players.forEach(
+      (pl, id) => S.pages.some(p => p.els.some(e => e.id === id && e.src === pl.src)) || drop(id),
+    );
+    blobs.forEach((m, id) => {
+      if (u.has(id) || inHistory(REF + id)) return;
+      if (m.url) URL.revokeObjectURL(m.url);
+      blobs.delete(id);
+    });
+  }
+  function mediaPaused(id) {
+    return players.has(id) ? players.get(id).paused : allPaused || reduced.matches;
+  }
+  function toggleMedia(id) {
+    const pl = players.get(id);
+    if (!pl) return;
+    pl.paused = !pl.paused;
+    mediaSync();
+  }
+  function pauseAll() {
+    allPaused = !allPaused;
+    players.forEach(pl => (pl.paused = allPaused));
+    mediaSync();
+    if (S.sel.length) renderProps();
+  }
+  $('#pauseall').addEventListener('click', pauseAll);
+  document.addEventListener('visibilitychange', mediaSync);
+
+  const inlineOf = e => e.type === 'media' && typeof e.src === 'string' && e.src.startsWith('data:');
+  function hasInlineMedia(o) {
+    return o.pages.some(p => p.els.some(inlineOf));
+  }
+  async function importMedia(o) {
+    let missing = 0;
+    for (const p of o.pages)
+      for (const e of p.els.filter(inlineOf)) {
+        try {
+          const blob = dataBlob(e.src);
+          if ((await sniff(blob)) !== e.mime || tooBig(e.mime, blob.size)) throw new Error('media');
+          const m = await decode(blob),
+            id = newId();
+          blobs.set(id, m);
+          await keep([[id, m]]).catch(() => {});
+          e.src = REF + id;
+        } catch {
+          missing++;
+          Object.assign(e, {type: 'image', src: null, missing: true, px: 1});
+        }
+      }
+    return missing;
+  }
+  async function exportJSON(noVideo) {
+    const o = JSON.parse(snapshot()),
+      data = new Map();
+    if (noVideo)
+      o.pages.forEach(p => (p.els = p.els.filter(e => !(e.type === 'media' && e.kind === 'video'))));
+    for (const p of o.pages)
+      for (const e of p.els)
+        if (e.type === 'media' && !data.has(e.src) && blobs.has(e.src.slice(REF.length)))
+          data.set(e.src, await blobData(blobs.get(e.src.slice(REF.length)).blob));
+    return JSON.stringify(o, (k, v) => (k === 'src' && data.has(v) ? data.get(v) : v));
+  }
+})();

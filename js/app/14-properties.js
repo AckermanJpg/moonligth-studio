@@ -44,6 +44,7 @@
         {
           text: 'Texto',
           image: e.src ? 'Imagen' : 'Celda de foto',
+          media: e.kind === 'gif' ? 'GIF animado' : 'Video',
           sprite: 'Ícono pixel',
           line: 'Línea',
           arrowl: 'Flecha',
@@ -98,7 +99,7 @@
     <div class="mini">Modo de mezcla</div><div class="row"><select data-k="blend">${BLENDS.map(([k, l]) => `<option value="${k}"${(e.blend || 'normal') === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
     <div class="mini">Sombra pixel</div><div class="row"><input type="checkbox" id="shd" data-k="shadow"${e.shadow ? ' checked' : ''}><label for="shd">Activar</label><input type="color" data-k="sc" value="${e.sc}">${nm('sd', 'Dist.', e.sd)}</div>
     <div class="mini">Estilo</div><div class="row"><button class="btn sm" data-sty="copy">Copiar estilo</button><button class="btn sm" data-sty="paste"${S.styleClip ? '' : ' disabled'}>Pegar estilo</button></div>
-    ${t === 'text' ? '' : `<div class="mini">Contorno de sticker</div><div class="row"><input type="color" data-k="olc" value="${e.olc || '#ffffff'}">${nm('ol', 'Grosor', e.ol || 0)}</div>`}`,
+    ${t === 'text' || t === 'media' ? '' : `<div class="mini">Contorno de sticker</div><div class="row"><input type="color" data-k="olc" value="${e.olc || '#ffffff'}">${nm('ol', 'Grosor', e.ol || 0)}</div>`}`,
         true,
       );
     },
@@ -159,6 +160,15 @@
           false,
         );
         return h;
+      },
+      media(c) {
+        const {e} = c;
+        return sec(
+          'media',
+          'Reproducción',
+          `<p class="hint">${e.kind === 'gif' ? `${e.frames} cuadros` : 'Sin sonido'} · ${Math.round(e.dur * 10) / 10} s · ${e.nw} × ${e.nh} px</p><div class="row"><button type="button" class="btn sm on" data-mplay="1">${mediaPaused(e.id) ? 'Reproducir' : 'Pausar'}</button></div>`,
+          true,
+        );
       },
       image(c) {
         const {e, t, px, gradRow, sw} = c;
@@ -325,6 +335,7 @@
               : Object.fromEntries(SHAPES.map(x => [x[0], x[1]]))[e.type] ||
                 {
                   image: e.src ? 'Imagen' : 'Celda vacía',
+                  media: e.kind === 'gif' ? 'GIF animado' : 'Video',
                   sprite: 'Ícono ' + e.spr,
                   line: 'Línea',
                   arrowl: 'Flecha',
@@ -515,7 +526,10 @@
     else if ((b = q('[data-alsel]'))) alignSel(b.dataset.alsel);
     else if ((b = q('[data-dist]'))) distribute(b.dataset.dist);
     else if (q('[data-pickimg]')) $('#cellfile').click();
-    else if (q('[data-duooff]')) {
+    else if (q('[data-mplay]')) {
+      toggleMedia(prim().id);
+      renderProps();
+    } else if (q('[data-duooff]')) {
       touch(true);
       selEls()
         .filter(e => e.type === 'image')

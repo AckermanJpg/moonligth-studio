@@ -161,6 +161,12 @@
       );
       return c;
     }
+    if (e.type === 'media') {
+      const c = cv(Math.max(1, Math.round(e.w)), Math.max(1, Math.round(e.h))),
+        f = mediaFrame(e);
+      if (f) c.getContext('2d').drawImage(f, 0, 0, c.width, c.height);
+      return c;
+    }
     if (e.type === 'draw') {
       const c = cv(e.gw || 1, e.gh || 1),
         x = c.getContext('2d');

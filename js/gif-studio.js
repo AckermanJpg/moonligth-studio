@@ -206,31 +206,8 @@
     if (el) el.textContent = t;
   }
 
-  const once = (el, ok, bad) =>
-    new Promise((res, rej) => {
-      const done = () => {
-        el.removeEventListener(ok, done);
-        el.removeEventListener(bad, fail);
-        res();
-      };
-      const fail = () => {
-        el.removeEventListener(ok, done);
-        el.removeEventListener(bad, fail);
-        rej(new Error(bad));
-      };
-      el.addEventListener(ok, done);
-      el.addEventListener(bad, fail);
-    });
-
   async function loadVideo(file) {
-    const url = URL.createObjectURL(file),
-      v = document.createElement('video');
-    v.muted = true;
-    v.playsInline = true;
-    v.preload = 'auto';
-    v.src = url;
-    await once(v, 'loadeddata', 'error');
-    if (!isFinite(v.duration) || !v.videoWidth) throw new Error('video');
+    const v = await G.openVideo(URL.createObjectURL(file));
     return {
       id: nextId++,
       kind: 'video',
@@ -246,23 +223,7 @@
   }
 
   async function decodeGif(file) {
-    const dec = new ImageDecoder({data: await file.arrayBuffer(), type: 'image/gif'});
-    await dec.tracks.ready;
-    const count = Math.min(dec.tracks.selectedTrack.frameCount, MAX_GIF_FRAMES),
-      frames = [],
-      times = [];
-    let at = 0;
-    for (let i = 0; i < count; i++) {
-      const {image} = await dec.decode({frameIndex: i}),
-        c = core.cv(image.displayWidth, image.displayHeight),
-        delay = Math.max(0.02, (image.duration || 100000) / 1e6);
-      c.getContext('2d').drawImage(image, 0, 0);
-      image.close();
-      frames.push(c);
-      times.push(at);
-      at += delay;
-    }
-    dec.close();
+    const {frames, times, w, h, duration} = G.decodeGif(await file.arrayBuffer(), {max: MAX_GIF_FRAMES});
     return {
       id: nextId++,
       kind: 'anim',
@@ -270,17 +231,17 @@
       frames,
       times,
       el: frames[0],
-      w: frames[0].width,
-      h: frames[0].height,
-      duration: at,
+      w,
+      h,
+      duration,
       start: 0,
-      end: at,
+      end: duration,
       speed: 1,
     };
   }
 
   async function loadImage(file) {
-    if (file.type === 'image/gif' && 'ImageDecoder' in window) {
+    if (file.type === 'image/gif') {
       try {
         const anim = await decodeGif(file);
         if (anim.frames.length > 1) return anim;
@@ -291,7 +252,7 @@
     const url = URL.createObjectURL(file),
       im = new Image();
     im.src = url;
-    await once(im, 'load', 'error');
+    await G.once(im, 'load', 'error');
     return {
       id: nextId++,
       kind: 'image',

@@ -754,6 +754,7 @@ let savedInfo;
   }
   function afterOpen() {
     savedInfo = null;
+    mediaGC();
     S.uploads = [];
     S.pages.forEach(p =>
       p.els.forEach(e => {
@@ -797,6 +798,7 @@ let savedInfo;
         S.cur = 0;
       }
       resetHistory();
+      mediaGC();
       S.sel = [];
       S.conv.fmt = 'pdf';
       refresh({props: true, panel: true, fit: true});

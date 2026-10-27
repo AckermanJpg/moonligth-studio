@@ -13,6 +13,10 @@
       toast(`Proyecto inválido: ${why}`);
       return false;
     }
+    if (hasInlineMedia(o)) {
+      importMedia(o).then(() => openProject(o, opt));
+      return true;
+    }
     savedInfo = null;
     S.name = o.name || 'Sin título';
     $('#name').value = S.name;
@@ -38,14 +42,25 @@
       return false;
     }
   }
-  const loadScript = src =>
-    new Promise((res, rej) => {
-      const s = document.createElement('script');
-      s.src = src;
-      s.onload = res;
-      s.onerror = () => rej(new Error(src));
-      document.head.append(s);
-    });
+  const scripts = new Map();
+  const loadScript = src => {
+    if (!scripts.has(src))
+      scripts.set(
+        src,
+        new Promise((res, rej) => {
+          const s = document.createElement('script');
+          s.src = src;
+          s.onload = res;
+          s.onerror = () => {
+            scripts.delete(src);
+            rej(new Error(src));
+          };
+          document.head.append(s);
+        }),
+      );
+    return scripts.get(src);
+  };
+  Object.assign(window, {loadScript});
   function mountStudios() {
     MoonGif.mount({
       esc,
@@ -88,7 +103,9 @@
   function openStudio(open) {
     studios ||= Promise.all([
       loadScript('js/print-tools.js').then(() => loadScript('js/print-studio.js')),
-      loadScript('js/gif-encoder.js').then(() => loadScript('js/gif-studio.js')),
+      Promise.all([loadScript('js/gif-encoder.js'), loadScript('js/gif-decoder.js')]).then(() =>
+        loadScript('js/gif-studio.js'),
+      ),
     ]).then(mountStudios);
     return studios.then(open).catch(() => {
       studios = null;

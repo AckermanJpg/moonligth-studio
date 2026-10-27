@@ -1,6 +1,6 @@
 // Vault
 (() => {
-  Object.assign(window, {packProject, unpackProject});
+  Object.assign(window, {packProject, unpackProject, dataBlob});
   const REF = '@db:',
     DAY = 864e5,
     ids = new Map();
@@ -55,6 +55,7 @@
     typeof v === 'string' && v.length > 1024 && /^data:image\/[\w.+-]+;base64,/.test(v.slice(0, 40));
   const refsOf = js => new Set((js.match(/"@db:[^"]*"/g) || []).map(s => s.slice(REF.length + 1, -1)));
   const newId = () => 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  Object.assign(window, {newId});
   function dataBlob(s) {
     const i = s.indexOf(','),
       bin = atob(s.slice(i + 1)),
@@ -69,6 +70,7 @@
       r.onerror = () => rej(r.error);
       r.readAsDataURL(b);
     });
+  Object.assign(window, {blobData});
   async function packProject() {
     const fresh = new Map(),
       js = snapshot(false, (k, v) => {
@@ -79,8 +81,9 @@
       });
     try {
       if (fresh.size) await vault.putAll([...fresh].map(([v, id]) => [id, dataBlob(v)]));
+      await keepMedia();
     } catch {
-      return {js: snapshot()};
+      return {js: snapshot(), lost: unsavedMedia()};
     }
     fresh.forEach((id, v) => ids.set(v, id));
     return {
@@ -96,8 +99,19 @@
     const want = [...refsOf(js)];
     if (!want.length) return {js, missing: 0};
     const got = await vault.getAll(want),
-      urls = new Map();
+      urls = new Map(),
+      kept = new Set();
     for (const [id, b] of got) {
+      if (MEDIA_MIMES.includes(b.type)) {
+        if (
+          await adoptBlob(id, b).then(
+            () => true,
+            () => false,
+          )
+        )
+          kept.add(id);
+        continue;
+      }
       const v = await blobData(b);
       urls.set(id, v);
       ids.set(v, id);
@@ -106,7 +120,13 @@
     const out = JSON.parse(js, (k, v) => {
       if (typeof v === 'string' && v.startsWith(REF) && urls.has(v.slice(REF.length)))
         return urls.get(v.slice(REF.length));
-      if (v && typeof v === 'object' && typeof v.src === 'string' && v.src.startsWith(REF)) {
+      if (
+        v &&
+        typeof v === 'object' &&
+        typeof v.src === 'string' &&
+        v.src.startsWith(REF) &&
+        !kept.has(v.src.slice(REF.length))
+      ) {
         missing++;
         if (v.type) Object.assign(v, {type: 'image', src: null, missing: true, px: 1});
         else v.src = null;

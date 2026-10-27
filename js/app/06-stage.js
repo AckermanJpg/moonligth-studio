@@ -69,7 +69,7 @@
         else {
           n = document.createElement('div');
           n._key = key;
-          const c = bitmap(e);
+          const c = (e.type === 'media' && mediaNode(e)) || bitmap(e);
           c.style.cssText = `width:100%;height:100%;display:block;image-rendering:${smoothImage(e) ? 'auto' : 'pixelated'}`;
           n.append(c);
           if (e.missing && !e.src) {
@@ -102,6 +102,7 @@
     ov.id = 'ovl';
     pageEl.append(ov);
     renderOverlay();
+    mediaSync();
     pageEl.classList.toggle('transp', p.bg.pat === 'none');
     $('#sizechip').textContent = `${S.w} × ${S.h} px`;
     $('#zinfo').textContent = Math.round(S.zoom * 100) + '%';

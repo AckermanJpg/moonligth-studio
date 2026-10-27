@@ -13,6 +13,7 @@ let uid, hist, clip, editing;
     updHist,
     scheduleSave,
     save,
+    inHistory,
   });
   const $ = (s, r = document) => r.querySelector(s),
     $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -201,6 +202,9 @@ let uid, hist, clip, editing;
     const state = {name: S.name, w: S.w, h: S.h, cur: S.cur, pages: S.pages};
     return JSON.stringify(state, forHistory ? compactImages : replacer);
   }
+  function inHistory(s) {
+    return hist.some(h => h.includes(s)) || fut.some(h => h.includes(s));
+  }
   function resetHistory() {
     hist = [];
     fut = [];
@@ -290,10 +294,16 @@ let uid, hist, clip, editing;
       return;
     }
     if (out.sweep) out.sweep();
+    mediaGC();
     const d = new Date();
-    st.classList.remove('bad');
-    st.textContent =
-      'Guardado ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    st.classList.toggle('bad', !!out.lost);
+    st.textContent = out.lost
+      ? 'Guardado sin los GIF ni videos: el navegador no deja guardarlos'
+      : 'Guardado ' +
+        String(d.getHours()).padStart(2, '0') +
+        ':' +
+        String(d.getMinutes()).padStart(2, '0') +
+        takeSaveNote();
     if (manual) toast('Guardado en este navegador');
   }
 })();

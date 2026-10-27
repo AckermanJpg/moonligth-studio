@@ -161,7 +161,7 @@
           ldy = -dx * sin + dy * cos;
         let nw = s0.w + hx * ldx,
           nh = s0.h + hy * ldy;
-        if (hx && hy && (e.type === 'image' || e.type === 'sprite' || e.type === 'text' || m.shiftKey)) {
+        if (hx && hy && (['image', 'media', 'sprite', 'text'].includes(e.type) || m.shiftKey)) {
           const k = Math.max(12 / s0.w, nw / s0.w);
           nw = s0.w * k;
           nh = s0.h * k;
