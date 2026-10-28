@@ -4,6 +4,25 @@ Cada versión corresponde a una tanda de cambios publicada con un solo push. Los
 
 La sección «Para quien usa Moonlight» es la que aparece en el botón Novedades de la página, palabra por palabra. Debajo va el detalle técnico de cada cambio, con el commit que lo hizo y, cuando hay, la medición.
 
+## [1.3.0] - 2026-10-27
+
+### Para quien usa Moonlight
+
+- Ya puedes empezar un diseño con un GIF o un video desde el inicio.
+- Las imágenes WebP, SVG y GIF conservan su transparencia.
+- Nueva opción Fondo transparente al descargar en PNG o WEBP.
+
+### Arreglado
+
+- Inicio, «Editar una foto mía»: un GIF animado, un MP4 o un WebM entraban como foto fija (el GIF por `readImage`, los videos ni se podían elegir). Ahora `#hphoto` acepta `video/mp4` y `video/webm`, y el archivo pasa por `readMedia` (los mismos límites y mensajes que el panel Imágenes). La página se crea con un elemento `media` que cubre el lienzo: igual que la foto si se elige «Igual que la foto»; con otro tamaño se escala manteniendo la proporción, centrado, porque `media` se dibuja estirado y la foto se ajusta tipo cover. Exportar ofrece «GIF animado» y «Video». Un GIF de un solo cuadro sigue como foto. Esa página no tiene filtros, recorte ni volteo, como cualquier GIF o video del editor (4006fe1).
+- `readImage` sin formato de salida convertía a JPEG todo lo que no fuera PNG: un WebP, SVG o GIF transparente quedaba con un recuadro negro (píxel transparente → `[0,0,0,255]`). Ahora guarda PNG si algún píxel tiene alfa menor que 255 y JPEG 0.92 si no; un JPG sigue como JPEG (b331f0e).
+- Celdas de collage, reemplazar una foto que falta e imagen de fondo usan el primer cuadro de un GIF animado, pero ahora lo avisan: «Aquí se usa el primer cuadro. Para que se mueva, agrégalo desde Imágenes» (4f2b7f0).
+
+### Agregado
+
+- Casilla «Fondo transparente» en Exportar con PNG o WEBP (`S.conv.transp`, apagada por defecto). Si está marcada, `doExport` dibuja cada página sin el fondo y sin cambiar `bg.pat`. Si la página ya es transparente, sale marcada y desactivada. Con JPG y PDF no se muestra (23f0c2b).
+- Pruebas `tests/transparencia.spec.js` y `tests/medios-inicio.spec.js`, con los fixtures `transparente.webp`, `transparente.svg`, `transparente.gif` y `opaca.jpg`.
+
 ## [1.2.0] - 2026-10-27
 
 ### Para quien usa Moonlight

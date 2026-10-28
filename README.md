@@ -188,9 +188,9 @@ Dado el tamaño final, el de la hoja, el margen y el traslape, se calcula cuánt
 
 ## Versiones
 
-Versión actual: **1.2.0** (2026-10-27). Agrega el botón Novedades, que cuenta en lenguaje sencillo qué cambió en cada versión, y un aviso discreto la primera vez que se abre Moonlight después de una actualización.
+Versión actual: **1.3.0** (2026-10-27). Permite empezar un diseño con un GIF o un video desde el inicio, conserva la transparencia de las imágenes WebP, SVG y GIF, y agrega la opción «Fondo transparente» al descargar en PNG o WEBP.
 
-Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
+Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.3.0`, `v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
 
 ## Estado del proyecto
 

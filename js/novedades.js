@@ -1,5 +1,14 @@
 window.MoonNews = [
   {
+    v: '1.3.0',
+    date: '2026-10-27',
+    notes: [
+      'Ya puedes empezar un diseño con un GIF o un video desde el inicio.',
+      'Las imágenes WebP, SVG y GIF conservan su transparencia.',
+      'Nueva opción Fondo transparente al descargar en PNG o WEBP.',
+    ],
+  },
+  {
     v: '1.2.0',
     date: '2026-10-27',
     notes: [
