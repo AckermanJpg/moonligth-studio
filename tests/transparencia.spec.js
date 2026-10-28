@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const {open, createProject} = require('./helpers');
 
-const MIME = {webp: 'image/webp', svg: 'image/svg+xml', gif: 'image/gif', jpg: 'image/jpeg'};
+const MIME = {webp: 'image/webp', svg: 'image/svg+xml', gif: 'image/gif', jpg: 'image/jpeg', png: 'image/png'};
 const file = name => ({
   name,
   mimeType: MIME[name.split('.').pop()],
@@ -55,6 +55,13 @@ test.describe('Transparencia de las imágenes subidas', () => {
     await createProject(page);
     await subir(page, 'opaca.jpg');
     expect(await page.evaluate(() => prim().src.slice(0, 15))).toBe('data:image/jpeg');
+  });
+
+  test('PNG opaco sigue como image/png', async ({page}) => {
+    await open(page);
+    await createProject(page);
+    await subir(page, 'opaca.png');
+    expect(await page.evaluate(() => prim().src.slice(0, 15))).toBe('data:image/png;');
   });
 });
 
