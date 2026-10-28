@@ -1,5 +1,10 @@
 window.MoonNews = [
   {
+    v: '1.3.1',
+    date: '2026-10-28',
+    notes: ['Si eliges un video en el inicio y cierras sin crear el diseño, ya no se queda ocupando memoria.'],
+  },
+  {
     v: '1.3.0',
     date: '2026-10-27',
     notes: [

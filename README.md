@@ -188,9 +188,9 @@ Dado el tamaño final, el de la hoja, el margen y el traslape, se calcula cuánt
 
 ## Versiones
 
-Versión actual: **1.3.0** (2026-10-27). Permite empezar un diseño con un GIF o un video desde el inicio, conserva la transparencia de las imágenes WebP, SVG y GIF, y agrega la opción «Fondo transparente» al descargar en PNG o WEBP.
+Versión actual: **1.3.1** (2026-10-28). Libera la memoria del video elegido en el inicio cuando se cierra sin crear el diseño. La 1.3.0 permitió empezar un diseño con un GIF o un video desde el inicio, conservar la transparencia de las imágenes WebP, SVG y GIF, y descargar en PNG o WEBP con «Fondo transparente».
 
-Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.3.0`, `v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
+Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.3.1`, `v1.3.0`, `v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
 
 ## Estado del proyecto
 
