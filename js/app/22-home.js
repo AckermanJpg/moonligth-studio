@@ -267,8 +267,8 @@ let savedInfo;
         ['st', 'Historia 1080 × 1920'],
         ['hd', 'Pantalla completa 1920 × 1080'],
       ];
-      return `<h2>Sube tu foto</h2><p class="lead">Acepta JPG, PNG, WebP y GIF. Se procesa en tu navegador, no se envía a ningún servidor.</p>
-    <button class="btn on" data-act="pickphoto">${H.photo ? 'Cambiar foto' : 'Elegir una foto'}</button><input type="file" id="hphoto" accept="image/*" hidden>
+      return `<h2>Sube tu foto</h2><p class="lead">Acepta JPG, PNG, WebP, GIF, MP4 y WebM. Se procesa en tu navegador, no se envía a ningún servidor.</p>
+    <button class="btn on" data-act="pickphoto">${H.photo ? 'Cambiar foto' : 'Elegir una foto'}</button><input type="file" id="hphoto" accept="image/*,video/mp4,video/webm" hidden>
     ${
       H.photo
         ? `<h3 class="hh">Tu foto · ${H.photo.w} × ${H.photo.h} px</h3><img class="hprev" src="${esc(H.photo.src)}" alt="Foto elegida">
@@ -703,16 +703,22 @@ let savedInfo;
     const nx = $('[data-act="next"]', homeEl) || $('[data-act="create"]', homeEl);
     if (nx) nx.disabled = !canNext();
   });
+  async function pickPhoto(f) {
+    const m = isMediaFile(f) && (await readMedia(f));
+    if (isMediaFile(f) && !m) return;
+    const o =
+      m && (m.kind === 'video' || m.frames.length > 1)
+        ? {src: (m.first || m.poster).toDataURL('image/png'), w: m.w, h: m.h, media: m}
+        : await readImage(f, 3000).catch(() => toast('Solo se aceptan imágenes'));
+    if (!o) return;
+    if (H.photo && H.photo.media && H.photo.media.url) URL.revokeObjectURL(H.photo.media.url);
+    H.photo = o;
+    H.psize = 'photo';
+    renderHome();
+  }
   homeEl.addEventListener('change', ev => {
     const t = ev.target;
-    if (t.id === 'hphoto' && t.files[0])
-      readImage(t.files[0], 3000)
-        .then(o => {
-          H.photo = o;
-          H.psize = 'photo';
-          renderHome();
-        })
-        .catch(() => toast('Solo se aceptan imágenes'));
+    if (t.id === 'hphoto' && t.files[0]) pickPhoto(t.files[0]);
     if (t.id === 'hpdf' && t.files[0]) {
       H.pdf = t.files[0];
       renderHome();
@@ -811,7 +817,15 @@ let savedInfo;
     S.h = clamp(z[1], 16, 5000);
     if (H.cat === 'photo') {
       const pgx = newPage({pat: 'solid', c1: '#ffffff', c2: '#ffffff'});
-      pgx.els.push(mk('image', {src: H.photo.src, x: 0, y: 0, w: S.w, h: S.h, px: 1}));
+      const ph = H.photo,
+        k = Math.max(S.w / ph.w, S.h / ph.h),
+        w = Math.round(ph.w * k),
+        h = Math.round(ph.h * k);
+      pgx.els.push(
+        ph.media
+          ? mediaElement(ph.media, {x: Math.round((S.w - w) / 2), y: Math.round((S.h - h) / 2), w, h})
+          : mk('image', {src: ph.src, x: 0, y: 0, w: S.w, h: S.h, px: 1}),
+      );
       S.pages = [pgx];
       S.tab = 'images';
     } else if (H.tpl >= 0) {

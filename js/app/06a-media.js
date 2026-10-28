@@ -3,6 +3,8 @@
   Object.assign(window, {
     isMediaFile,
     loadMedia,
+    readMedia,
+    mediaElement,
     warnFirstFrame,
     adoptBlob,
     hasMedia,
@@ -126,25 +128,31 @@
       px: 1,
     });
   }
-  async function loadMedia(f) {
+  async function readMedia(f) {
     const mime = await sniff(f);
     if (!mime) return toast('El archivo no es un GIF, MP4 ni WebM válido');
     const big = tooBig(mime, f.size);
     if (big) return toast(big);
-    let m;
     try {
-      m = await decode(new Blob([f], {type: mime}));
+      return await decode(new Blob([f], {type: mime}));
     } catch (e) {
-      return toast(reason(e, mime === 'image/gif'));
+      toast(reason(e, mime === 'image/gif'));
     }
+  }
+  function mediaElement(m, o) {
+    const id = newId();
+    blobs.set(id, m);
+    keep([[id, m]]).catch(() => {});
+    return Object.assign(element(id, m), o);
+  }
+  async function loadMedia(f) {
+    const m = await readMedia(f);
+    if (!m) return;
     if (m.kind === 'gif' && m.frames.length === 1)
       return readImage(f, 1600)
         .then(o => addImage(o.src, o.w, o.h))
         .catch(() => toast('Solo se aceptan imágenes'));
-    const id = newId();
-    blobs.set(id, m);
-    keep([[id, m]]).catch(() => {});
-    add(element(id, m));
+    add(mediaElement(m));
   }
   async function moving(f) {
     const mime = await sniff(f);
