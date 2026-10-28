@@ -3,6 +3,7 @@
   Object.assign(window, {
     isMediaFile,
     loadMedia,
+    warnFirstFrame,
     adoptBlob,
     hasMedia,
     keepMedia,
@@ -144,6 +145,20 @@
     blobs.set(id, m);
     keep([[id, m]]).catch(() => {});
     add(element(id, m));
+  }
+  async function moving(f) {
+    const mime = await sniff(f);
+    if (mime !== 'image/gif') return !!mime;
+    await loadScript('js/gif-decoder.js');
+    try {
+      return MoonGif.decodeGif(await f.arrayBuffer(), {max: 1}).count > 1;
+    } catch (e) {
+      return false;
+    }
+  }
+  async function warnFirstFrame(files) {
+    if ((await Promise.all([...files].map(moving))).some(Boolean))
+      toast('Aquí se usa el primer cuadro. Para que se mueva, agrégalo desde Imágenes');
   }
   async function adoptBlob(id, blob) {
     blobs.set(id, Object.assign(await decode(blob), {saved: true}));

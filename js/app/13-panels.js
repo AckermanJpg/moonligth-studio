@@ -738,7 +738,8 @@
       [...t.files].forEach(loadFile);
       t.value = '';
     } else if (id === 'bgfile' && t.files[0]) {
-      readImage(t.files[0], 2000)
+      const f = t.files[0];
+      readImage(f, 2000)
         .then(o => {
           touch(true);
           if (!S.uploads.includes(o.src)) S.uploads.unshift(o.src);
@@ -746,6 +747,7 @@
           delete pg().bg.credit;
           pg().bg.pat = 'image';
           refresh({panel: true});
+          warnFirstFrame([f]);
         })
         .catch(() => toast('Solo se aceptan imágenes'));
       t.value = '';

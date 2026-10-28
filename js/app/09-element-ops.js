@@ -292,7 +292,8 @@ function fillCells(files) {
   const e = prim();
   if (!e) return;
   const cells = [e, ...els().filter(x => x.type === 'image' && !x.src && x.id !== e.id)];
-  Promise.all([...files].slice(0, cells.length).map(f => readImage(f, 1600)))
+  const used = [...files].slice(0, cells.length);
+  Promise.all(used.map(f => readImage(f, 1600)))
     .then(list => {
       touch(true);
       list.forEach((o, i) => {
@@ -300,6 +301,7 @@ function fillCells(files) {
         if (!S.uploads.includes(o.src)) S.uploads.unshift(o.src);
       });
       refresh({props: true, panel: S.tab === 'images'});
+      warnFirstFrame(used);
     })
     .catch(() => toast('Solo se aceptan imágenes'));
 }
