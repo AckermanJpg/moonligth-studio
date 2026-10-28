@@ -143,14 +143,12 @@ function readImage(f, max, out) {
           c = cv(Math.round(im.width * k), Math.round(im.height * k)),
           x = c.getContext('2d');
         x.drawImage(im, 0, 0, c.width, c.height);
-        let src = out
-          ? c.toDataURL(out, 0.85)
-          : c.toDataURL(f.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.92);
-        if (out && !src.startsWith(`data:${out}`)) {
+        let src = out ? c.toDataURL(out, 0.85) : f.type === 'image/png' && c.toDataURL('image/png');
+        if (!src || !src.startsWith(`data:${out || 'image/png'}`)) {
           const a = x.getImageData(0, 0, c.width, c.height).data;
           let alpha = false;
           for (let i = 3; i < a.length && !alpha; i += 4) alpha = a[i] < 255;
-          src = alpha ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.85);
+          src = alpha ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', out ? 0.85 : 0.92);
         }
         res({
           src,
