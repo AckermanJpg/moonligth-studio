@@ -63,6 +63,49 @@ test.describe('GIF y video desde el inicio', () => {
   });
 });
 
+test.describe('URL del video elegido en el inicio', () => {
+  async function elegir(page) {
+    await page.addInitScript(() => {
+      window.__revoked = [];
+      const r = URL.revokeObjectURL;
+      URL.revokeObjectURL = u => (window.__revoked.push(u), r.call(URL, u));
+    });
+    await open(page);
+    await createProject(page);
+    await page.click('#home-btn');
+    await page.click('[data-act="style:normal"]');
+    await page.click('[data-act="cat:photo"]');
+    if (!(await page.locator('#hphoto').count())) await page.click('[data-act="next"]');
+    await page.setInputFiles('#hphoto', file('clip-10s.webm'));
+    await page.waitForFunction(() => H.photo);
+    return page.evaluate(() => H.photo.media.url);
+  }
+
+  test('se libera al volver al editor sin crear el diseño', async ({page}) => {
+    const url = await elegir(page);
+    await page.click('[data-act="close"]');
+    await page.waitForFunction(() => !document.getElementById('home').classList.contains('on'));
+    expect(await page.evaluate(() => window.__revoked)).toContain(url);
+  });
+
+  test('se libera al cerrar el inicio con Escape', async ({page}) => {
+    const url = await elegir(page);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.getElementById('home').classList.contains('on'));
+    expect(await page.evaluate(() => window.__revoked)).toContain(url);
+  });
+
+  test('no se libera cuando el video pasa al diseño', async ({page}) => {
+    const url = await elegir(page);
+    await page.click('[data-act="create"]');
+    const again = page.locator('#home.on [data-act="create"]');
+    if (await again.count()) await again.click();
+    await page.waitForFunction(() => !document.getElementById('home').classList.contains('on'));
+    expect(await page.evaluate(() => pg().els[0].type)).toBe('media');
+    expect(await page.evaluate(() => window.__revoked)).not.toContain(url);
+  });
+});
+
 test('una celda de collage con un GIF animado avisa que usa el primer cuadro', async ({page}) => {
   await open(page);
   await createProject(page);

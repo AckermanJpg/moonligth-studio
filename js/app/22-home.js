@@ -590,7 +590,12 @@ let savedInfo;
     renderHome();
     homeEl.scrollTop = 0;
   }
+  function dropPick() {
+    if (H.photo && H.photo.media && H.photo.media.url) URL.revokeObjectURL(H.photo.media.url);
+    H.photo = null;
+  }
   function closeHome() {
+    dropPick();
     homeEl.classList.remove('on');
     clearTimeout(showTimer);
   }
@@ -711,7 +716,7 @@ let savedInfo;
         ? {src: (m.first || m.poster).toDataURL('image/png'), w: m.w, h: m.h, media: m}
         : await readImage(f, 3000).catch(() => toast('Solo se aceptan imágenes'));
     if (!o) return;
-    if (H.photo && H.photo.media && H.photo.media.url) URL.revokeObjectURL(H.photo.media.url);
+    dropPick();
     H.photo = o;
     H.psize = 'photo';
     renderHome();
@@ -826,6 +831,7 @@ let savedInfo;
           ? mediaElement(ph.media, {x: Math.round((S.w - w) / 2), y: Math.round((S.h - h) / 2), w, h})
           : mk('image', {src: ph.src, x: 0, y: 0, w: S.w, h: S.h, px: 1}),
       );
+      H.photo = null;
       S.pages = [pgx];
       S.tab = 'images';
     } else if (H.tpl >= 0) {
