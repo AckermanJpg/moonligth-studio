@@ -292,6 +292,7 @@
     ]
       .map(([v, l]) => `<option value="${v}"${c.scale === v ? ' selected' : ''}>${l}</option>`)
       .join('')}</select></div>
+    ${c.fmt === 'png' || c.fmt === 'webp' ? `<div class="row"><input type="checkbox" id="cvtransp"${c.transp || pg().bg.pat === 'none' ? ' checked' : ''}${pg().bg.pat === 'none' ? ' disabled' : ''}><label for="cvtransp" style="min-width:0">Fondo transparente</label></div>` : ''}
     ${anim ? '' : `<div class="row"><label>Calidad</label><input type="range" data-cv="q" min="50" max="100" value="${c.q}"><span id="qv">${c.q}</span></div>`}
     <button class="btn" id="cvgo" style="width:100%">${anim ? (c.fmt === 'gif' ? 'Descargar GIF animado' : 'Grabar y descargar video') : `Descargar ${c.fmt.toUpperCase()}${all && c.fmt !== 'pdf' ? ' (ZIP)' : ''}`}</button>
     <div class="sumline">Salida: <b>${Math.round(S.w * c.scale)} × ${Math.round(S.h * c.scale)} px</b></div>
@@ -715,6 +716,7 @@
       if (t.dataset.cv === 'q') $('#qv').textContent = t.value;
       else if (t.dataset.cv !== 'fps' && t.dataset.cv !== 'dur') renderPanel();
     } else if (t.id === 'fitpdf') S.conv.fitpdf = t.checked;
+    else if (t.id === 'cvtransp') S.conv.transp = t.checked;
     else if (t.dataset.dr) {
       const k = t.dataset.dr;
       S.draw[k] = k === 'cs' ? +t.value : t.value;

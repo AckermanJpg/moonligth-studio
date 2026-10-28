@@ -319,7 +319,8 @@
       return f;
     };
     for (const i of idxs) {
-      const cn = flat(renderPageCanvas(S.pages[i], c.scale));
+      const p = S.pages[i],
+        cn = flat(renderPageCanvas(png && c.transp ? {...p, bg: {...p.bg, pat: 'none'}} : p, c.scale));
       out.push({cn, blob: await toBlob(cn, mime, c.q / 100)});
     }
     const ext = extOf(out[0].blob.type);

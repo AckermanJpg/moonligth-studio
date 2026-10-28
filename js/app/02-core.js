@@ -50,7 +50,7 @@ let uid, hist, clip, editing;
     active: false,
     guides: [],
     uploads: [],
-    conv: {fmt: 'jpg', pages: 'cur', scale: 1, q: 92, fitpdf: true},
+    conv: {fmt: 'jpg', pages: 'cur', scale: 1, q: 92, fitpdf: true, transp: false},
   };
   Object.assign(window, {S});
   uid = 1;
