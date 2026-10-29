@@ -180,7 +180,7 @@ let savedInfo;
     H.tc[key] = H.tc[key] || {};
     if (!H.tc[key][i])
       H.tc[key][i] = withSize(w, h, () =>
-        renderPageCanvas(TPL[i].build(), Math.min(1, 220 / Math.max(w, h))),
+        renderPageCanvas(TPL[i].build(), Math.min(1, 220 / Math.max(w, h)), mediaFrame, null),
       );
     const src = H.tc[key][i],
       c = cv(src.width, src.height);
@@ -359,7 +359,9 @@ let savedInfo;
         i,
         loadFamilies(fonts)
           .catch(() => {})
-          .then(() => withSize(w, h, () => renderPageCanvas(page, Math.min(1, 720 / Math.max(w, h))))),
+          .then(() =>
+            withSize(w, h, () => renderPageCanvas(page, Math.min(1, 720 / Math.max(w, h)), mediaFrame, null)),
+          ),
       );
     }
     return showCache.get(i);
@@ -797,6 +799,8 @@ let savedInfo;
     S.cur = 0;
     S.fit = true;
     S.uploads = [];
+    S.pflt = {};
+    S.pfp = 'Original';
     S.active = true;
     if (H.cat === 'pdf') {
       S.w = 1080;

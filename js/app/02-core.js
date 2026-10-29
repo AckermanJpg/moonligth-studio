@@ -40,6 +40,8 @@ let uid, hist, clip, editing;
     w: 1080,
     h: 1080,
     pages: [],
+    pflt: {},
+    pfp: 'Original',
     cur: 0,
     sel: [],
     zoom: 0.5,
@@ -199,7 +201,7 @@ let uid, hist, clip, editing;
   const expandImages = (key, value) =>
     typeof value === 'string' && value.startsWith(IMG_REF) ? imageById[+value.slice(IMG_REF.length)] : value;
   function snapshot(forHistory = false, replacer) {
-    const state = {name: S.name, w: S.w, h: S.h, cur: S.cur, pages: S.pages};
+    const state = {name: S.name, w: S.w, h: S.h, cur: S.cur, pflt: S.pflt, pfp: S.pfp, pages: S.pages};
     return JSON.stringify(state, forHistory ? compactImages : replacer);
   }
   function inHistory(s) {
@@ -228,6 +230,8 @@ let uid, hist, clip, editing;
     S.w = o.w;
     S.h = o.h;
     S.pages = o.pages;
+    S.pflt = o.pflt || {};
+    S.pfp = o.pfp || 'Original';
     S.cur = clamp(o.cur || 0, 0, o.pages.length - 1);
     uid = 1 + Math.max(0, ...S.pages.flatMap(p => p.els.map(e => +String(e.id).slice(1) || 0)));
     S.sel = S.sel.filter(findEl);

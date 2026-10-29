@@ -252,7 +252,7 @@
       ev.preventDefault();
       const r = pageEl.getBoundingClientRect(),
         sc = Math.min(1, 1200 / Math.max(S.w, S.h)),
-        c = renderPageCanvas(pg(), sc);
+        c = renderPageCanvas(pg(), sc, mediaFrame, null);
       const x = clamp(Math.floor(((ev.clientX - r.left) / S.zoom) * sc), 0, c.width - 1),
         y = clamp(Math.floor(((ev.clientY - r.top) / S.zoom) * sc), 0, c.height - 1),
         d = c.getContext('2d').getImageData(x, y, 1, 1).data;

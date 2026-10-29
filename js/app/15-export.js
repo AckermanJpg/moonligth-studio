@@ -72,7 +72,7 @@ let presIdx;
       x.restore();
     });
   }
-  function renderPageCanvas(p, scale, pick = mediaFrame) {
+  function renderPageCanvas(p, scale, pick = mediaFrame, flt = S.pflt) {
     const W = Math.round(S.w * scale),
       H = Math.round(S.h * scale),
       c = cv(W, H),
@@ -83,11 +83,12 @@ let presIdx;
     x.scale(scale, scale);
     drawEls(x, p.els, scale, pick);
     x.restore();
+    if (flt && Object.keys(flt).length) applyFilter(c, flt);
     return c;
   }
   function pageAnimator(p, scale) {
     const i = p.els.findIndex(e => e.type === 'media'),
-      base = renderPageCanvas({...p, els: p.els.slice(0, i)}, scale),
+      base = renderPageCanvas({...p, els: p.els.slice(0, i)}, scale, mediaFrame, null),
       rest = p.els.slice(i),
       layer = cv(base.width, base.height),
       lx = layer.getContext('2d'),
@@ -101,6 +102,7 @@ let presIdx;
       lx.scale(scale, scale);
       drawEls(lx, rest, scale, pick);
       lx.restore();
+      if (Object.keys(S.pflt).length) applyFilter(layer, S.pflt);
       ox.fillRect(0, 0, out.width, out.height);
       ox.drawImage(layer, 0, 0);
       return out;
@@ -161,6 +163,18 @@ let presIdx;
     !Array.isArray(c) &&
     Object.values(c).every(v => typeof v === 'string' && v.length <= 300) &&
     ['url', 'licenseUrl'].every(k => !c[k] || httpsUrl(c[k]));
+  const isHex = v => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
+  const validFlt = f =>
+    !!f &&
+    typeof f === 'object' &&
+    !Array.isArray(f) &&
+    Object.entries(f).every(([k, v]) =>
+      k === 'pal'
+        ? Object.hasOwn(PALS, v)
+        : k === 'duo'
+          ? Array.isArray(v) && v.length === 2 && v.every(isHex)
+          : FSL.some(r => r[0] === k) && isNum(v),
+    );
   function mediaWhy(e) {
     const gif = e.mime === 'image/gif';
     if (!MEDIA_MIMES.includes(e.mime) || e.kind !== (gif ? 'gif' : 'video'))
@@ -184,6 +198,8 @@ let presIdx;
     if (!o || typeof o !== 'object' || !Array.isArray(o.pages) || !o.pages.length)
       return 'faltan las páginas';
     if (![o.w, o.h].every(v => isNum(v) && v >= 16 && v <= 5000)) return 'tamaño fuera de rango';
+    if ((o.pflt !== undefined && !validFlt(o.pflt)) || (o.pfp !== undefined && typeof o.pfp !== 'string'))
+      return 'filtro del proyecto inválido';
     for (const p of o.pages) {
       if (!p || !Array.isArray(p.els)) return 'página sin elementos';
       if (p.bg && p.bg.credit !== undefined && !validCredit(p.bg.credit)) return 'créditos inválidos';

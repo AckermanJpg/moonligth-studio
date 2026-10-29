@@ -23,6 +23,8 @@
     S.w = clamp(o.w, 16, 5000);
     S.h = clamp(o.h, 16, 5000);
     S.pages = o.pages;
+    S.pflt = o.pflt || {};
+    S.pfp = o.pfp || 'Original';
     S.cur = 0;
     S.sel = [];
     S.fit = true;

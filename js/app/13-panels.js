@@ -357,7 +357,7 @@
         b.className = 'card tpl';
         b.dataset.tpl = i;
         const pageT = tp.build(),
-          c = renderPageCanvas(pageT, 0.1);
+          c = renderPageCanvas(pageT, 0.1, mediaFrame, null);
         c.className = S.style === 'pixel' ? 'px' : '';
         b.append(c, tp.name);
         $('#tpls').append(b);
@@ -370,7 +370,7 @@
         loadFamilies(fonts)
           .then(() =>
             cards.forEach(([c, pageT]) => {
-              const n = renderPageCanvas(pageT, 0.1);
+              const n = renderPageCanvas(pageT, 0.1, mediaFrame, null);
               n.className = c.className;
               c.replaceWith(n);
             }),
@@ -573,7 +573,7 @@
           src =
             e && e.type === 'image' && e.src
               ? extractPalette(e)
-              : palFromCanvas(renderPageCanvas(pg(), Math.min(1, 96 / Math.max(S.w, S.h))));
+              : palFromCanvas(renderPageCanvas(pg(), Math.min(1, 96 / Math.max(S.w, S.h)), mediaFrame, null));
         let n = 0;
         src.forEach(c => {
           if (!B.colors.includes(c)) {

@@ -36,7 +36,51 @@
       return `<h3>Página</h3><div class="sumline">Tamaño: <b>${S.w} × ${S.h} px</b></div><div class="row"><button class="btn sm" data-gotab="size">Cambiar tamaño</button><button class="btn sm" data-gotab="bg">Cambiar fondo</button></div>
     ${sec('aid', 'Ayudas', `<div class="row"><button class="btn sm${S.grid ? ' on' : ''}" data-pr="grid">Cuadrícula</button><button class="btn sm${S.snap ? ' on' : ''}" data-pr="snap">Imán</button></div>`, true)}
     ${b.pat === 'image' && b.src && b.credit ? sec('bgcredit', 'Créditos del fondo', creditHTML(b.credit, true), true) : ''}
+    ${sec('pflt', 'Filtro del proyecto', PROPS.pflt(), false)}
     ${sec('lay', 'Capas', layersHTML(), true)}<p class="hint">Selecciona un objeto para editar su color, tamaño, sombra y más. Doble clic en un texto para escribir.</p>`;
+    },
+    pflt() {
+      const f = S.pflt,
+        du = f.duo || ['#020821', '#3fe0ff'];
+      return `<p class="hint">Se aplica sobre todo lo que se ve, en todas las páginas y al exportar.</p><div class="fgrid">${Object.keys(
+        PRESETS,
+      )
+        .map(
+          n =>
+            `<button class="fp${S.pfp === n ? ' on' : ''}" data-pfp="${n}" title="${n}"><span data-pfth="${n}"></span>${n}</button>`,
+        )
+        .join('')}</div>
+    ${sec(
+      'pfadj',
+      'Ajustes manuales',
+      FSL.map(
+        ([k, l, mn, mx]) =>
+          `<div class="row"><label style="min-width:96px">${l}</label><input type="range" data-pf="${k}" min="${mn}" max="${mx}" value="${f[k] || 0}"><span data-pfv="${k}" style="min-width:30px;text-align:right">${f[k] || 0}</span></div>`,
+      ).join(''),
+      false,
+    )}
+    ${sec(
+      'pfcol',
+      'Paleta y duotono',
+      `<div class="row"><label style="min-width:96px">Paleta</label><select data-pf="pal"><option value="">Ninguna</option>${Object.keys(
+        PALS,
+      )
+        .map(k => `<option value="${k}"${f.pal === k ? ' selected' : ''}>${PALN[k]}</option>`)
+        .join('')}</select></div>
+      <div class="mini">Duotono (dos colores)</div><div class="row"><input type="color" data-pf="duo0" value="${du[0]}"><input type="color" data-pf="duo1" value="${du[1]}"><button class="btn sm" data-pduooff="1"${f.duo ? '' : ' disabled'}>Quitar</button></div>`,
+      false,
+    )}
+    <div class="row"><button class="btn sm warn" id="pfltreset"${Object.keys(f).length ? '' : ' disabled'}>Quitar filtro</button></div>`;
+    },
+    pfltThumbs(P) {
+      const base = renderPageCanvas(pg(), 72 / Math.max(S.w, S.h), mediaFrame, null);
+      $$('[data-pfth]', P).forEach(sp => {
+        const c = cv(base.width, base.height);
+        c.getContext('2d').drawImage(base, 0, 0);
+        applyFilter(c, PRESETS[sp.dataset.pfth]);
+        c.style.cssText = 'width:100%;height:auto;display:block;image-rendering:pixelated';
+        sp.replaceWith(c);
+      });
     },
     head(c) {
       const {e, t, list, multi} = c;
@@ -309,6 +353,7 @@
     }
     if (!e) {
       P.innerHTML = `<h2 class="sr-only">Propiedades</h2>${PROPS.page()}`;
+      PROPS.pfltThumbs(P);
       return;
     }
     const c = {e, t: e.type, list, multi: list.length > 1};
@@ -373,6 +418,12 @@
     });
     refresh({});
   }
+  function setPflt(fn) {
+    touch();
+    fn(S.pflt);
+    S.pfp = Object.keys(S.pflt).length ? 'custom' : 'Original';
+    refresh({});
+  }
   $('#props').addEventListener(
     'toggle',
     ev => {
@@ -414,6 +465,31 @@
       }
       return;
     }
+    if (t.dataset.pf) {
+      const f = t.dataset.pf;
+      if (f === 'duo0' || f === 'duo1')
+        setPflt(p => {
+          const d = (p.duo || ['#020821', '#3fe0ff']).slice();
+          d[f === 'duo0' ? 0 : 1] = t.value;
+          p.duo = d;
+          delete p.pal;
+        });
+      else if (f === 'pal')
+        setPflt(p => {
+          t.value ? (p.pal = t.value) : delete p.pal;
+        });
+      else {
+        const v = parseFloat(t.value);
+        setPflt(p => {
+          v ? (p[f] = v) : delete p[f];
+        });
+        const sp = $(`#props [data-pfv="${f}"]`);
+        if (sp) sp.textContent = v;
+      }
+      $$('#props [data-pfp].on').forEach(b => b.classList.remove('on'));
+      $('#pfltreset').disabled = !Object.keys(S.pflt).length;
+      return;
+    }
     if (t.id === 'rlock') {
       S.rlock = t.checked;
       return;
@@ -452,7 +528,22 @@
   $('#props').addEventListener('click', ev => {
     const q = s => ev.target.closest(s);
     let b;
-    if ((b = q('[data-fp]'))) {
+    if ((b = q('[data-pfp]'))) {
+      touch(true);
+      S.pflt = JSON.parse(JSON.stringify(PRESETS[b.dataset.pfp]));
+      S.pfp = b.dataset.pfp;
+      refresh({props: true});
+    } else if (q('[data-pduooff]')) {
+      touch(true);
+      delete S.pflt.duo;
+      S.pfp = Object.keys(S.pflt).length ? 'custom' : 'Original';
+      refresh({props: true});
+    } else if (q('#pfltreset')) {
+      touch(true);
+      S.pflt = {};
+      S.pfp = 'Original';
+      refresh({props: true});
+    } else if ((b = q('[data-fp]'))) {
       const n = b.dataset.fp;
       touch(true);
       selEls()
