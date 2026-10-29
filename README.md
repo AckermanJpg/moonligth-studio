@@ -55,6 +55,8 @@ A cada imagen se le puede aplicar:
 - Quitar fondo.
 - Máscara con forma, volteo, contorno tipo sticker y control del tamaño del píxel.
 
+Con nada seleccionado, la sección «Filtro del proyecto» de Propiedades aplica los mismos presets y ajustes a toda la página, como una capa de ajuste: fondo, textos, formas, íconos e imágenes, en todas las páginas. El filtro se ve en el lienzo y sale en todas las descargas, y se suma al filtro propio de cada imagen.
+
 ### GIF y video en el diseño
 
 Desde la pestaña Imágenes se puede agregar un GIF animado (hasta 8 MB y 300 cuadros) o un video MP4 o WebM (hasta 30 MB y 15 s) como un objeto más: se mueve, se redimensiona, se gira, cambia de opacidad y de capa, y se deshace igual que una imagen. Se reproduce en bucle y siempre sin sonido. El tipo se reconoce por los primeros bytes del archivo, no por la extensión.
@@ -188,9 +190,9 @@ Dado el tamaño final, el de la hoja, el margen y el traslape, se calcula cuánt
 
 ## Versiones
 
-Versión actual: **1.4.0** (2026-10-28). Del 15 de octubre al 2 de noviembre la interfaz usa un tema de Halloween (naranja calabaza, morado y azul noche, con luna y murciélagos en el inicio) que no se puede apagar. Agrega contenido de Halloween que se queda todo el año: 6 sprites pixel, 4 plantillas, 2 combos de fondo por estilo y la paleta «Halloween». También guarda como PNG los GIF sin movimiento que se suben y nombra en español los íconos de Capas.
+Versión actual: **1.5.0** (2026-10-29). Agrega el filtro del proyecto: los mismos presets y ajustes del filtro de imagen, aplicados sobre todo lo que se ve en todas las páginas, en el lienzo y en todas las exportaciones. Se guarda con el proyecto y se puede deshacer.
 
-Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.4.0`, `v1.3.1`, `v1.3.0`, `v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
+Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.5.0`, `v1.4.0`, `v1.3.1`, `v1.3.0`, `v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
 
 ## Estado del proyecto
 

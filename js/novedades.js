@@ -1,5 +1,15 @@
 window.MoonNews = [
   {
+    v: '1.5.0',
+    date: '2026-10-29',
+    notes: [
+      'Nuevo Filtro del proyecto: sin nada seleccionado, en Propiedades eliges un filtro que se aplica a todo el diseño, en todas las páginas, igual que a una foto.',
+      'Lo ves en el lienzo y sale en todas las descargas: PNG, JPG, WEBP, PDF, varios tamaños, GIF animado y video, y también al presentar.',
+      'Mientras mueves, cambias el tamaño o escribes, el lienzo se ve sin el filtro para que todo vaya fluido; al soltar vuelve.',
+      'Deshacer y rehacer también cubren el filtro, y se guarda con tu proyecto.',
+    ],
+  },
+  {
     v: '1.4.0',
     date: '2026-10-28',
     notes: [

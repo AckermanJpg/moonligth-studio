@@ -4,6 +4,28 @@ Cada versión corresponde a una tanda de cambios publicada con un solo push. Los
 
 La sección «Para quien usa Moonlight» es la que aparece en el botón Novedades de la página, palabra por palabra. Debajo va el detalle técnico de cada cambio, con el commit que lo hizo y, cuando hay, la medición.
 
+## [1.5.0] - 2026-10-29
+
+### Para quien usa Moonlight
+
+- Nuevo Filtro del proyecto: sin nada seleccionado, en Propiedades eliges un filtro que se aplica a todo el diseño, en todas las páginas, igual que a una foto.
+- Lo ves en el lienzo y sale en todas las descargas: PNG, JPG, WEBP, PDF, varios tamaños, GIF animado y video, y también al presentar.
+- Mientras mueves, cambias el tamaño o escribes, el lienzo se ve sin el filtro para que todo vaya fluido; al soltar vuelve.
+- Deshacer y rehacer también cubren el filtro, y se guarda con tu proyecto.
+
+### Agregado
+
+- Filtro del proyecto: estado `S.pflt` (los mismos parámetros que `e.flt`) y `S.pfp` (nombre del preset; `'custom'` tras un ajuste manual y `'Original'` sin filtro). Viajan en `snapshot`, así que van en el autoguardado, en el JSON exportado y en deshacer/rehacer. `restore` y `openProject` los leen con `{}` y `'Original'` por defecto, y crear un proyecto los reinicia. `validateProject` rechaza con «filtro del proyecto inválido» un `pflt` que no sea un objeto, que tenga claves fuera de `FSL`, `pal` o `duo`, un ajuste que no sea número, una paleta que no exista en `PALS` o un duotono que no sean dos colores `#rrggbb`. Un JSON de v1.4.0 sin estos campos abre igual (d631cfd).
+- Sección «Filtro del proyecto» en Propiedades cuando no hay nada seleccionado (`PROPS.page()`): los 37 presets con miniatura de la página actual, «Ajustes manuales» con los mismos 21 controles de `FSL`, «Paleta y duotono» y «Quitar filtro». Usa sus propios atributos (`data-pfp`, `data-pf`, `data-pfv`, `data-pduooff`, `#pfltreset`); el filtro por imagen no cambia (d631cfd).
+- `renderPageCanvas(p, scale, pick, flt = S.pflt)` aplica `applyFilter` sobre la página completa después de dibujar el fondo y los elementos, y se suma al filtro propio de cada imagen. Así lo llevan PNG, JPG, WEBP, PDF, ZIP, varios tamaños, Presentar, las miniaturas de páginas y los estudios. `pageAnimator` dibuja la base sin filtro y filtra cada cuadro compuesto antes de ponerlo sobre blanco, para el GIF animado y el video. Las plantillas (inicio y panel), el cuentagotas y «Colores de la foto» del kit de marca pasan `null` y se ven como antes (d631cfd).
+- Vista previa en el lienzo: un `<canvas class="pflt">` entre los elementos y las guías, con `pointer-events: none`, así que los clics, la selección y las guías funcionan como antes. Se calcula a la escala de la pantalla (`S.zoom × devicePixelRatio`, máximo 1×). Si un recálculo pasa de 100 ms, los siguientes con los mismos tipos de ajuste bajan la escala para quedar cerca de 80 ms. Mientras dura un gesto de `drag()` (mover, redimensionar, girar, recuadro, guías, recorte, dibujo) o la edición de un texto en el lienzo, la capa se oculta y se recalcula una sola vez al soltar. Los cambios desde el panel la ocultan y la recalculan tras 150 ms sin cambios. Si la página no cambió, no se recalcula (82f8474).
+- Pruebas `tests/filtro-proyecto.spec.js` (18): Gris en fondo, texto y forma del PNG exportado en las dos páginas; PNG idéntico píxel a píxel a `renderPageCanvas` + `applyFilter` con Nítido; cuadros del GIF/video idénticos a la página filtrada sobre blanco; suma con el filtro de una imagen; miniaturas y Presentar con filtro y plantillas sin filtro; guardar, recargar, Cargar JSON y abrir archivo conservan el filtro; JSON de v1.4.0 sin `pflt`; cinco `pflt` inválidos; deshacer y rehacer; controles de la sección; ningún `applyFilter` global durante un arrastre con pausas de 400 ms y uno solo al soltar; una sola vez tras 150 ms con cinco ajustes seguidos; capa sin eventos y ordenada entre `.clip` y `.ovl`; capa oculta mientras se escribe en un texto.
+
+### Medido
+
+- Chromium headless, 1080×1080, mediana de 5: `renderPageCanvas` con el filtro a 1× tarda 114 ms con Nítido, 114 con Bordes y 99 con Relieve; los otros 34 presets tardan menos de 60 ms. A 0,75× el peor es 68 ms y a 0,5× es 34 ms.
+- Recalcular la vista con Nítido en 1080×1080, medido con `longtask` en 3 corridas de 4 arrastres: con el zoom de ajuste (0,34) tarda de 13 a 15 ms y no hay tareas largas. Con zoom 1, el primer cálculo al elegir el preset tarda de 107 a 108 ms (tarea de 109 a 110 ms) y desde ahí la escala baja a 0,85 y cada soltar tarda de 78 a 81 ms.
+
 ## [1.4.0] - 2026-10-28
 
 ### Para quien usa Moonlight
