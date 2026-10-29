@@ -68,6 +68,15 @@
   --f-ui: "Pixelify Sans", "DotGothic16", sans-serif;
   color-scheme: dark;
 }
+*,
+*::before,
+*::after {
+  font-variant-ligatures: none !important;
+}
+#page .el .txt,
+#page .el .txt * {
+  font-variant-ligatures: normal !important;
+}
 * {
   box-sizing: border-box;
 }
