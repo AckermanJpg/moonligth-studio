@@ -1,6 +1,7 @@
 // Conversion: jpg / png / pdf / zip
 (() => {
   Object.assign(window, {buildPDF, buildZip, saveFile, doExport, convertImages, importPDF});
+  Object.assign(window, {shareExport, canShareFiles});
   const extOf = m => (m === 'image/png' ? 'png' : m === 'image/webp' ? 'webp' : 'jpg');
   Object.assign(window, {extOf});
   const toBlob = (c, t, q) => new Promise(r => c.toBlob(r, t, q));
@@ -299,30 +300,31 @@
       tr.close();
     }
   }
-  async function doExport() {
-    const c = S.conv;
-    if (c.fmt === 'gif' || c.fmt === 'video') return exportAnimated();
-    toast('Generando…');
-    await loadFonts();
-    const idxs = c.pages === 'all' ? S.pages.map((_, i) => i) : [S.cur],
+  async function pageImage(i) {
+    const c = S.conv,
       png = c.fmt === 'png' || c.fmt === 'webp',
-      mime = c.fmt === 'png' ? 'image/png' : c.fmt === 'webp' ? 'image/webp' : 'image/jpeg';
-    const base = slug(S.name),
-      out = [];
-    const flat = cn => {
-      if (png) return cn;
+      mime = c.fmt === 'png' ? 'image/png' : c.fmt === 'webp' ? 'image/webp' : 'image/jpeg',
+      p = S.pages[i];
+    let cn = renderPageCanvas(png && c.transp ? {...p, bg: {...p.bg, pat: 'none'}} : p, c.scale);
+    if (!png) {
       const f = cv(cn.width, cn.height),
         fx = f.getContext('2d');
       fx.fillStyle = '#ffffff';
       fx.fillRect(0, 0, f.width, f.height);
       fx.drawImage(cn, 0, 0);
-      return f;
-    };
-    for (const i of idxs) {
-      const p = S.pages[i],
-        cn = flat(renderPageCanvas(png && c.transp ? {...p, bg: {...p.bg, pat: 'none'}} : p, c.scale));
-      out.push({cn, blob: await toBlob(cn, mime, c.q / 100)});
+      cn = f;
     }
+    return {cn, blob: await toBlob(cn, mime, c.q / 100)};
+  }
+  async function doExport() {
+    const c = S.conv;
+    if (c.fmt === 'gif' || c.fmt === 'video') return exportAnimated();
+    toast('Generando…');
+    await loadFonts();
+    const idxs = c.pages === 'all' ? S.pages.map((_, i) => i) : [S.cur];
+    const base = slug(S.name),
+      out = [];
+    for (const i of idxs) out.push(await pageImage(i));
     const ext = extOf(out[0].blob.type);
     if (c.fmt === 'pdf') {
       const pgs = [];
@@ -344,6 +346,43 @@
         data: new Uint8Array(await out[i].blob.arrayBuffer()),
       });
     saveFile(base + '.zip', buildZip(files));
+  }
+  function canShareFiles() {
+    try {
+      return (
+        location.protocol !== 'file:' &&
+        !!navigator.canShare &&
+        !!navigator.share &&
+        navigator.canShare({files: [new File([''], 'prueba.png', {type: 'image/png'})]})
+      );
+    } catch {
+      return false;
+    }
+  }
+  async function shareExport(b) {
+    const key = snapshot() + JSON.stringify(S.conv);
+    let file = b._key === key && b._file;
+    b._file = null;
+    b.textContent = 'Compartir';
+    try {
+      if (!file) {
+        b.disabled = true;
+        toast('Generando…');
+        await loadFonts();
+        const {blob} = await pageImage(S.cur);
+        file = new File([blob], `${slug(S.name)}.${extOf(blob.type)}`, {type: blob.type});
+        b.disabled = false;
+      }
+      await navigator.share({files: [file]});
+    } catch (err) {
+      b.disabled = false;
+      if (err.name === 'NotAllowedError') {
+        b._file = file;
+        b._key = key;
+        b.textContent = 'Compartir ahora';
+        toast('La imagen está lista: toca Compartir ahora');
+      } else if (err.name !== 'AbortError') toast('No se pudo compartir; usa Descargar');
+    }
   }
   async function convertImages(list, fmt) {
     const fs = [...list].filter(f => f.type.startsWith('image/'));

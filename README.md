@@ -101,6 +101,7 @@ Desde un clip también se pueden convertir sus cuadros en páginas del editor pa
 ### Exportar y convertir
 
 - Imagen: PNG, JPG, WebP, a escala 0.5×, 1× o 2×. Los GIF y videos salen con el cuadro que se ve en ese momento.
+- Compartir: con PNG, JPG o WebP y «Página actual», el botón Compartir abre el menú del sistema para mandar la imagen a Instagram u otras apps. Solo aparece en navegadores que pueden compartir archivos (sobre todo en el celular) y en la página publicada por https; abierto como archivo (`file://`) no se muestra. Usa el mismo archivo que Descargar. Si el navegador pide un segundo toque, el botón pasa a «Compartir ahora» con la imagen ya lista.
 - GIF animado de la página actual: combina el fondo y las capas con los cuadros de sus GIF y videos. Se eligen los cuadros por segundo y la duración (por defecto, la del medio más largo).
 - Video de la página actual, grabado en tiempo real: MP4 si el navegador lo permite y si no WebM.
 - PDF de una o varias páginas.

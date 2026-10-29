@@ -299,6 +299,7 @@
     ${c.fmt === 'png' || c.fmt === 'webp' ? `<div class="row"><input type="checkbox" id="cvtransp"${c.transp || pg().bg.pat === 'none' ? ' checked' : ''}${pg().bg.pat === 'none' ? ' disabled' : ''}><label for="cvtransp" style="min-width:0">Fondo transparente</label></div>` : ''}
     ${anim ? '' : `<div class="row"><label>Calidad</label><input type="range" data-cv="q" min="50" max="100" value="${c.q}"><span id="qv">${c.q}</span></div>`}
     <button class="btn" id="cvgo" style="width:100%">${anim ? (c.fmt === 'gif' ? 'Descargar GIF animado' : 'Grabar y descargar video') : `Descargar ${c.fmt.toUpperCase()}${all && c.fmt !== 'pdf' ? ' (ZIP)' : ''}`}</button>
+    ${!anim && !all && ['png', 'jpg', 'webp'].includes(c.fmt) && canShareFiles() ? '<button class="btn" id="cvshare" style="width:100%;margin-top:6px">Compartir</button>' : ''}
     <div class="sumline">Salida: <b>${Math.round(S.w * c.scale)} × ${Math.round(S.h * c.scale)} px</b></div>
     <p class="hint">${anim ? (c.fmt === 'gif' ? 'Se combinan el fondo y las capas de la página actual con los cuadros de sus GIF y videos. Si salen demasiados cuadros, el tamaño se reduce.' : 'Se graba la página actual en tiempo real (tarda lo que dura), sin sonido.') : c.fmt === 'pdf' ? 'El PDF lleva cada página elegida como imagen.' : all ? 'Con varias páginas recibes un ZIP con un archivo por página.' : 'Se guarda una imagen de la página actual.'}</p>${S.pages.some(p => p.bg.pat === 'none') ? `<p class="hint" style="color:var(--gold)">${c.fmt === 'png' ? 'Tu fondo es transparente: el PNG lo conserva.' : 'Tu fondo es transparente. JPG y PDF lo rellenan de blanco; usa PNG para conservarlo.'}</p>` : ''}
     <div class="row"><button class="btn sm" id="cvprev">Vista previa / JSON</button>${projectCredits().length ? '<button class="btn sm" id="credcopy">Copiar créditos</button>' : ''}</div>
@@ -695,6 +696,7 @@
       S.conv[k] = v;
       renderPanel();
     } else if (q('#cvgo')) doExport();
+    else if ((b = q('#cvshare'))) shareExport(b);
     else if (q('#cvprev')) openExport();
     else if (q('#credcopy'))
       navigator.clipboard.writeText(projectCredits().join('\n')).then(
