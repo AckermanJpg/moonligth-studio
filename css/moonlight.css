@@ -2324,6 +2324,16 @@ details.sec > :not(summary) {
   #more-btn {
     display: block;
   }
+  #home .hhead .btn,
+  #export-btn,
+  #cvgo,
+  #cvshare {
+    min-height: 44px;
+  }
+  a.btn {
+    display: inline-flex;
+    align-items: center;
+  }
   #news-bar {
     display: none;
   }
@@ -2389,6 +2399,9 @@ details.sec > :not(summary) {
   }
   #top.open .menu-item .btn {
     min-height: 36px;
+  }
+  #top.open .menu-ver .btn {
+    min-height: 44px;
   }
   #top.open .menu-home {
     top: 62px;
