@@ -8,6 +8,7 @@
     sun: ['#1a0a4a', '#ff3d6e', '#ffd84a', '#fff7d6'],
     neo: ['#050d2b', '#8a2be2', '#1de9b6', '#f4fcff'],
     sepia: ['#2b1a0e', '#6b4423', '#c49a6c', '#f5e6c8'],
+    halloween: ['#120a24', '#5b2a86', '#ff7a1a', '#ffe0a8'],
   };
   Object.assign(window, {PALS});
   const PALN = {
@@ -17,6 +18,7 @@
     sun: 'Atardecer',
     neo: 'Neón',
     sepia: 'Sepia',
+    halloween: 'Halloween',
   };
   Object.assign(window, {PALN});
   const PRESETS = {

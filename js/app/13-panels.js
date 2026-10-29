@@ -64,6 +64,8 @@
     ['#1a5cff', '#d6f8ff'],
     ['#000000', '#8a2be2'],
     ['#ffffff', '#d6f8ff'],
+    ['#140a2e', '#ff8c1a'],
+    ['#020821', '#6a2c91'],
   ];
   const BG_COMBOS_NORMAL = [
     ['#ffffff', '#e5e7eb'],
@@ -72,6 +74,8 @@
     ['#10b981', '#06b6d4'],
     ['#111827', '#4b5563'],
     ['#fde68a', '#fca5a5'],
+    ['#ff7518', '#5b21b6'],
+    ['#111827', '#f97316'],
   ];
   const STYLE_BASE = {normal: {px: 1, fill: '#3b82f6'}, pixel: {}};
   const styleSeg = () =>
