@@ -535,6 +535,7 @@
       refresh({props: true});
     } else if (q('[data-pduooff]')) {
       touch(true);
+      $(`#props [data-pfp="${S.pfp}"]`).focus();
       delete S.pflt.duo;
       S.pfp = Object.keys(S.pflt).length ? 'custom' : 'Original';
       refresh({props: true});
@@ -555,6 +556,7 @@
       refresh({props: true});
     } else if ((b = q('[data-crop]'))) {
       b.dataset.crop === 'open'
+      $(`#props [data-fp="${n}"]`).focus();
         ? openCrop()
         : (() => {
             const e = prim();
