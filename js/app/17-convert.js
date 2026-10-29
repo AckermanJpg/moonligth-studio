@@ -348,12 +348,14 @@
     saveFile(base + '.zip', buildZip(files));
   }
   function canShareFiles() {
+    const f = S.conv.fmt,
+      type = f === 'png' ? 'image/png' : f === 'webp' ? 'image/webp' : 'image/jpeg';
     try {
       return (
         location.protocol !== 'file:' &&
         !!navigator.canShare &&
         !!navigator.share &&
-        navigator.canShare({files: [new File([''], 'prueba.png', {type: 'image/png'})]})
+        navigator.canShare({files: [new File([''], 'prueba.' + extOf(type), {type})]})
       );
     } catch {
       return false;

@@ -211,3 +211,28 @@ test('otro error al compartir avisa sin romper Descargar', async ({page}) => {
   const [d] = await Promise.all([page.waitForEvent('download'), page.click('#cvgo')]);
   expect(d.suggestedFilename()).toMatch(/\.png$/);
 });
+
+test('el botón aparece solo con los formatos que canShare acepta', async ({page}) => {
+  await page.addInitScript(() => {
+    window.__preguntas = [];
+    Object.defineProperty(navigator, 'canShare', {
+      configurable: true,
+      value: d => {
+        window.__preguntas.push(d.files[0].type);
+        return d.files[0].type !== 'image/webp';
+      },
+    });
+    Object.defineProperty(navigator, 'share', {configurable: true, value: async () => {}});
+  });
+  await open(page);
+  await createProject(page);
+  for (const [fmt, tipo, hay] of [
+    ['png', 'image/png', 1],
+    ['jpg', 'image/jpeg', 1],
+    ['webp', 'image/webp', 0],
+  ]) {
+    await exportar(page, fmt);
+    await expect(page.locator('#cvshare')).toHaveCount(hay);
+    expect(await page.evaluate(() => window.__preguntas.at(-1))).toBe(tipo);
+  }
+});
