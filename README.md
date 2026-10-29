@@ -186,7 +186,6 @@ Dado el tamaño final, el de la hoja, el margen y el traslape, se calcula cuánt
 - Para separar piezas, las imágenes mayores de 3600 px se reducen antes de analizarlas.
 - El PDF del póster y de las piezas es de imágenes, no de vectores.
 - Todos los cálculos pesados corren en el hilo principal. Separar un logo de 3600 por 2400 px tarda alrededor de un segundo.
-- No hay pruebas automáticas en el repositorio.
 
 ## Versiones
 
@@ -196,7 +195,7 @@ Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git 
 
 ## Estado del proyecto
 
-Las pruebas se hicieron a mano y con scripts temporales sobre Chromium, y el código pasa ESLint sin avisos con una configuración local que no está en el repositorio.
+Hay pruebas automáticas con Playwright en `tests/`, sobre Chromium: `npm test` corre todas y `npm run test:mobile` solo las de tamaños de teléfono. ESLint usa la configuración de `eslint.config.js` (`npm run lint`). GitHub Actions corre ESLint y todas las pruebas en cada push y en cada pull request (`.github/workflows/tests.yml`).
 
 ## Privacidad
 
