@@ -143,7 +143,7 @@ function readImage(f, max, out) {
           c = cv(Math.round(im.width * k), Math.round(im.height * k)),
           x = c.getContext('2d');
         x.drawImage(im, 0, 0, c.width, c.height);
-        let src = out ? c.toDataURL(out, 0.85) : f.type === 'image/png' && c.toDataURL('image/png');
+        let src = out ? c.toDataURL(out, 0.85) : ['image/png', 'image/gif'].includes(f.type) && c.toDataURL('image/png');
         if (!src || !src.startsWith(`data:${out || 'image/png'}`)) {
           const a = x.getImageData(0, 0, c.width, c.height).data;
           let alpha = false;

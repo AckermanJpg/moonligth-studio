@@ -63,6 +63,13 @@ test.describe('Transparencia de las imágenes subidas', () => {
     await subir(page, 'opaca.png');
     expect(await page.evaluate(() => prim().src.slice(0, 15))).toBe('data:image/png;');
   });
+
+  test('GIF de un cuadro sin transparencia se guarda como image/png', async ({page}) => {
+    await open(page);
+    await createProject(page);
+    await subir(page, 'opaca.gif');
+    expect(await page.evaluate(() => [prim().type, prim().src.slice(0, 15)])).toEqual(['image', 'data:image/png;']);
+  });
 });
 
 test.describe('Fondo transparente al descargar', () => {
