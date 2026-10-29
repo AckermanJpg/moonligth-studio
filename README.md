@@ -188,7 +188,7 @@ Dado el tamaño final, el de la hoja, el margen y el traslape, se calcula cuánt
 
 ## Versiones
 
-Versión actual: **1.4.0** (2026-10-28). Del 15 de octubre al 2 de noviembre la interfaz usa un tema de Halloween (naranja calabaza, morado y azul noche, con luna y murciélagos en el inicio) que no se puede apagar. Agrega contenido de Halloween que se queda todo el año: 6 sprites pixel, 4 plantillas, 2 combos de fondo por estilo y la paleta «Halloween».
+Versión actual: **1.4.0** (2026-10-28). Del 15 de octubre al 2 de noviembre la interfaz usa un tema de Halloween (naranja calabaza, morado y azul noche, con luna y murciélagos en el inicio) que no se puede apagar. Agrega contenido de Halloween que se queda todo el año: 6 sprites pixel, 4 plantillas, 2 combos de fondo por estilo y la paleta «Halloween». También guarda como PNG los GIF sin movimiento que se suben y nombra en español los íconos de Capas.
 
 Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.4.0`, `v1.3.1`, `v1.3.0`, `v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
 

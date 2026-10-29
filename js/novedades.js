@@ -6,6 +6,8 @@ window.MoonNews = [
       'Del 15 de octubre al 2 de noviembre, Moonlight se viste de Halloween: colores calabaza y morado, y una luna con murciélagos en el inicio.',
       'Nuevos íconos pixel: calabaza, murciélago, telaraña, sombrero de bruja, caramelo y vela.',
       'Cuatro plantillas de Halloween, dos fondos nuevos por estilo y la paleta Halloween para tus fotos. Se quedan todo el año.',
+      'Un GIF sin movimiento que subes se guarda como PNG y conserva sus colores exactos.',
+      'En Capas, los íconos aparecen con su nombre en español, como «Ícono calabaza».',
     ],
   },
   {

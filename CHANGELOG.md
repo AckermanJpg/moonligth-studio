@@ -11,6 +11,13 @@ La sección «Para quien usa Moonlight» es la que aparece en el botón Novedade
 - Del 15 de octubre al 2 de noviembre, Moonlight se viste de Halloween: colores calabaza y morado, y una luna con murciélagos en el inicio.
 - Nuevos íconos pixel: calabaza, murciélago, telaraña, sombrero de bruja, caramelo y vela.
 - Cuatro plantillas de Halloween, dos fondos nuevos por estilo y la paleta Halloween para tus fotos. Se quedan todo el año.
+- Un GIF sin movimiento que subes se guarda como PNG y conserva sus colores exactos.
+- En Capas, los íconos aparecen con su nombre en español, como «Ícono calabaza».
+
+### Arreglado
+
+- `readImage` guarda como PNG los GIF de entrada aunque no tengan transparencia, igual que los PNG. Un GIF de un solo cuadro y opaco salía como JPEG. Prueba «GIF de un cuadro sin transparencia se guarda como image/png» con el fixture `opaca.gif` (fcf0dbb).
+- La lista de Capas nombraba los sprites con su clave interna en inglés («Ícono pumpkin», «Ícono moon»). Ahora usa la primera palabra de `SPRN` («Ícono calabaza», «Ícono luna») (7525c4b).
 
 ### Agregado
 
@@ -21,11 +28,13 @@ La sección «Para quien usa Moonlight» es la que aparece en el botón Novedade
 
 ### Cambiado
 
+- Colores del tema: en temporada `--gold` pasa a lila `#d9b8ff`, para que el naranja sea el único acento cálido (4b0a34a). La vista previa «?» del inicio se dibuja con el nuevo token `--sprev` y con `--cyan`; fuera de temporada `--sprev` vale `#0b2a8a`, el mismo color de antes (c53d116).
+- `tests/contraste-temporada.spec.js` mide el inicio con los píxeles reales del canvas en tres posiciones de scroll y espera a que no quede ninguna animación finita en curso, comprobado dos veces (81f1ec0).
 - README: 49 íconos pixel (eran 43) y 32 plantillas. Decía 20 plantillas, pero antes de esta versión ya había 28.
 
 ### Medido
 
-- Contraste de los tokens de Halloween: texto claro sobre la base 16,69:1; lavanda sobre morado 6,29:1 o más; naranja sobre la base 8,44:1; texto oscuro sobre botón naranja 8,44:1; blanco sobre `--royal` 5,43:1. La luna (luminancia 0,047) y los murciélagos (0,044) se mantienen oscuros para que el texto que pasa encima siga en AA: el peor caso es naranja sobre la luna, 4,63:1.
+- Contraste de los tokens de Halloween: texto claro sobre la base 16,69:1; lavanda sobre morado 6,29:1 o más; naranja sobre la base 8,44:1; texto oscuro sobre botón naranja 8,44:1; blanco sobre `--royal` 5,43:1. La luna (luminancia 0,047) y los murciélagos (0,044) se mantienen oscuros, fijos y en todos los tamaños, para que el texto que pasa encima siga en AA: el peor caso es naranja sobre la luna, 4,63:1. Se probó una luna brillante anclada al contenido desde 900 px, pero la prueba de contraste falló más de 10 de 20 repeticiones a 1440 px («Lo que puedes crear» a 1,41:1 sobre la luna) y se descartó.
 - Fuera de temporada (10 de junio), el inicio y el editor a 1440 y 375 px salen idénticos píxel por píxel al commit anterior (34881f2).
 
 ## [1.3.1] - 2026-10-28
