@@ -236,3 +236,10 @@ test('el botón aparece solo con los formatos que canShare acepta', async ({page
     expect(await page.evaluate(() => window.__preguntas.at(-1))).toBe(tipo);
   }
 });
+
+test('la Ayuda menciona Compartir en el punto de Descarga', async ({page}) => {
+  await open(page);
+  await page.click('#home [data-act="help"]');
+  const p = page.locator('#mbox h4', {hasText: 'Descarga'}).locator('xpath=following-sibling::p[1]');
+  await expect(p).toContainText('Compartir');
+});

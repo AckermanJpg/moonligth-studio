@@ -865,7 +865,7 @@ let savedInfo;
   <h4>Crear GIF</h4><p><b>Crear GIF</b> combina videos e imágenes (o páginas de tu diseño) en un GIF animado: recortas cada video, eliges la duración de cada imagen y puedes unirlos con fundido.</p>
   <h4>Reglas y guías</h4><p>Arrastra desde la regla de arriba o la de la izquierda para crear una guía. Los objetos se pegan a ellas. Para quitarla, arrástrala de vuelta a la regla; <b>Quitar guías</b> borra todas. El botón <b>Reglas</b> las oculta.</p>
   <h4>5 · Cambiar el tamaño</h4><p>Pulsa el recuadro con los píxeles de la barra superior, o abre <b>Tamaño</b>.</p>
-  <h4>6 · Descarga</h4><p>En <b>Exportar</b> descargas JPG, PNG o PDF. También puedes convertir un PDF en páginas editables.</p>
+  <h4>6 · Descarga</h4><p>En <b>Exportar</b> descargas JPG, PNG o PDF. Desde el celular, <b>Compartir</b> manda la imagen PNG, JPG o WEBP de la página actual a Instagram u otras apps. También puedes convertir un PDF en páginas editables.</p>
   <h4>Instagram</h4><p>La cuenta del proyecto es @moonlight___studio__: ${IG_LINK}</p>
   <h4>Atajos</h4><p><kbd>Ctrl+Z</kbd> deshacer · <kbd>Ctrl+Y</kbd> rehacer · <kbd>Ctrl+D</kbd> duplicar · <kbd>Supr</kbd> borrar · <kbd>Flechas</kbd> mover · <kbd>Shift+clic</kbd> varios objetos · <kbd>Ctrl+rueda</kbd> zoom</p>
   <div class="row"><button class="btn sm warn" id="xclose">Cerrar</button></div>`;
