@@ -532,6 +532,8 @@ let savedInfo;
   }
   const LOGO_MARK = $('#logo svg').outerHTML;
   let homeKey = '';
+  const IG_LINK =
+    '<a class="btn sm" href="https://www.instagram.com/moonlight___studio__/" target="_blank" rel="noopener noreferrer" aria-label="Moonlight Studio en Instagram">Instagram</a>';
   function adoptHome() {
     homeEl.removeAttribute('data-static');
     const body = $('.hbody', homeEl);
@@ -551,6 +553,7 @@ let savedInfo;
     if (adopt) adoptHome();
     else
       homeEl.innerHTML = `<div class="hwrap"><div class="hhead"><span class="sp"></span>
+    ${IG_LINK}
     <button class="btn sm" data-act="news"><span aria-hidden="true">★</span> Novedades</button>
     <button class="btn sm" data-act="help">? Ayuda</button>${S.active ? '<button class="btn sm on" data-act="close">Volver al editor</button>' : ''}</div>
     <div class="hmain${st === 1 ? ' cover' : ''}"><section class="hbody">${homeBody()}
@@ -863,6 +866,7 @@ let savedInfo;
   <h4>Reglas y guías</h4><p>Arrastra desde la regla de arriba o la de la izquierda para crear una guía. Los objetos se pegan a ellas. Para quitarla, arrástrala de vuelta a la regla; <b>Quitar guías</b> borra todas. El botón <b>Reglas</b> las oculta.</p>
   <h4>5 · Cambiar el tamaño</h4><p>Pulsa el recuadro con los píxeles de la barra superior, o abre <b>Tamaño</b>.</p>
   <h4>6 · Descarga</h4><p>En <b>Exportar</b> descargas JPG, PNG o PDF. También puedes convertir un PDF en páginas editables.</p>
+  <h4>Instagram</h4><p>La cuenta del proyecto es @moonlight___studio__: ${IG_LINK}</p>
   <h4>Atajos</h4><p><kbd>Ctrl+Z</kbd> deshacer · <kbd>Ctrl+Y</kbd> rehacer · <kbd>Ctrl+D</kbd> duplicar · <kbd>Supr</kbd> borrar · <kbd>Flechas</kbd> mover · <kbd>Shift+clic</kbd> varios objetos · <kbd>Ctrl+rueda</kbd> zoom</p>
   <div class="row"><button class="btn sm warn" id="xclose">Cerrar</button></div>`;
     $('#modal').classList.add('on');

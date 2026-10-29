@@ -217,6 +217,10 @@ h4::after {
     background 0.12s,
     color 0.12s;
 }
+a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
 .btn:hover {
   background: var(--royal);
 }

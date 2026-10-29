@@ -10,6 +10,8 @@ No tiene servidor, cuenta ni base de datos. Es HTML, CSS y JavaScript sin framew
 
 Puedes probarlo en línea en https://ackermanjpg.github.io/moonligth-studio/ o descargarlo y abrir `index.html` con el navegador. No hace falta instalar nada ni levantar un servidor. Está probado en Chromium y Firefox; los demás navegadores modernos deberían servir. Los GIF animados se leen con un decodificador propio, así que no dependen de `ImageDecoder`.
 
+La cuenta del proyecto está en [Moonlight Studio en Instagram](https://www.instagram.com/moonlight___studio__/) (usuario `moonlight___studio__`).
+
 Necesita conexión a internet para cuatro cosas:
 
 - las tipografías (Google Fonts),
