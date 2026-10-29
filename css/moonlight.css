@@ -2466,6 +2466,7 @@ details.sec > :not(summary) {
   --ice: #ffe9d1;
   --white: #fff8f0;
   --mute: #c7a6ff;
+  --gold: #d9b8ff;
   --field: #0d0828;
 }
 [data-temporada="halloween"] #home {
