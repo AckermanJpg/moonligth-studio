@@ -4,6 +4,30 @@ Cada versión corresponde a una tanda de cambios publicada con un solo push. Los
 
 La sección «Para quien usa Moonlight» es la que aparece en el botón Novedades de la página, palabra por palabra. Debajo va el detalle técnico de cada cambio, con el commit que lo hizo y, cuando hay, la medición.
 
+## [1.4.0] - 2026-10-28
+
+### Para quien usa Moonlight
+
+- Del 15 de octubre al 2 de noviembre, Moonlight se viste de Halloween: colores calabaza y morado, y una luna con murciélagos en el inicio.
+- Nuevos íconos pixel: calabaza, murciélago, telaraña, sombrero de bruja, caramelo y vela.
+- Cuatro plantillas de Halloween, dos fondos nuevos por estilo y la paleta Halloween para tus fotos. Se quedan todo el año.
+
+### Agregado
+
+- Tema de temporada: `js/temporada.js`, cargado en el `<head>` después de la hoja de estilos, marca `data-temporada="halloween"` en `<html>` del 15 de octubre al 2 de noviembre según la fecha local, ambos días incluidos. No hay botón ni ajuste para apagarlo, y no se guarda nada en el navegador. `css/moonlight.css` cambia bajo ese atributo los tokens (`--cyan` pasa a naranja calabaza `#ff8c1a`; `--navy`, `--blue` y `--royal` a morados; la base sigue en azul noche) y los pocos colores fijos que eran cian o azul: el degradado del inicio y del lienzo, las franjas del inicio, el foco de los campos, el panel de propiedades, el cuadriculado de transparencia, el recuadro de selección y las sombras del riel en móvil (11c8043).
+- Luna llena y 5 murciélagos en el fondo de estrellas del inicio (`js/starfield.js`), solo durante la temporada. Los murciélagos usan el sprite `bat` del editor. Con `prefers-reduced-motion` el fondo se dibuja una sola vez y los murciélagos quedan quietos (11c8043).
+- Contenido disponible todo el año: sprites `pumpkin`, `bat`, `web`, `witchhat`, `candy` y `candle` (originales, con nombre para buscar en `SPRN`); plantillas «Post de Halloween» y «Fiesta de Halloween» (Normal), «Cartel de Halloween» e «Insignia de Halloween (PNG)» (Pixel); dos combos de fondo por estilo en `BG_COMBOS_PIXEL` y `BG_COMBOS_NORMAL`; paleta «Halloween» en `PALS`/`PALN`. La instantánea `tests/fixtures/filtros.json` suma solo las claves `paleta:halloween:0` y `paleta:halloween:60` (60fe364).
+- Pruebas `tests/temporada.spec.js` (reloj fijado el 14 oct, 15 oct, 31 oct, 2 nov y 3 nov en hora de Ciudad de México; ningún control nuevo para apagar el tema; murciélagos quietos con movimiento reducido), `tests/halloween.spec.js` (sprites, plantillas, combos y paleta en junio y en octubre, sin errores en la consola) y `tests/contraste-temporada.spec.js` (cálculo de contraste propio sobre cada texto visible del inicio y del editor a 1440 y 375 px, con todas las paradas de los degradados, los `::before` y los colores de la luna y los murciélagos como posibles fondos).
+
+### Cambiado
+
+- README: 49 íconos pixel (eran 43) y 32 plantillas. Decía 20 plantillas, pero antes de esta versión ya había 28.
+
+### Medido
+
+- Contraste de los tokens de Halloween: texto claro sobre la base 16,69:1; lavanda sobre morado 6,29:1 o más; naranja sobre la base 8,44:1; texto oscuro sobre botón naranja 8,44:1; blanco sobre `--royal` 5,43:1. La luna (luminancia 0,047) y los murciélagos (0,044) se mantienen oscuros para que el texto que pasa encima siga en AA: el peor caso es naranja sobre la luna, 4,63:1.
+- Fuera de temporada (10 de junio), el inicio y el editor a 1440 y 375 px salen idénticos píxel por píxel al commit anterior (34881f2).
+
 ## [1.3.1] - 2026-10-28
 
 ### Para quien usa Moonlight

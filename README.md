@@ -28,7 +28,7 @@ El lienzo se mide en píxeles, de 16 a 5000 por lado, y un proyecto puede tener 
 Los objetos que se pueden agregar:
 
 - 11 formas: cuadrado, círculo, triángulo, rombo, estrella, hexágono, corazón, marco, anillo, línea y flecha.
-- 43 íconos y pegatinas en pixel art.
+- 49 íconos y pegatinas en pixel art.
 - Texto, con 43 fuentes agrupadas en cuatro familias (pixel, impacto, elegantes y manuscritas, limpias y monoespaciadas).
 - Código QR y gráficos de barras, líneas y pastel a partir de datos escritos a mano.
 - 9 cuadrículas de collage con celdas donde se arrastran fotos.
@@ -40,7 +40,7 @@ Para trabajar con varios objetos hay selección múltiple, grupos, alineación y
 
 También hay:
 
-- 20 plantillas listas para editar.
+- 32 plantillas listas para editar.
 - 8 tipos de fondo: transparente, color liso, degradado, rayas, ajedrez, puntos, estrellas e imagen.
 - Un kit de marca (colores y fuentes) que se guarda aparte del proyecto.
 - Reglas y guías arrastrables. Se crean arrastrando desde una regla, los objetos se pegan a ellas, y se quitan llevándolas de vuelta a la regla.
@@ -188,9 +188,9 @@ Dado el tamaño final, el de la hoja, el margen y el traslape, se calcula cuánt
 
 ## Versiones
 
-Versión actual: **1.3.1** (2026-10-28). Libera la memoria del video elegido en el inicio cuando se cierra sin crear el diseño. La 1.3.0 permitió empezar un diseño con un GIF o un video desde el inicio, conservar la transparencia de las imágenes WebP, SVG y GIF, y descargar en PNG o WEBP con «Fondo transparente».
+Versión actual: **1.4.0** (2026-10-28). Del 15 de octubre al 2 de noviembre la interfaz usa un tema de Halloween (naranja calabaza, morado y azul noche, con luna y murciélagos en el inicio) que no se puede apagar. Agrega contenido de Halloween que se queda todo el año: 6 sprites pixel, 4 plantillas, 2 combos de fondo por estilo y la paleta «Halloween».
 
-Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.3.1`, `v1.3.0`, `v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
+Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.4.0`, `v1.3.1`, `v1.3.0`, `v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
 
 ## Estado del proyecto
 

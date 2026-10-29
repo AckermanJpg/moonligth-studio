@@ -1,5 +1,14 @@
 window.MoonNews = [
   {
+    v: '1.4.0',
+    date: '2026-10-28',
+    notes: [
+      'Del 15 de octubre al 2 de noviembre, Moonlight se viste de Halloween: colores calabaza y morado, y una luna con murciélagos en el inicio.',
+      'Nuevos íconos pixel: calabaza, murciélago, telaraña, sombrero de bruja, caramelo y vela.',
+      'Cuatro plantillas de Halloween, dos fondos nuevos por estilo y la paleta Halloween para tus fotos. Se quedan todo el año.',
+    ],
+  },
+  {
     v: '1.3.1',
     date: '2026-10-28',
     notes: ['Si eliges un video en el inicio y cierras sin crear el diseño, ya no se queda ocupando memoria.'],
