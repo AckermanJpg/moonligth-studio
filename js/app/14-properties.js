@@ -30,6 +30,7 @@
     `<details class="sec" data-sec="${k}"${secO(k, d) ? ' open' : ''}><summary>${title}</summary>${body}</details>`;
   Object.assign(window, {sec});
   let propsKey = '';
+  const PFLT_MEDIA = 'En el editor se ve en pausa con el filtro; al descargarlo se mueve con el filtro.';
   const PROPS = {
     page() {
       const b = pg().bg;
@@ -42,7 +43,7 @@
     pflt() {
       const f = S.pflt,
         du = f.duo || ['#020821', '#3fe0ff'];
-      return `<p class="hint">Se aplica sobre todo lo que se ve, en todas las páginas y al exportar.</p><div class="fgrid">${Object.keys(
+      return `<p class="hint">Se aplica sobre todo lo que se ve, en todas las páginas y al exportar.</p><p class="hint">La vista previa es aproximada en nitidez, bordes, relieve, desenfoque, ruido y CRT; la descarga es exacta.</p>${pg().els.some(e => e.type === 'media') ? `<p class="hint" id="pfmedia"${Object.keys(f).length ? '' : ' hidden'}>${PFLT_MEDIA}</p>` : ''}<div class="fgrid">${Object.keys(
         PRESETS,
       )
         .map(
@@ -210,7 +211,7 @@
         return sec(
           'media',
           'Reproducción',
-          `<p class="hint">${e.kind === 'gif' ? `${e.frames} cuadros` : 'Sin sonido'} · ${Math.round(e.dur * 10) / 10} s · ${e.nw} × ${e.nh} px</p><div class="row"><button type="button" class="btn sm on" data-mplay="1">${mediaPaused(e.id) ? 'Reproducir' : 'Pausar'}</button></div>`,
+          `<p class="hint">${e.kind === 'gif' ? `${e.frames} cuadros` : 'Sin sonido'} · ${Math.round(e.dur * 10) / 10} s · ${e.nw} × ${e.nh} px</p>${Object.keys(S.pflt).length ? `<p class="hint">${PFLT_MEDIA}</p>` : ''}<div class="row"><button type="button" class="btn sm on" data-mplay="1">${mediaPaused(e.id) ? 'Reproducir' : 'Pausar'}</button></div>`,
           true,
         );
       },
@@ -488,6 +489,7 @@
       }
       $$('#props [data-pfp].on').forEach(b => b.classList.remove('on'));
       $('#pfltreset').disabled = !Object.keys(S.pflt).length;
+      if ($('#pfmedia')) $('#pfmedia').hidden = !Object.keys(S.pflt).length;
       return;
     }
     if (t.id === 'rlock') {
@@ -533,9 +535,9 @@
       S.pflt = JSON.parse(JSON.stringify(PRESETS[b.dataset.pfp]));
       S.pfp = b.dataset.pfp;
       refresh({props: true});
+      $(`#props [data-pfp="${S.pfp}"]`).focus();
     } else if (q('[data-pduooff]')) {
       touch(true);
-      $(`#props [data-pfp="${S.pfp}"]`).focus();
       delete S.pflt.duo;
       S.pfp = Object.keys(S.pflt).length ? 'custom' : 'Original';
       refresh({props: true});
@@ -554,9 +556,9 @@
           e.fp = n;
         });
       refresh({props: true});
+      $(`#props [data-fp="${n}"]`).focus();
     } else if ((b = q('[data-crop]'))) {
       b.dataset.crop === 'open'
-      $(`#props [data-fp="${n}"]`).focus();
         ? openCrop()
         : (() => {
             const e = prim();

@@ -394,3 +394,95 @@ test('al escribir en un texto del lienzo la vista se oculta y vuelve al terminar
   expect(await vista(page)).toEqual([1, true]);
   expect(await page.evaluate(id => findEl(id).text, id)).toBe('XY');
 });
+
+test('con el teclado, el foco se queda en el preset elegido en los dos filtros', async ({page}) => {
+  await preparar(page);
+  const sec = page.locator('#props [data-sec="pflt"]');
+  await sec.locator('> summary').click();
+  await sec.locator('[data-pfp="Gris"]').focus();
+  await page.keyboard.press('Enter');
+  expect(await page.evaluate(() => [S.pfp, document.activeElement.dataset.pfp])).toEqual(['Gris', 'Gris']);
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Space');
+  expect(await page.evaluate(() => [S.pfp, document.activeElement.dataset.pfp])).toEqual(['Noir', 'Noir']);
+  await page.evaluate(() => {
+    const c = cv(40, 40);
+    c.getContext('2d').fillRect(0, 0, 40, 40);
+    addImage(c.toDataURL('image/png'), 400, 400);
+    refresh({props: true});
+  });
+  const flt = page.locator('#props [data-sec="flt"]');
+  if (!(await flt.evaluate(d => d.open))) await flt.locator('> summary').click();
+  await flt.locator('[data-fp="Sepia"]').focus();
+  await page.keyboard.press('Enter');
+  expect(await page.evaluate(() => [prim().fp, document.activeElement.dataset.fp])).toEqual([
+    'Sepia',
+    'Sepia',
+  ]);
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Enter');
+  expect(await page.evaluate(() => [prim().fp, document.activeElement.dataset.fp])).toEqual([
+    'Vintage',
+    'Vintage',
+  ]);
+});
+
+test('la sección avisa que la vista previa es aproximada en los filtros de píxeles', async ({page}) => {
+  await preparar(page);
+  await expect(page.locator('#props [data-sec="pflt"]')).toContainText(
+    'La vista previa es aproximada en nitidez, bordes, relieve, desenfoque, ruido y CRT; la descarga es exacta',
+  );
+});
+
+test('con filtro y un GIF en la página se avisa que el editor lo muestra en pausa, y el aviso se va al quitarlo', async ({
+  page,
+}) => {
+  const AVISO = 'En el editor se ve en pausa con el filtro; al descargarlo se mueve con el filtro';
+  await preparar(page);
+  const sec = page.locator('#props [data-sec="pflt"]');
+  await sec.locator('> summary').click();
+  await expect(sec).not.toContainText(AVISO);
+  await page.click('#rail [data-tab="images"]');
+  await page.setInputFiles('#file', {
+    name: 'anim.gif',
+    mimeType: 'image/gif',
+    buffer: fs.readFileSync(path.join(__dirname, 'fixtures', 'anim.gif')),
+  });
+  await page.waitForFunction(() => els().some(e => e.type === 'media'));
+  await expect(page.locator('#props')).not.toContainText(AVISO);
+  const id = await page.evaluate(() => prim().id);
+  await page.evaluate(() => {
+    S.sel = [];
+    refresh({props: true});
+  });
+  await expect(sec.getByText(AVISO)).toBeHidden();
+  await elegir(page, 'Gris');
+  await expect(sec.getByText(AVISO)).toBeVisible();
+  await page.evaluate(id => {
+    S.sel = [id];
+    refresh({props: true});
+  }, id);
+  await expect(page.locator('#props').getByText(AVISO)).toBeVisible();
+  await page.evaluate(() => {
+    S.sel = [];
+    refresh({props: true});
+  });
+  await sec.locator('#pfltreset').click();
+  await expect(sec.getByText(AVISO)).toBeHidden();
+  await page.locator('#props [data-sec="pfadj"] > summary').click();
+  await page.locator('#props input[data-pf="b"]').evaluate(i => {
+    i.value = '20';
+    i.dispatchEvent(new Event('input', {bubbles: true}));
+  });
+  await expect(sec.getByText(AVISO)).toBeVisible();
+  await page.locator('#props input[data-pf="b"]').evaluate(i => {
+    i.value = '0';
+    i.dispatchEvent(new Event('input', {bubbles: true}));
+  });
+  await expect(sec.getByText(AVISO)).toBeHidden();
+  await page.evaluate(id => {
+    S.sel = [id];
+    refresh({props: true});
+  }, id);
+  await expect(page.locator('#props')).not.toContainText(AVISO);
+});
