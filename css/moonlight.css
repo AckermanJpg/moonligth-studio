@@ -63,6 +63,7 @@
   --warn: #ff3d6e;
   --gold: #ffd84a;
   --field: #020a30;
+  --sprev: #0b2a8a;
   --f-display: "Jersey 25", "Pixelify Sans", sans-serif;
   --f-ui: "Pixelify Sans", "DotGothic16", sans-serif;
   color-scheme: dark;
@@ -2468,6 +2469,7 @@ details.sec > :not(summary) {
   --mute: #c7a6ff;
   --gold: #d9b8ff;
   --field: #0d0828;
+  --sprev: var(--blue);
 }
 [data-temporada="halloween"] #home {
   background: radial-gradient(circle at 15% 0, #2a1458, var(--ink) 65%);
