@@ -3,13 +3,18 @@
   Object.assign(window, {drag, endEdit});
   function drag(ev, move, end) {
     ev.preventDefault();
+    const held = m => {
+      pfltHold(true);
+      move(m);
+    };
     const up = e => {
-      removeEventListener('pointermove', move);
+      removeEventListener('pointermove', held);
       removeEventListener('pointerup', up);
       removeEventListener('pointercancel', up);
       end && end(e);
+      pfltHold(false);
     };
-    addEventListener('pointermove', move);
+    addEventListener('pointermove', held);
     addEventListener('pointerup', up);
     addEventListener('pointercancel', up);
   }
@@ -329,6 +334,7 @@
     if (!e || e.type !== 'text' || e.locked) return;
     const t = $('.txt', n);
     editing = t;
+    pfltHold(true);
     t.contentEditable = 'true';
     t.focus();
     const r = document.createRange();
@@ -352,6 +358,7 @@
       }
     }
     refresh({props: true});
+    pfltHold(false);
   }
   stageEl.addEventListener(
     'wheel',

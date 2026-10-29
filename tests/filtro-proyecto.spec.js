@@ -296,3 +296,101 @@ test('la sección tiene los presets, los ajustes manuales y Quitar filtro', asyn
   await page.click('#undo');
   expect(await page.evaluate(() => S.pflt.pal)).toBe('gb');
 });
+
+const contar = page =>
+  page.evaluate(() => {
+    window.__globales = 0;
+    const original = applyFilter;
+    window.applyFilter = (c, f) => {
+      if (f === S.pflt) window.__globales++;
+      return original(c, f);
+    };
+  });
+const vista = page =>
+  page.evaluate(() => [window.__globales, !!$('#page .pflt') && !$('#page .pflt').hidden]);
+
+test('durante un arrastre no se recalcula el filtro global; al soltar se recalcula una vez', async ({
+  page,
+}) => {
+  const problemas = await preparar(page);
+  await elegir(page, 'Gris');
+  await page.waitForFunction(() => $('#page .pflt') && !$('#page .pflt').hidden);
+  await contar(page);
+  const id = await page.evaluate(() => S.pages[0].els[1].id),
+    caja = await page.locator(`#page .el[data-id="${id}"]`).boundingBox(),
+    x = caja.x + caja.width / 2,
+    y = caja.y + caja.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  expect(await page.evaluate(() => S.sel)).toEqual([id]);
+  for (let k = 1; k <= 10; k++) await page.mouse.move(x + k * 6, y + k * 4);
+  await page.waitForTimeout(400);
+  for (let k = 11; k <= 20; k++) await page.mouse.move(x + k * 6, y + k * 4);
+  await page.waitForTimeout(400);
+  expect(await vista(page)).toEqual([0, false]);
+  await page.mouse.up();
+  await page.waitForTimeout(400);
+  expect(await vista(page)).toEqual([1, true]);
+  expect(await page.evaluate(id => [findEl(id).x, findEl(id).y], id)).not.toEqual([100, 600]);
+  expect(problemas).toEqual([]);
+});
+
+test('un ajuste del filtro se recalcula una sola vez tras 150 ms sin cambios', async ({page}) => {
+  await preparar(page);
+  await elegir(page, 'Gris');
+  await page.waitForFunction(() => $('#page .pflt') && !$('#page .pflt').hidden);
+  await contar(page);
+  await page.locator('#props [data-sec="pfadj"] > summary').click();
+  await page.locator('#props input[data-pf="b"]').evaluate(i => {
+    for (const v of [5, 10, 15, 20, 25]) {
+      i.value = String(v);
+      i.dispatchEvent(new Event('input', {bubbles: true}));
+    }
+  });
+  expect(await vista(page)).toEqual([0, false]);
+  await page.waitForTimeout(80);
+  expect(await vista(page)).toEqual([0, false]);
+  await page.waitForTimeout(400);
+  expect(await vista(page)).toEqual([1, true]);
+});
+
+test('la vista del lienzo muestra la página filtrada y deja pasar los clics', async ({page}) => {
+  await preparar(page);
+  await elegir(page, 'Gris');
+  await page.waitForFunction(() => $('#page .pflt') && !$('#page .pflt').hidden);
+  const r = await page.evaluate(() => {
+    const c = $('#page .pflt'),
+      d = c.getContext('2d').getImageData(c.width - 3, c.height - 3, 1, 1).data,
+      orden = [...pageEl.children].map(n => n.className);
+    return {gris: d[0] === d[1] && d[1] === d[2], orden, eventos: getComputedStyle(c).pointerEvents};
+  });
+  expect(r.gris).toBe(true);
+  expect(r.eventos).toBe('none');
+  expect(r.orden.indexOf('pflt')).toBeGreaterThan(r.orden.indexOf('clip'));
+  expect(r.orden.indexOf('pflt')).toBeLessThan(r.orden.indexOf('ovl'));
+  const id = await page.evaluate(() => S.pages[0].els[0].id);
+  await page.locator(`#page .el[data-id="${id}"]`).click({force: true});
+  expect(await page.evaluate(() => S.sel)).toEqual([id]);
+  await page.evaluate(() => {
+    S.sel = [];
+    refresh({props: true});
+  });
+  await page.locator('#props [data-sec="pflt"] #pfltreset').click();
+  expect(await page.evaluate(() => $('#page .pflt').hidden)).toBe(true);
+});
+
+test('al escribir en un texto del lienzo la vista se oculta y vuelve al terminar', async ({page}) => {
+  await preparar(page);
+  await elegir(page, 'Gris');
+  await page.waitForFunction(() => $('#page .pflt') && !$('#page .pflt').hidden);
+  await contar(page);
+  const id = await page.evaluate(() => S.pages[0].els[0].id);
+  await page.locator(`#page .el[data-id="${id}"]`).dblclick({force: true});
+  await page.keyboard.type('XY');
+  await page.waitForTimeout(300);
+  expect(await vista(page)).toEqual([0, false]);
+  await page.evaluate(() => endEdit());
+  await page.waitForTimeout(400);
+  expect(await vista(page)).toEqual([1, true]);
+  expect(await page.evaluate(id => findEl(id).text, id)).toBe('XY');
+});

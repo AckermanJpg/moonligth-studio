@@ -1,10 +1,62 @@
 // Stage
 (() => {
-  Object.assign(window, {place, textStyle, renderStage, renderOverlay, fitZoom, setZoom});
+  Object.assign(window, {place, textStyle, renderStage, renderOverlay, fitZoom, setZoom, pfltHold});
   const pageEl = $('#page'),
     wrapEl = $('#wrap'),
     stageEl = $('#stage');
   Object.assign(window, {pageEl, wrapEl, stageEl});
+  const pfltEl = cv(1, 1);
+  pfltEl.className = 'pflt';
+  pfltEl.hidden = true;
+  let pfltKey = '',
+    pfltT = 0,
+    pfltHeld = false,
+    capFor = '',
+    cap = 1;
+  const pfltOn = () => Object.keys(S.pflt).length > 0;
+  const pfltScale = () => Math.min(1, S.zoom * devicePixelRatio, cap);
+  const pfltSig = () =>
+    JSON.stringify([S.w, S.h, S.pflt, pfltScale(), pg()], (k, v) =>
+      typeof v === 'string' && v.length > 256 ? v.length + v.slice(-32) : v,
+    );
+  function pfltSync() {
+    clearTimeout(pfltT);
+    if (!pfltOn()) {
+      pfltEl.hidden = true;
+      pfltKey = '';
+      return;
+    }
+    pfltEl.hidden = pfltHeld || !!editing || pfltSig() !== pfltKey;
+    if (pfltEl.hidden) pfltT = setTimeout(pfltDraw, 150);
+  }
+  function pfltDraw() {
+    clearTimeout(pfltT);
+    if (pfltHeld || editing || !pfltOn()) return;
+    const ks = Object.keys(S.pflt).sort().join();
+    if (ks !== capFor) {
+      capFor = ks;
+      cap = 1;
+    }
+    const k = pfltSig();
+    if (k !== pfltKey) {
+      const sc = pfltScale(),
+        t0 = performance.now(),
+        c = renderPageCanvas(pg(), sc);
+      pfltEl.width = c.width;
+      pfltEl.height = c.height;
+      pfltEl.getContext('2d').drawImage(c, 0, 0);
+      const ms = performance.now() - t0;
+      if (ms > 100) cap = sc * Math.sqrt(80 / ms);
+      pfltKey = k;
+    }
+    pfltEl.hidden = false;
+  }
+  function pfltHold(on) {
+    pfltHeld = on;
+    if (!on) return pfltDraw();
+    clearTimeout(pfltT);
+    pfltEl.hidden = true;
+  }
   function textStyle(t, e) {
     Object.assign(t.style, {
       fontFamily: `"${e.font}",monospace`,
@@ -92,6 +144,7 @@
         e.h = nodes[e.id].offsetHeight || e.h;
       }
     });
+    pageEl.append(pfltEl);
     if (S.grid) {
       const g = document.createElement('div');
       g.className = 'gridov';
@@ -103,6 +156,7 @@
     pageEl.append(ov);
     renderOverlay();
     mediaSync();
+    pfltSync();
     pageEl.classList.toggle('transp', p.bg.pat === 'none');
     $('#sizechip').textContent = `${S.w} × ${S.h} px`;
     $('#zinfo').textContent = Math.round(S.zoom * 100) + '%';
