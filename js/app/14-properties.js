@@ -336,7 +336,7 @@
                 {
                   image: e.src ? 'Imagen' : 'Celda vacía',
                   media: e.kind === 'gif' ? 'GIF animado' : 'Video',
-                  sprite: 'Ícono ' + e.spr,
+                  sprite: 'Ícono ' + (SPRN[e.spr] || String(e.spr)).split(' ')[0],
                   line: 'Línea',
                   arrowl: 'Flecha',
                   qr: 'Código QR',

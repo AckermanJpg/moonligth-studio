@@ -112,3 +112,18 @@ for (const fecha of ['2026-06-10T12:00:00-06:00', '2026-10-31T12:00:00-06:00']) 
     });
   });
 }
+
+test('la lista de capas nombra los sprites en español, no con su clave interna', async ({page}) => {
+  await open(page);
+  await createProject(page, {style: 'pixel'});
+  await page.click('#rail [data-tab="elements"]');
+  for (const k of SPRITES) await page.click(`#panel [data-sprite="${k}"]`);
+  await page.evaluate(() => {
+    S.sel = [];
+    refresh({props: true});
+  });
+  const nombres = await page.locator('#props .layer').allTextContents();
+  expect(nombres.join('|')).toContain('Ícono calabaza');
+  expect(nombres.join('|')).toContain('Ícono sombrero');
+  for (const k of SPRITES) expect(nombres.join('|'), k).not.toContain(`Ícono ${k}`);
+});
