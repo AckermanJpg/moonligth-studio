@@ -147,7 +147,9 @@ test('en temporada no hay un segundo acento cálido: --gold pasa a la familia mo
   ]) {
     await page.clock.setFixedTime(new Date(fecha));
     await open(page);
-    const gold = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--gold').trim());
+    const gold = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--gold').trim(),
+    );
     if (activo) {
       expect(tono(gold)).toBeGreaterThanOrEqual(240);
       expect(tono(gold)).toBeLessThanOrEqual(300);
@@ -155,7 +157,9 @@ test('en temporada no hay un segundo acento cálido: --gold pasa a la familia mo
   }
 });
 
-test('la vista previa «?» del inicio usa los colores del tema y fuera de temporada no cambia', async ({page}) => {
+test('la vista previa «?» del inicio usa los colores del tema y fuera de temporada no cambia', async ({
+  page,
+}) => {
   for (const [fecha, activo] of [
     ['2026-10-31T12:00:00-06:00', true],
     ['2026-06-10T12:00:00-06:00', false],

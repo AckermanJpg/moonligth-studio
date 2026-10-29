@@ -36,19 +36,37 @@ function medir() {
   ];
   const estrella = (r, g, b) =>
     ESTRELLAS.some(e => Math.abs(e[0] - r) + Math.abs(e[1] - g) + Math.abs(e[2] - b) <= 6);
-  const deco = [];
+  const deco = [],
+    luna = [],
+    caja = [Infinity, Infinity, -Infinity, -Infinity];
   if (window.MoonStars && document.getElementById('home').classList.contains('on')) {
     const c = MoonStars.canvas,
+      k = c.width / innerWidth,
       d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
       vistos = new Set();
     for (let i = 0; i < d.length; i += 4) {
-      if (!d[i + 3]) continue;
-      const rgb = `${d[i]},${d[i + 1]},${d[i + 2]}`;
-      if (estrella(d[i], d[i + 1], d[i + 2]) || vistos.has(rgb + ',' + d[i + 3])) continue;
-      vistos.add(rgb + ',' + d[i + 3]);
-      deco.push([d[i], d[i + 1], d[i + 2], d[i + 3] / 255]);
+      if (!d[i + 3] || estrella(d[i], d[i + 1], d[i + 2])) continue;
+      const clara = lum([d[i], d[i + 1], d[i + 2]]) > 0.1;
+      if (clara) {
+        const p = i / 4,
+          px = (p % c.width) / k,
+          py = Math.floor(p / c.width) / k;
+        caja[0] = Math.min(caja[0], px);
+        caja[1] = Math.min(caja[1], py);
+        caja[2] = Math.max(caja[2], px + 1 / k);
+        caja[3] = Math.max(caja[3], py + 1 / k);
+      }
+      const clave = `${clara}:${d[i]},${d[i + 1]},${d[i + 2]},${d[i + 3]}`;
+      if (vistos.has(clave)) continue;
+      vistos.add(clave);
+      (clara ? luna : deco).push([d[i], d[i + 1], d[i + 2], d[i + 3] / 255]);
     }
   }
+  const tocaLuna = el => {
+    if (!luna.length) return false;
+    const r = el.getBoundingClientRect();
+    return r.right > caja[0] && r.left < caja[2] && r.bottom > caja[1] && r.top < caja[3];
+  };
   const capas = el => {
     const L = [];
     for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
@@ -70,6 +88,7 @@ function medir() {
     return L;
   };
   const fondos = el => {
+    const extra = tocaLuna(el) ? [...deco, ...luna] : deco;
     const L = capas(el).reverse();
     let fs = [[255, 255, 255, 1]];
     for (const c of L) {
@@ -85,7 +104,7 @@ function medir() {
         }
         base = mix;
       }
-      if (c.home) base = [...base, ...base.flatMap(f => deco.map(d => sobre(d, f)))];
+      if (c.home) base = [...base, ...base.flatMap(f => extra.map(d => sobre(d, f)))];
       fs = [...new Set(base.map(f => f.map(v => Math.round(v)).join()))].map(s => s.split(',').map(Number));
       if (fs.length > 64) fs = fs.slice(0, 64);
     }
@@ -140,22 +159,54 @@ function medir() {
       );
     }
   }
-  return {fallas, revisados: textos.length, deco: deco.length};
+  return {fallas, revisados: textos.length, deco: deco.length + luna.length, luna: luna.length};
+}
+
+async function quieta(page) {
+  await page.evaluate(async () => {
+    const corriendo = () =>
+      document
+        .getAnimations()
+        .filter(
+          a => a.playState === 'running' && a.effect && a.effect.getComputedTiming().endTime !== Infinity,
+        );
+    const cuadros = () => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+    for (let quietas = 0; quietas < 2;) {
+      const a = corriendo();
+      if (a.length) {
+        quietas = 0;
+        await Promise.all(a.map(x => x.finished.catch(() => {})));
+      } else quietas++;
+      await cuadros();
+    }
+  });
+}
+
+async function desplazar(page, y) {
+  await page.evaluate(
+    y =>
+      new Promise(res => {
+        home.scrollTop = y;
+        requestAnimationFrame(() => requestAnimationFrame(res));
+      }),
+    y,
+  );
 }
 
 async function revisar(page, nombre, todas) {
-  await page.evaluate(() =>
-    Promise.all(
-      document
-        .getAnimations()
-        .filter(a => a.effect && a.effect.getComputedTiming().endTime !== Infinity)
-        .map(a => a.finished.catch(() => {})),
-    ),
-  );
-  const r = await page.evaluate(medir);
-  expect(r.revisados, nombre).toBeGreaterThan(0);
-  if (nombre.startsWith('inicio')) expect(r.deco, nombre).toBeGreaterThan(0);
-  todas.push(...r.fallas.map(f => `${nombre}: ${f}`));
+  await quieta(page);
+  const inicio = nombre.startsWith('inicio'),
+    alto = inicio ? await page.evaluate(() => home.scrollHeight - home.clientHeight) : 0,
+    medirEn = async y => {
+      if (inicio) await desplazar(page, y);
+      const r = await page.evaluate(medir);
+      expect(r.revisados, nombre).toBeGreaterThan(0);
+      if (inicio) expect(r.deco, nombre).toBeGreaterThan(0);
+      todas.push(...r.fallas.map(f => `${nombre} (scroll ${y}): ${f}`));
+      return r;
+    };
+  for (const y of inicio ? [0, Math.round(alto / 2), alto] : [0]) await medirEn(y);
+  if (inicio) await desplazar(page, 0);
 }
 
 const PESTANAS = [
