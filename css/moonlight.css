@@ -2456,3 +2456,85 @@ details.sec > :not(summary) {
     animation: none !important;
   }
 }
+:root[data-temporada="halloween"] {
+  --ink: #0a0820;
+  --deep: #130c36;
+  --navy: #1e1250;
+  --blue: #3b1d7a;
+  --royal: #7b3fe4;
+  --cyan: #ff8c1a;
+  --ice: #ffe9d1;
+  --white: #fff8f0;
+  --mute: #c7a6ff;
+  --field: #0d0828;
+}
+[data-temporada="halloween"] #home {
+  background: radial-gradient(circle at 15% 0, #2a1458, var(--ink) 65%);
+}
+[data-temporada="halloween"] #home::before {
+  background: linear-gradient(
+      112deg,
+      transparent 0 7%,
+      rgba(255, 140, 26, 0) 7%,
+      rgba(255, 140, 26, 0.08) 13%,
+      transparent 13.4%
+    ),
+    linear-gradient(
+      112deg,
+      transparent 0 55%,
+      rgba(255, 140, 26, 0) 55%,
+      rgba(255, 140, 26, 0.16) 63%,
+      transparent 63.4%
+    ),
+    linear-gradient(
+      112deg,
+      transparent 0 66%,
+      rgba(255, 140, 26, 0) 66%,
+      rgba(255, 140, 26, 0.1) 69%,
+      transparent 69.3%
+    ),
+    linear-gradient(
+      112deg,
+      transparent 0 74%,
+      rgba(255, 140, 26, 0) 74%,
+      rgba(255, 140, 26, 0.2) 83%,
+      transparent 83.4%
+    ),
+    linear-gradient(
+      112deg,
+      transparent 0 89%,
+      rgba(255, 140, 26, 0) 89%,
+      rgba(255, 140, 26, 0.12) 92%,
+      transparent 92.3%
+    );
+}
+[data-temporada="halloween"] #stage {
+  background: radial-gradient(circle at 50% 0, #2a1458, var(--ink) 72%);
+}
+[data-temporada="halloween"] input[type="number"]:focus,
+[data-temporada="halloween"] input[type="text"]:focus,
+[data-temporada="halloween"] select:focus,
+[data-temporada="halloween"] textarea:focus {
+  background: #1a0d40;
+}
+[data-temporada="halloween"] .marq {
+  background: rgba(255, 140, 26, 0.12);
+}
+@media (max-width: 1000px) {
+  [data-temporada="halloween"] #rail {
+    background:
+      linear-gradient(to right, var(--deep) 30%, transparent) 0 0 / 40px 100% no-repeat local,
+      linear-gradient(to left, var(--deep) 30%, transparent) 100% 0 / 40px 100% no-repeat local,
+      linear-gradient(to right, rgba(255, 140, 26, 0.55), transparent) 0 0 / 16px 100% no-repeat scroll,
+      linear-gradient(to left, rgba(255, 140, 26, 0.55), transparent) 100% 0 / 16px 100% no-repeat scroll,
+      var(--deep);
+  }
+}
+[data-temporada="halloween"] #props {
+  background: #160c3c;
+}
+[data-temporada="halloween"] .chk {
+  background-color: #22164d;
+  background-image: linear-gradient(45deg, #33236b 25%, transparent 25%, transparent 75%, #33236b 75%),
+    linear-gradient(45deg, #33236b 25%, transparent 25%, transparent 75%, #33236b 75%);
+}
