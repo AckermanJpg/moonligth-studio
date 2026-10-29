@@ -1,5 +1,15 @@
 window.MoonNews = [
   {
+    v: '1.6.0',
+    date: '2026-10-29',
+    notes: [
+      'Ahora puedes seguir a Moonlight Studio en Instagram: el enlace está en el inicio y en la Ayuda.',
+      'Nuevo botón Compartir en Exportar: desde el celular mandas tu diseño a Instagram u otras apps con el menú de compartir de tu teléfono.',
+      'Compartir funciona con PNG, JPG o WEBP de la página actual y aparece solo en los navegadores que lo permiten. Descargar sigue igual.',
+      'Si el teléfono pide un segundo toque, el botón cambia a «Compartir ahora» con tu imagen ya lista.',
+    ],
+  },
+  {
     v: '1.5.0',
     date: '2026-10-29',
     notes: [

@@ -192,9 +192,9 @@ Dado el tamaño final, el de la hoja, el margen y el traslape, se calcula cuánt
 
 ## Versiones
 
-Versión actual: **1.5.0** (2026-10-29). Agrega el filtro del proyecto: los mismos presets y ajustes del filtro de imagen, aplicados sobre todo lo que se ve en todas las páginas, en el lienzo y en todas las exportaciones. Se guarda con el proyecto y se puede deshacer.
+Versión actual: **1.6.0** (2026-10-29). Agrega el enlace a la cuenta de Instagram del proyecto (en el inicio y en la Ayuda) y el botón Compartir en Exportar, que manda la imagen de la página actual al menú de compartir del sistema en los navegadores que lo permiten.
 
-Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.5.0`, `v1.4.0`, `v1.3.1`, `v1.3.0`, `v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
+Cada tanda de cambios publicada es una versión, con su etiqueta anotada en git (`v1.6.0`, `v1.5.0`, `v1.4.0`, `v1.3.1`, `v1.3.0`, `v1.2.0`, `v1.1.0`, `v1.0.0`). El detalle técnico de cada cambio, con sus commits y mediciones, está en el [registro de cambios](CHANGELOG.md). Una prueba comprueba que las notas sencillas de `js/novedades.js` y las del registro dicen lo mismo.
 
 ## Estado del proyecto
 

@@ -4,6 +4,25 @@ Cada versión corresponde a una tanda de cambios publicada con un solo push. Los
 
 La sección «Para quien usa Moonlight» es la que aparece en el botón Novedades de la página, palabra por palabra. Debajo va el detalle técnico de cada cambio, con el commit que lo hizo y, cuando hay, la medición.
 
+## [1.6.0] - 2026-10-29
+
+### Para quien usa Moonlight
+
+- Ahora puedes seguir a Moonlight Studio en Instagram: el enlace está en el inicio y en la Ayuda.
+- Nuevo botón Compartir en Exportar: desde el celular mandas tu diseño a Instagram u otras apps con el menú de compartir de tu teléfono.
+- Compartir funciona con PNG, JPG o WEBP de la página actual y aparece solo en los navegadores que lo permiten. Descargar sigue igual.
+- Si el teléfono pide un segundo toque, el botón cambia a «Compartir ahora» con tu imagen ya lista.
+
+### Agregado
+
+- Enlace «Instagram» a https://www.instagram.com/moonlight___studio__/ con `aria-label="Moonlight Studio en Instagram"`, `target="_blank"` y `rel="noopener noreferrer"`. Va en el encabezado del inicio, tanto en el HTML estático de `index.html` como en la plantilla de `renderHome` (constante `IG_LINK`), y en la Guía rápida, en la sección «Instagram». No se agregó nada a las barras del editor. `a.btn` recibe `display: inline-block` y `text-decoration: none` para verse igual que los otros botones. No hizo falta tocar la CSP, porque abrir un enlace es navegación, no una conexión (6fa0845).
+- Botón «Compartir» en Exportar, debajo de Descargar, con PNG, JPG o WEBP y «Página actual». Aparece solo si la página no se abrió como `file://` y `navigator.canShare` acepta un `File` PNG de prueba. Si no, el botón no se dibuja y Descargar sigue igual. La imagen sale de `pageImage`, la misma función que ahora usa `doExport` para cada página, y se comparte como `File` con el nombre `slug(S.name)` + extensión y el tipo del blob. Con `NotAllowedError` (el navegador ya no acepta el gesto), el botón pasa a «Compartir ahora» y guarda el archivo generado; el segundo toque lo comparte sin generarlo de nuevo, salvo que el diseño o las opciones de exportar hayan cambiado. Con `AbortError` (la persona cierra el menú) no se avisa nada. Cualquier otro error avisa «No se pudo compartir; usa Descargar». No se usa ninguna API de Instagram (22cfae9).
+- Pruebas `tests/compartir.spec.js` (12), con `navigator.share` y `canShare` simulados: el enlace en el inicio (paso 1 y paso 2), en la Ayuda desde el inicio y desde el editor, y ausente en las barras del editor; «Compartir» con PNG, JPG y WEBP, pero no con «Todas», PDF, GIF ni video; sin `canShare`, con `canShare` en false o abierto como `file://`, el botón no existe; el `File` compartido tiene el nombre, el tipo y los mismos bytes que el archivo de Descargar, en PNG, JPG y WEBP; `NotAllowedError` y luego el mismo `File` en el segundo toque; con el diseño cambiado se genera otro; `AbortError` sin aviso; otro error con aviso, y Descargar sigue funcionando.
+
+### Cambiado
+
+- `doExport` genera cada página con la nueva `pageImage(i)` en vez del bucle en línea. El resultado es el mismo: las pruebas de exportar y de filtro del proyecto (PNG idéntico píxel a píxel) siguen en verde (22cfae9).
+
 ## [1.5.0] - 2026-10-29
 
 ### Para quien usa Moonlight
